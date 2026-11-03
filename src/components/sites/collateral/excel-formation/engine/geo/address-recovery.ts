@@ -153,7 +153,7 @@ function decode(words: Word[], knowledge: GeoKnowledge): Solution {
     });
   });
   const endScore = (state: State) => W.bigram * Math.log(knowledge.pBigram(lm(state), "$"));
-  for (let i = n - 1; i >= 0; i--) back[i] = active[i].map((state, s) => i === n - 1 ? endScore(state) : Math.max(...active[i + 1].map((next, q) => trans(state, next) + stateScore(next) + back[i + 1][q])));
+  for (let i = n - 1; i >= 0; i--) back[i] = active[i].map((state) => i === n - 1 ? endScore(state) : Math.max(...active[i + 1].map((next, q) => trans(state, next) + stateScore(next) + back[i + 1][q])));
   const totals = active[n - 1].map((state, s) => forward[n - 1][s] + back[n - 1][s]);
   const path: number[] = new Array(n);
   path[n - 1] = totals.indexOf(Math.max(...totals));
