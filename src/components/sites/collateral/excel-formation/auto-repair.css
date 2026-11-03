@@ -6,3 +6,19 @@
 .cr-auto-result dl > div { display: flex; justify-content: space-between; gap: 16px; }
 .cr-auto-result dd { margin: 0; font-variant-numeric: tabular-nums; }
 .cr-auto-result .ui-sb-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Policy choice: two cards with one selection ring that glides between them (UIArc radio cards behaviour, our own markup). */
+.cr-policy { display: grid; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.cr-policy legend { margin-bottom: 8px; padding: 0; color: var(--muted); font-size: 12px; }
+.cr-policy__card { position: relative; isolation: isolate; display: flex; align-items: start; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); cursor: pointer; transition: border-color .16s; }
+.cr-policy__card:hover { border-color: var(--line-strong); }
+.cr-policy__card input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.cr-policy__ring { position: absolute; z-index: -1; inset: -1px; border: 1.5px solid var(--ink); border-radius: inherit; background: color-mix(in oklab, var(--ink) 3%, transparent); pointer-events: none; }
+.cr-policy__dot { flex: none; display: grid; place-items: center; width: 18px; height: 18px; margin-top: 1px; border: 1.5px solid var(--line-strong); border-radius: 50%; color: transparent; background: var(--card); transition: background-color .16s, border-color .16s, color .16s; }
+.cr-policy__card[data-selected] .cr-policy__dot { border-color: var(--ink); background: var(--ink); color: var(--card); }
+.cr-policy__text { display: grid; gap: 3px; min-width: 0; }
+.cr-policy__text b { color: var(--ink); font-size: 13px; font-weight: 550; }
+.cr-policy__text small { color: var(--muted); font-size: 12px; line-height: 1.55; }
+.cr-policy__card:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+.cr-policy__foot { display: flex; justify-content: end; }
+@media (prefers-reduced-motion: reduce) { .cr-policy__card, .cr-policy__dot { transition: none; } }

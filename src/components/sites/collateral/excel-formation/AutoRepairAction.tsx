@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Wand2 } from "lucide-react";
+import { Check, Wand2 } from "lucide-react";
+import { LayoutGroup, motion, useReducedMotion } from "motion/react";
+import { motionTokens } from "../../uiarc/motion-tokens";
 import { WorkspaceDialog } from "../../affectui-crm/WorkspaceDialog";
 import { Button } from "../../uiarc/button/Button";
 import type { CollateralEngine } from "../useCollateralEngine";
@@ -11,6 +13,10 @@ import type { GeoStatus, RepairPolicy } from "./engine/geo/address-recovery";
 import "./auto-repair.css";
 
 const STAGE: Record<RepairProgress["stage"], string> = { evidence_index: "Lập chỉ mục bằng chứng", candidate_generation: "Quét toàn bộ ô và tìm ứng viên", validation: "Kiểm tra các thay đổi", patch: "Vá bản sao Excel", package_verification: "Đối chiếu ô và cấu trúc XLSX", download: "Chuẩn bị tải xuống" };
+const POLICIES: { id: RepairPolicy; title: string; body: string }[] = [
+  { id: "FORCE_NO_QUESTION_MARK", title: "Không để lại dấu ?", body: "Chọn phương án tốt nhất cho mọi từ bị mất ký tự và ghi lại từng chỗ đoán." },
+  { id: "SAFE_AUTO", title: "An toàn", body: "Chỉ sửa chỗ đủ tin cậy; phần còn lại giữ nguyên dấu ?." },
+];
 type Result = { fileName: string; blob: Blob; report: RepairReport; geoAudit: GeoAuditEntry[]; geoUnavailable?: string };
 const GEO_STATUS: Record<GeoStatus, string> = {
   verified_official: "Khớp đơn vị hành chính chính thức", verified_internal_match: "Khớp bản ghi sạch trong tệp", high_confidence_auto: "Độ tin cậy cao", contextual_auto: "Khớp tên trong dữ liệu địa lý theo ngữ cảnh",
@@ -37,7 +43,7 @@ const REASON: Record<string, string> = {
 export function AutoRepairAction({ engine, onPreview, disabled = false }: { engine: CollateralEngine; onPreview: () => void; disabled?: boolean }) {
   const [open, setOpen] = useState(false), [running, setRunning] = useState(false), [cancelling, setCancelling] = useState(false);
   const [result, setResult] = useState<Result | null>(null), [failed, setFailed] = useState(false), [policy, setPolicy] = useState<RepairPolicy>("FORCE_NO_QUESTION_MARK");
-  const p = engine.repairProgress;
+  const p = engine.repairProgress, reduce = useReducedMotion();
   const reportFile = (r: Result) => ({ name: r.fileName.replace(/\.repaired\.xlsx$/i, ".repair-report.json"), blob: new Blob([JSON.stringify(r.report, null, 2) + "\n"], { type: "application/json" }) });
   async function run() {
     setOpen(true); setRunning(true); setCancelling(false); setResult(null); setFailed(false);
@@ -56,11 +62,15 @@ export function AutoRepairAction({ engine, onPreview, disabled = false }: { engi
     <WorkspaceDialog open={open} title="Tự động sửa Excel" onClose={close}>
       <div className="cr-auto-result" aria-busy={running}>
         <p>Xử lý tại thiết bị, không tải dữ liệu lên mạng. Bản gốc được giữ nguyên.</p>
-        {!running && !result && <fieldset className="cr-auto-policy"><legend>Với đoạn địa chỉ bị mất ký tự</legend>
-          <label><input type="radio" name="repair-policy" checked={policy === "FORCE_NO_QUESTION_MARK"} onChange={() => setPolicy("FORCE_NO_QUESTION_MARK")} /> Không để lại dấu ? — chọn phương án tốt nhất và ghi lại mọi chỗ đoán</label>
-          <label><input type="radio" name="repair-policy" checked={policy === "SAFE_AUTO"} onChange={() => setPolicy("SAFE_AUTO")} /> An toàn — chỉ sửa chỗ đủ tin cậy, phần còn lại giữ nguyên dấu ?</label>
-          <Button variant="primary" size="sm" onClick={() => void run()}>Bắt đầu sửa</Button>
-        </fieldset>}
+        {!running && !result && <><fieldset className="cr-policy"><legend>Với đoạn địa chỉ bị mất ký tự</legend>
+          <LayoutGroup id="cr-policy">{POLICIES.map(item => <label key={item.id} className="cr-policy__card" data-selected={policy === item.id || undefined}>
+            <input type="radio" name="repair-policy" value={item.id} checked={policy === item.id} onChange={() => setPolicy(item.id)} />
+            {policy === item.id && <motion.span className="cr-policy__ring" layoutId="ring" aria-hidden="true" transition={reduce ? { duration: 0 } : motionTokens.spring.morph} />}
+            <span className="cr-policy__dot" aria-hidden="true"><Check size={12} strokeWidth={3} /></span>
+            <span className="cr-policy__text"><b>{item.title}</b><small>{item.body}</small></span>
+          </label>)}</LayoutGroup>
+        </fieldset>
+        <div className="cr-policy__foot"><Button variant="primary" size="sm" onClick={() => void run()}>Bắt đầu sửa</Button></div></>}
         {running && <div role="status" aria-live="polite">
           <p>{p ? STAGE[p.stage] : "Bắt đầu xử lý"}</p>
           {p && <><progress max={Math.max(1, p.totalRows)} value={p.processedRows} aria-label="Số dòng đã xử lý trong giai đoạn hiện tại" /><p>{p.processedRows.toLocaleString()} / {p.totalRows.toLocaleString()} dòng · {p.applied.toLocaleString()} đủ bằng chứng · {p.unresolved.toLocaleString()} cần xem lại · {(p.elapsedMs / 1000).toFixed(1)} s</p></>}

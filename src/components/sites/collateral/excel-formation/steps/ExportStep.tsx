@@ -1,19 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Check, Download, RotateCcw, Undo2, Redo2, ListChecks } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion, type Variants } from "motion/react";
+import { Check, ChevronDown, ChevronUp, Download, ListChecks, Play, Redo2, RotateCcw, Undo2 } from "lucide-react";
 import { useWorkspaceI18n } from "@/components/sites/i18n/WorkspaceI18n";
 import { Button } from "../../../uiarc/button/Button";
 import { FloatingButtonGroup } from "../../../uiarc/floating-button-group/FloatingButtonGroup";
+import SegmentedControl from "../../../uiarc/segmented-control/SegmentedControl";
 import { motionTokens } from "../../../uiarc/motion-tokens";
 import type { CollateralEngine } from "../../useCollateralEngine";
 import type { GridMeta, ReviewView } from "../../engine/protocol";
 import type { Patch } from "../engine/review";
 import { columnLetters } from "../engine/text";
 import { wordsOfChange } from "../engine/applied-change";
-import { IssueGallery, type GalleryItem } from "../gallery/IssueGallery";
-import type { SheetData } from "../gallery/SheetViewer";
+import { SheetViewer, type SheetData } from "../gallery/SheetViewer";
+import "../gallery/sheet-viewer.css";
+import { wordDiff, type DiffPart } from "../word-diff";
 import { SpeculativeRun } from "../gallery/SpeculativeRun";
 import { previewCells, previewKey, type PreviewCell } from "../preview-model";
 import { downloadBlob } from "../../download";
@@ -89,10 +91,6 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
     const own = bySheet[meta.sheet];
     return { meta, loadRows, loadSheetMeta: loadMeta, issueCells: own?.issueCells ?? new Map(), issueRows: own?.issueRows ?? [], changes: own?.changes, bySheet, epoch: 0 };
   }, [meta, all, loadRows, loadMeta]);
-  const items = useMemo<GalleryItem[]>(() => cells.map(cell => ({
-    issue: { id: cell.key, sheet: cell.sheet, row: cell.row, col: cell.col, column: columnLetters(cell.col), field: cell.field || columnLetters(cell.col), originalValue: cell.before },
-    text: variant === "original" ? cell.before : cell.after, tone: cell.needsReview ? "red" : "plain",
-  })), [cells, variant]);
   const selectCell = useCallback(async (row: number, col: number, sheet?: string) => {
     const name = sheet ?? meta?.sheet;
     if (!name) return;
@@ -144,35 +142,98 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
   const predictions = useMemo(() => selected ? wordsOfChange(selected.before, selected.after) : [], [selected]);
   const locked = engine.busy || exporting || !ready;
 
-  return <div className="fp" aria-busy={!current || exporting}>
-    <header className="fp-header"><div><span className="fp-eyebrow">{t("Final preview")}</span><h3>{t("Your workbook, before you export")}</h3><p>{t("Compare the original and edited values. Click a cell to review it; only Expand opens fullscreen.")}</p></div><span className="fp-badge">{t(downloadedView === view ? "Downloaded" : "Not exported")}</span></header>
-    <dl className="fp-facts"><div><dt>{t("Worksheets")}</dt><dd>{result.sheetScans.length}</dd></div><div><dt>{t("Changed cells")}</dt><dd>{ready ? patches.length.toLocaleString() : "…"}</dd></div><div data-warning={pending > 0 || undefined}><dt>{t("Cells needing review")}</dt><dd>{pending.toLocaleString()}</dd></div></dl>
+  const [replay, setReplay] = useState(false);
+  useEffect(() => { setReplay(false); }, [selected?.key]);
+  const changedCount = all.filter(cell => cell.before !== cell.after).length;
+  const diff = useMemo(() => selected ? wordDiff(selected.before, draft) : null, [selected, draft]);
+  const move = (delta: number) => { const next = cells[(index + delta + cells.length) % cells.length]; if (next) setPicked(next.key); };
+  const ease = [...motionTokens.ease.enter] as [number, number, number, number];
+  const group: Variants = { hidden: {}, show: { transition: { staggerChildren: reduce ? 0 : .07, delayChildren: .04 } } };
+  const block: Variants = reduce ? { hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: .12 } } }
+    : { hidden: { opacity: 0, y: 14, filter: "blur(4px)" }, show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: .52, ease } } };
+  const status = selected ? t(selected.needsReview ? "Needs review" : selected.before !== selected.after ? "Changed" : "Unchanged") : "";
+
+  return <motion.div className="fp" aria-busy={!current || exporting} variants={group} initial="hidden" animate="show">
+    <motion.header className="fp-header" variants={block}><div><span className="fp-eyebrow">{t("Final preview")}</span><h3>{t("Your workbook, before you export")}</h3><p>{t("Compare the original and edited values. Click a cell to review it; only Expand opens fullscreen.")}</p></div><span className="fp-badge" data-done={downloadedView === view || undefined}><Count value={t(downloadedView === view ? "Downloaded" : "Not exported")} /></span></motion.header>
+    <motion.dl className="fp-facts" variants={block}>
+      <div><dt>{t("Worksheets")}</dt><dd><Count value={String(result.sheetScans.length)} /></dd></div>
+      <div><dt>{t("Changed cells")}</dt><dd><Count value={ready ? changedCount.toLocaleString() : "…"} /></dd></div>
+      <div data-warning={pending > 0 || undefined}><dt>{t("Cells needing review")}</dt><dd><Count value={pending.toLocaleString()} /></dd></div>
+    </motion.dl>
     {ready && !patches.length && <p className="fp-message" role="status">{t("This preview has no changed cells. Export will contain the original values.")}</p>}
     {(!current || current && snapshot.error) && <div className="fp-message" role={current ? "alert" : "status"}>{current ? snapshot.error : t("Loading the latest workbook changes…")}{current && <Button variant="secondary" size="sm" onClick={() => setRetry(value => value + 1)}>{t("Retry")}</Button>}</div>}
-    <div className="fp-options">
-      <div className="fp-segment" role="group" aria-label={t("Workbook version")}>{(["original", "edited"] as const).map(value => <button type="button" key={value} aria-pressed={variant === value} onClick={() => setVariant(value)}>{t(value === "original" ? "Original file" : "Edited preview")}</button>)}</div>
-      <label className="fp-filter"><span>{t("Show cells")}</span><select value={filter} onChange={event => { setFilter(event.target.value as typeof filter); setPicked(""); }}><option value="all">{t("All changes and issues")}</option><option value="changed">{t("Changed cells")}</option><option value="review">{t("Needs review")}</option></select></label>
+    <motion.div className="fp-options" variants={block}>
+      <SegmentedControl label={t("Workbook version")} value={variant} onValueChange={value => setVariant(value as typeof variant)} options={[{ value: "original", label: t("Original file") }, { value: "edited", label: t("Edited preview") }]} />
+      <SegmentedControl label={t("Show cells")} value={filter} onValueChange={value => { setFilter(value as typeof filter); setPicked(""); }} options={[
+        { value: "all", label: t("All"), accessory: <span className="fp-pill">{all.length.toLocaleString()}</span> },
+        { value: "changed", label: t("Changed"), accessory: <span className="fp-pill">{changedCount.toLocaleString()}</span> },
+        { value: "review", label: t("Needs review"), accessory: <span className="fp-pill" data-warning={pending > 0 || undefined}>{pending.toLocaleString()}</span> },
+      ]} />
       <span className="fp-legend"><i />{t("Changed")}<i data-warning />{t("Needs review")}</span>
-    </div>
+    </motion.div>
     {grid?.sheet === sheetName && grid.error && <div className="fp-message" role="alert">{t("Could not load the worksheet.")}<Button variant="secondary" size="sm" onClick={() => setRetry(value => value + 1)}>{t("Retry")}</Button></div>}
-    {ready && <IssueGallery items={items} index={index} onIndex={index => { if (cells[index]) setPicked(cells[index].key); }} sheet={sheet} onSelectCell={(row, col, sheet) => { void selectCell(row, col, sheet); }} override={selected && variant === "edited" && drafts[selected.key] !== undefined ? draft : undefined} />}
-    {ready && !meta && !grid?.error && <p role="status">{t("Loading worksheet…")}</p>}
-    <AnimatePresence mode="wait" initial={false}>{selected && ready && <motion.section key={selected.key} className="fp-editor" initial={reduce ? false : { opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={reduce ? { duration: 0 } : { duration: .16, ease: [...motionTokens.ease.enter] }}>
-      <header><h4>{selected.sheet} · {columnLetters(selected.col)}{selected.row}</h4><span className="fp-badge" data-warning={selected.needsReview || undefined}>{t(selected.needsReview ? "Needs review" : selected.before !== selected.after ? "Changed" : "Unchanged")}</span></header>
-      <div className="fp-comparison"><div><label htmlFor="fp-original">{t("Original value")}</label><textarea id="fp-original" value={selected.before} readOnly spellCheck={false} /></div><div><label htmlFor="fp-edited">{t("Edited value")}</label><textarea id="fp-edited" value={draft} onChange={event => updateDraft(event.target.value)} disabled={locked} spellCheck={false} maxLength={32767} aria-describedby="fp-draft-hint" /></div></div>
-      <div className="fp-edit-actions"><p id="fp-draft-hint">{t("Saving changes only updates this preview. The original workbook is preserved.")}</p><Button variant="ghost" size="sm" disabled={locked || draft === selected.before} onClick={() => updateDraft(selected.before)}><RotateCcw size={14} />{t("Restore original")}</Button><Button variant="secondary" size="sm" disabled={locked || drafts[selected.key] === undefined} onClick={() => clearDraft(selected.key)}>{t("Discard draft")}</Button><Button variant="primary" size="sm" disabled={locked || drafts[selected.key] === undefined} onClick={() => void save()}><Check size={14} />{t("Save cell")}</Button></div>
-      <SpeculativeRun key={`${selected.key}:${selected.after}`} predictions={predictions} picks={{}} text={selected.after} variant="preview" title="Before and after" />
-    </motion.section>}</AnimatePresence>
-    {pending > 0 && <p className="fp-warning" role="status">{t("{0} cells still need review. Export includes their current values; it does not certify that they are correct.", [pending])}</p>}
-    {dirty && <p className="fp-warning" role="status">{t("{0} unsaved cell drafts. Save or discard them before leaving or exporting.", [Object.keys(drafts).length])}</p>}
-    <label className="fp-approval"><input type="checkbox" checked={approvedView === view} disabled={locked || dirty} onChange={event => setApprovedView(event.target.checked ? view : null)} /><span>{t("I reviewed this version and approve exporting it, including any remaining issues.")}</span></label>
-    {error && <p className="fp-warning" role="alert">{error}</p>}
-    {downloadedView === view && <p className="fp-success" role="status"><Check size={15} />{t("This version passed export verification and was downloaded.")}</p>}
-    <div className="fp-floating"><FloatingButtonGroup label={t("Preview actions")} actions={[
-      { id: "undo", label: t("Undo"), icon: <Undo2 size={16} />, disabled: locked || dirty || !view.canUndo, onClick: () => { void engine.undo(); } },
-      { id: "redo", label: t("Redo"), icon: <Redo2 size={16} />, disabled: locked || dirty || !view.canRedo, onClick: () => { void engine.redo(); } },
-      { id: "review", label: t("Review remaining issues"), icon: <ListChecks size={16} />, disabled: locked || dirty, onClick: onReview },
-      { id: "export", label: t(exporting ? "Verifying export…" : "Approve and export"), icon: <Download size={16} />, primary: true, disabled: locked || dirty || approvedView !== view || !meta, onClick: () => { void approveExport(); } },
-    ]} /></div>
-  </div>;
+    <div className="fp-work">
+      <motion.section className="fp-sheet" variants={block} aria-label={t("Worksheet preview")} data-variant={variant}>
+        {ready && sheet && meta
+          ? <SheetViewer data={sheet} target={{ row: selected?.row ?? 1, col: selected?.col ?? 0, value: selected ? (variant === "edited" ? draft : selected.before) : "", preview: !!selected && variant === "edited" && drafts[selected.key] !== undefined }} mode="readable" onSelectCell={(row, col, name) => { void selectCell(row, col, name); }} />
+          : <div className="fp-skeleton" role="status" aria-label={t("Loading worksheet…")}><i /><i /><i /><i /></div>}
+      </motion.section>
+      <motion.aside className="fp-inspector" variants={block} aria-label={t("Cell inspector")}>
+        <header className="fp-inspector__top">
+          <span className="fp-inspector__label">{t("Cell inspector")}</span>
+          <span className="fp-nav" role="group" aria-label={t("Move between cells")}>
+            <button type="button" aria-label={t("Previous cell")} disabled={locked || cells.length < 2} onClick={() => move(-1)}><ChevronUp size={15} aria-hidden="true" /></button>
+            <span className="fp-nav__count" aria-live="polite"><Count value={cells.length ? `${index + 1} / ${cells.length}` : "0 / 0"} /></span>
+            <button type="button" aria-label={t("Next cell")} disabled={locked || cells.length < 2} onClick={() => move(1)}><ChevronDown size={15} aria-hidden="true" /></button>
+          </span>
+        </header>
+        <AnimatePresence mode="popLayout" initial={false}>
+          {selected && ready ? <motion.div className="fp-inspector__body" key={selected.key} initial={reduce ? false : { opacity: 0, y: 8, filter: "blur(3px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: reduce ? 0 : -6 }} transition={reduce ? { duration: 0 } : { duration: .3, ease }}>
+            <div className="fp-cellname"><h4>{selected.sheet} · {columnLetters(selected.col)}{selected.row}</h4><span className="fp-badge" data-warning={selected.needsReview || undefined} data-changed={(!selected.needsReview && selected.before !== selected.after) || undefined}>{status}</span></div>
+            <div className="fp-field"><span className="fp-field__label">{t("Original value")}</span><p className="fp-field__text" data-readonly><Marked parts={diff?.before ?? []} tone="removed" />{!selected.before && <em>{t("(empty)")}</em>}</p></div>
+            <div className="fp-field"><label className="fp-field__label" htmlFor="fp-edited">{t("Edited value")}</label>
+              <textarea id="fp-edited" value={draft} onChange={event => updateDraft(event.target.value)} disabled={locked} spellCheck={false} maxLength={32767} aria-describedby="fp-draft-hint" />
+              {draft !== selected.before && <p className="fp-field__text" data-diff aria-label={t("Words changed")}><Marked parts={diff?.after ?? []} tone="added" /></p>}</div>
+            <div className="fp-edit-actions">
+              <Button variant="ghost" size="sm" disabled={locked || draft === selected.before} onClick={() => updateDraft(selected.before)}><RotateCcw size={14} />{t("Restore original")}</Button>
+              <Button variant="secondary" size="sm" disabled={locked || drafts[selected.key] === undefined} onClick={() => clearDraft(selected.key)}>{t("Discard draft")}</Button>
+              <Button variant="primary" size="sm" disabled={locked || drafts[selected.key] === undefined} onClick={() => void save()}><Check size={14} />{t("Save cell")}</Button>
+            </div>
+            <p id="fp-draft-hint" className="fp-hint">{t("Saving changes only updates this preview. The original workbook is preserved.")}</p>
+            {predictions.some(word => word.broken) && <button type="button" className="fp-replay-toggle" aria-expanded={replay} onClick={() => setReplay(value => !value)}><Play size={13} aria-hidden="true" />{t(replay ? "Hide replay" : "Replay the change")}</button>}
+            <AnimatePresence initial={false}>{replay && <motion.div className="fp-replay" key="replay" initial={reduce ? false : { height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={reduce ? { duration: 0 } : motionTokens.spring.smooth}>
+              <SpeculativeRun key={`${selected.key}:${selected.after}`} predictions={predictions} picks={{}} text={selected.after} variant="preview" title="Before and after" />
+            </motion.div>}</AnimatePresence>
+          </motion.div> : <motion.p className="fp-inspector__empty" key="empty" role="status" initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>{t(ready ? "Pick a cell on the sheet to compare it here." : "Loading worksheet…")}</motion.p>}
+        </AnimatePresence>
+      </motion.aside>
+    </div>
+    <motion.div className="fp-notes" variants={block}>
+      {pending > 0 && <p className="fp-warning" role="status">{t("{0} cells still need review. Export includes their current values; it does not certify that they are correct.", [pending])}</p>}
+      {dirty && <p className="fp-warning" role="status">{t("{0} unsaved cell drafts. Save or discard them before leaving or exporting.", [Object.keys(drafts).length])}</p>}
+      <label className="fp-approval" data-checked={approvedView === view || undefined}><input type="checkbox" checked={approvedView === view} disabled={locked || dirty} onChange={event => setApprovedView(event.target.checked ? view : null)} /><span className="fp-approval__box" aria-hidden="true"><Check size={13} /></span><span>{t("I reviewed this version and approve exporting it, including any remaining issues.")}</span></label>
+      {error && <p className="fp-warning" role="alert">{error}</p>}
+      {downloadedView === view && <p className="fp-success" role="status"><Check size={15} />{t("This version passed export verification and was downloaded.")}</p>}
+    </motion.div>
+    <motion.div className="fp-floating" initial={reduce ? false : { opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={reduce ? { duration: 0 } : { ...motionTokens.spring.smooth, delay: .4 }}>
+      <FloatingButtonGroup variant="floating" label={t("Preview actions")} items={[
+        { id: "undo", label: t("Undo"), icon: <Undo2 />, iconOnly: true, disabled: locked || dirty || !view.canUndo, onSelect: () => { void engine.undo(); } },
+        { id: "redo", label: t("Redo"), icon: <Redo2 />, iconOnly: true, disabled: locked || dirty || !view.canRedo, onSelect: () => { void engine.redo(); } },
+        { type: "separator" },
+        { id: "review", label: t("Review remaining issues"), icon: <ListChecks />, disabled: locked || dirty, onSelect: onReview },
+        { id: "export", label: t(exporting ? "Verifying export…" : "Approve and export"), reserveLabels: [t("Approve and export"), t("Verifying export…")], icon: <Download />, primary: true, disabled: locked || dirty || approvedView !== view || !meta, onSelect: () => { void approveExport(); } },
+      ]} />
+    </motion.div>
+  </motion.div>;
+}
+
+/** A value that crossfades in place with a small rise and blur when it changes; the box keeps its place. */
+function Count({ value }: { value: string }) {
+  const reduce = useReducedMotion();
+  return <span className="fp-swap"><AnimatePresence mode="popLayout" initial={false}><motion.span key={value}
+    initial={reduce ? false : { opacity: 0, y: 6, filter: "blur(3px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: reduce ? 0 : -6, filter: reduce ? "blur(0px)" : "blur(3px)" }}
+    transition={{ duration: reduce ? .01 : .26, ease: [...motionTokens.ease.enter] as [number, number, number, number] }}>{value}</motion.span></AnimatePresence></span>;
+}
+function Marked({ parts, tone }: { parts: DiffPart[]; tone: "removed" | "added" }) {
+  return <>{parts.map((part, i) => part.changed ? <mark key={i} data-tone={tone}>{part.text}</mark> : <span key={i}>{part.text}</span>)}</>;
 }

@@ -42,4 +42,16 @@ Export verification failed. No file was downloaded.	File xuất không đạt ki
 Export failed. Your changes are still here.	Xuất file thất bại. Các chỉnh sửa vẫn được giữ lại.
 This version passed export verification and was downloaded.	Phiên bản này đã đạt kiểm tra xuất và được tải xuống.
 Save or discard your cell drafts before leaving the preview.	Hãy lưu hoặc bỏ các bản nháp của ô trước khi rời bản xem trước.
+Worksheet preview	Xem trước trang tính
+Cell inspector	Chi tiết ô
+Move between cells	Chuyển giữa các ô
+Previous cell	Ô trước
+Next cell	Ô tiếp theo
+Words changed	Từ đã đổi
+Hide replay	Ẩn phần phát lại
+Replay the change	Phát lại thay đổi
+Pick a cell on the sheet to compare it here.	Chọn một ô trên trang tính để đối chiếu tại đây.
+Loading worksheet…	Đang tải trang tính…
+Downloaded	Đã tải xuống
+Needs review	Cần rà soát
 `);
