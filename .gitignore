@@ -1,0 +1,46 @@
+# Secrets, never commit API keys
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# promptfoo eval artifacts
+.promptfoo/
+benchmarks/output*
+
+# Python
+__pycache__/
+
+# one-off social/announcement art, not repo content
+announce-*.png
+changelog-*.png
+ponytail-*.gif
+
+# Claude Code local settings (machine-specific permission grants)
+.claude/settings.local.json
+
+# agentic benchmark workspaces (agent output, kept locally for inspection)
+benchmarks/agentic/runs/
+benchmarks/agentic/fixtures/
+
+# Claude Code writes these when it loads the band's hooks module from this folder
+.claude-plugin/types/
+/tsconfig.json
+
+# Workspace app (Next.js in src/)
+.next/
+next-env.d.ts
+*.tsbuildinfo
+.logio-data/
+# Confidential bank/customer reference files and anything generated from them (Credit -> Excel repair pipeline).
+docs/workspace-app/MAU9_*.xlsx
+docs/workspace-app/D4030*.json
+*.reviewed.xlsx
+*.progress.json
+.credit-private/
+reporting-output.json
+validation-audit.json
+validation-report.csv
+public/storage/pdf.worker.min.mjs

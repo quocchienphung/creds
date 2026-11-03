@@ -1,0 +1,15 @@
+export { BackendError } from "./types.ts";
+export type { Change, CommandName, FailureCode, Loaded, QueryName, ResourceName, ResourceRef, RunTransport, SaveContext, SaveResult, UploadKind, WorkspaceBackend } from "./types.ts";
+export { defineResource, localKey, stripSecrets } from "./resource.ts";
+export type { ResourceDefinition } from "./resource.ts";
+export { diffById, isRecordList } from "./diff.ts";
+export { createLocalBackend } from "./local-backend.ts";
+export { createHttpBackend } from "./http-backend.ts";
+export type { HttpBackendConfig, HttpTarget } from "./http-backend.ts";
+export { createConfiguredBackend } from "./config.ts";
+export { ResourceEntry, ResourceStore } from "./store.ts";
+export type { QueryView, ResourceView, SyncSummary } from "./store.ts";
+export { createSnapshotSource } from "./snapshot-source.ts";
+export type { SnapshotSource } from "./snapshot-source.ts";
+export { conforms } from "./shape.ts";
+export { readAsDataUrl, storeFile } from "./upload.ts";

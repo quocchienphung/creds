@@ -1,0 +1,30 @@
+.artwork-note { min-width: 0; color: #49494f; text-align: left; opacity: 0; transition: opacity 260ms ease; }
+.artwork-note[data-visible="true"] { opacity: 1; }
+.artwork-note__body, .artwork-note__detail { margin: 0; font-size: 13px; line-height: 1.85; letter-spacing: -.12px; overflow-wrap: anywhere; }
+.artwork-note__body { min-height: 215px; }
+.artwork-note__comment-space { height: 178px; }
+.artwork-note__detail { min-height: 130px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #ededf0; color: #96969c; font-size: 11px; line-height: 1.85; }
+.artwork-note del { color: #a38aa0; background: #f6edf4; text-decoration-thickness: 1px; }
+.artwork-note ins { color: #73618e; background: #eee8f8; text-decoration: none; border-bottom: 1px solid #bba4db; }
+.artwork-note--left del { color: #b09182; background: #f9ede7; }
+.artwork-note--left ins { color: #9a634b; background: #faeee5; border-bottom-color: #d8ac91; }
+.artwork-note__caret { position: relative; display: inline; }
+.artwork-note__caret[data-active="true"]::after { position: absolute; left: 0; top: 0; height: 15px; width: 1px; background: #9678c0; content: ""; }
+.artwork-note--left .artwork-note__caret[data-active="true"]::after { background: #cf805f; }
+@media (max-width: 900px) {
+  .artwork-note__comment-space { display: none; }
+  .artwork-note__body { min-height: 115px; }
+  .artwork-note__detail { min-height: 75px; margin-top: 16px; padding-top: 12px; }
+}
+@media (max-height: 500px) and (max-width: 900px) {
+  .artwork-note__comment-space { display: block; height: 122px; }
+}
+@media (max-width: 520px) {
+  .artwork-note__body { min-height: 130px; font-size: 10.5px; line-height: 1.75; }
+  .artwork-note__detail { min-height: 70px; font-size: 9px; margin-top: 12px; padding-top: 12px; }
+}
+@media (max-height: 650px) and (min-width: 901px) {
+  .artwork-note__body { min-height: 155px; font-size: 11px; }
+  .artwork-note__detail { min-height: 80px; margin-top: 12px; padding-top: 12px; font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .artwork-note { transition: none; } }

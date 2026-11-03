@@ -1,0 +1,28 @@
+.account-theme { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 4px 0 8px; color: var(--text-primary, #171717); font-size: 13px; }
+.account-theme > svg { flex: none; color: #969696; }
+.account-theme > span { flex: 1; }
+.account-theme__segments { position: relative; display: flex; flex: none; width: 88px; height: 26px; padding: 2px; border-radius: 7px; background: rgb(23 23 23 / .05); }
+.account-theme__thumb { position: absolute; top: 2px; left: 2px; width: 28px; height: 22px; border-radius: 5px; background: #fff; box-shadow: 0 1px 2px #0000000d; transition: transform 580ms linear(0, .0213 2.7778%, .0739 5.5556%, .1443 8.3333%, .2235 11.1111%, .305 13.8889%, .3849 16.6667%, .4606 19.4444%, .5305 22.2222%, .594 25%, .6508 27.7778%, .7011 30.5556%, .7452 33.3333%, .7836 36.1111%, .8168 38.8889%, .8454 41.6667%, .8699 44.4444%, .8907 47.2222%, .9084 50%, .9234 52.7778%, .9361 55.5556%, .9467 58.3333%, .9557 61.1111%, .9632 63.8889%, .9694 66.6667%, .9747 69.4444%, .979 72.2222%, .9826 75%, .9857 77.7778%, .9882 80.5556%, .9902 83.3333%, .992 86.1111%, .9934 88.8889%, .9946 91.6667%, .9955 94.4444%, .9963 97.2222%, 1); }
+.account-theme__thumb[data-choice="1"] { transform: translateX(28px); }
+.account-theme__thumb[data-choice="2"] { transform: translateX(56px); }
+.account-theme__segments button { position: relative; z-index: 1; display: grid; place-items: center; flex: none; width: 28px; height: 22px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: #969696; cursor: pointer; transition: color 160ms cubic-bezier(.22,1,.36,1); }
+.account-theme__segments button[aria-checked=true] { color: #171717; }
+.account-theme__segments button:focus-visible { outline: 2px solid #6182ee; outline-offset: 1px; }
+.account-language > span { white-space: nowrap; }
+.account-language .account-theme__segments { width: 80px; }
+.account-language .account-theme__thumb { width: 38px; }
+.account-language .account-theme__thumb[data-choice="1"] { transform: translateX(38px); }
+.account-language .account-theme__segments button { width: 38px; font-size: 11px; font-weight: 500; line-height: 1; }
+.account-identity { display: flex; align-items: center; gap: 10px; padding: 8px; margin-bottom: 4px; }
+.account-identity__avatar { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 50%; background: #eeeeff; color: #555bdb; overflow: hidden; font-size: 12px; }
+.account-identity__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.account-identity__text { display: grid; gap: 2px; min-width: 0; }
+.account-identity strong, .account-identity small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-identity strong { font-size: 13px; font-weight: 500; }
+.account-identity small { font-size: 11px; color: #969696; }
+[data-theme=dark] .account-theme { color: #ededed; }
+[data-theme=dark] .account-theme__segments { background: #ffffff12; }
+[data-theme=dark] .account-theme__thumb { background: #404045; }
+[data-theme=dark] .account-theme__segments button[aria-checked=true] { color: #ededed; }
+[data-ui-motion=off] .account-theme * { transition: none; }
+@media (prefers-reduced-motion: reduce) { .account-theme * { transition: none; } }

@@ -1,0 +1,102 @@
+[
+  {
+    "id": "company-1",
+    "company": "Notion",
+    "category": "Productivity",
+    "domain": "notion.so",
+    "owner": "Mara Klein",
+    "value": 48000,
+    "stage": "Negotiation",
+    "lastContact": "Today"
+  },
+  {
+    "id": "company-2",
+    "company": "Linear",
+    "category": "Planning",
+    "domain": "linear.app",
+    "owner": "Jonas Weber",
+    "value": 12500,
+    "stage": "Proposal",
+    "lastContact": "Yesterday"
+  },
+  {
+    "id": "company-3",
+    "company": "Figma",
+    "category": "Design",
+    "domain": "figma.com",
+    "owner": "Mara Klein",
+    "value": 86000,
+    "stage": "Won",
+    "lastContact": "Mar 6"
+  },
+  {
+    "id": "company-4",
+    "company": "Stripe",
+    "category": "Payments",
+    "domain": "stripe.com",
+    "owner": "Lea Braun",
+    "value": 124000,
+    "stage": "Qualified",
+    "lastContact": "Mar 5"
+  },
+  {
+    "id": "company-5",
+    "company": "Shopify",
+    "category": "E-commerce",
+    "domain": "shopify.com",
+    "owner": "Jonas Weber",
+    "value": 9800,
+    "stage": "New",
+    "lastContact": "Mar 4"
+  },
+  {
+    "id": "company-6",
+    "company": "Vercel",
+    "category": "Developer Tools",
+    "domain": "vercel.com",
+    "owner": "Lea Braun",
+    "value": 62000,
+    "stage": "Proposal",
+    "lastContact": "Mar 3"
+  },
+  {
+    "id": "company-7",
+    "company": "Airtable",
+    "category": "Productivity",
+    "domain": "airtable.com",
+    "owner": "Mara Klein",
+    "value": 37500,
+    "stage": "Qualified",
+    "lastContact": "Mar 1"
+  },
+  {
+    "id": "company-8",
+    "company": "HubSpot",
+    "category": "CRM",
+    "domain": "hubspot.com",
+    "owner": "Tom Fischer",
+    "value": 21000,
+    "stage": "New",
+    "lastContact": "Feb 27"
+  },
+  {
+    "id": "company-9",
+    "company": "ClickUp",
+    "category": "Planning",
+    "domain": "clickup.com",
+    "owner": "Tom Fischer",
+    "value": 6400,
+    "stage": "Lost",
+    "lastContact": "Feb 25"
+  },
+  {
+    "id": "company-10",
+    "company": "Webflow",
+    "category": "Design",
+    "domain": "webflow.com",
+    "owner": "Lea Braun",
+    "value": 18900,
+    "stage": "Negotiation",
+    "lastContact": "Feb 24"
+  }
+]

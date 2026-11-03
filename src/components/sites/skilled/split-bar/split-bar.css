@@ -1,0 +1,72 @@
+/* Split bar. Sizes, radii, transitions measured from the public UIArc preview (docs/research/uiarc-split-bar), on this workspace's monochrome tokens. */
+.sb {
+  --sb-ink: var(--foreground, var(--sk-ink, #171717)); --sb-surface: var(--surface, var(--sk-surface, #fff)); --sb-track: var(--surface-muted, var(--sk-tray, #f4f4f4));
+  --sb-muted: var(--text-secondary, color-mix(in oklab, var(--sb-ink) 64%, #737373)); --sb-subtle: var(--text-muted, var(--sk-muted, #737373));
+  --sb-line: var(--border-strong, color-mix(in oklab, var(--sk-line, #ebebeb) 76%, var(--sb-ink)));
+  --sb-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* the ramp: OKLab lightness of the seven series, hue and chroma of the tone (grey; red for errors) */
+  --sb-c: 0; --sb-h: 25;
+  --sb-l1: 0.34; --sb-l2: 0.46; --sb-l3: 0.57; --sb-l4: 0.66; --sb-l5: 0.74; --sb-l6: 0.81; --sb-l7: 0.87;
+  position: relative; display: grid; gap: 12px; min-width: 0; margin: 0; color: var(--sb-ink); font-size: 14px; line-height: 1.4; letter-spacing: -0.01em;
+}
+.sb[data-tone="danger"] { --sb-c: 0.15; }
+:where(.dark, [data-theme="dark"]) .sb { --sb-l1: 0.8; --sb-l2: 0.74; --sb-l3: 0.68; --sb-l4: 0.62; --sb-l5: 0.57; --sb-l6: 0.52; --sb-l7: 0.47; }
+.sb *, .sb *::before, .sb *::after { box-sizing: border-box; }
+.sb button { font: inherit; cursor: pointer; }
+
+/* hidden text for measuring */
+.sb__measure { position: absolute; width: 0; height: 0; overflow: hidden; visibility: hidden; pointer-events: none; white-space: nowrap; font-size: 12px; }
+.sb__mName { display: inline-block; font-weight: 400; }
+.sb__mNum { display: inline-block; font-weight: 500; font-variant-numeric: tabular-nums; }
+.sb__sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* head */
+.sb__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px; }
+.sb__heading { display: grid; gap: 2px; min-width: 0; }
+.sb__title { margin: 0; font-size: 1rem; font-weight: 500; line-height: 1.4; }
+.sb__description { margin: 0; color: var(--sb-subtle); font-size: 14px; line-height: 1.4; }
+.sb__readout { position: relative; display: flex; align-items: flex-end; min-height: 21.6px; }
+.sb__readoutLine { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; font-size: 14px; }
+.sb__readoutName { color: var(--sb-muted); }
+.sb__readoutShare { font-size: 18px; font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.sb__readoutValue { color: var(--sb-subtle); font-variant-numeric: tabular-nums; }
+.sb__dot { align-self: center; width: 8px; height: 8px; margin-right: -2px; border-radius: 50%; background: var(--seg); }
+
+/* the bar */
+.sb__bar { position: relative; height: 44px; overflow: hidden; border-radius: 12px; background: var(--sb-track); touch-action: pan-y; user-select: none; cursor: default; outline: none; -webkit-tap-highlight-color: transparent; }
+.sb__bar:focus-visible { outline: 2px solid #497eee; outline-offset: 2px; }
+.sb__segment { position: absolute; inset: 0; overflow: hidden; background: color-mix(in oklab, var(--seg) 42%, var(--sb-surface)); transition: background-color 0.16s var(--sb-ease), opacity 0.24s var(--sb-ease); }
+.sb__segment[data-hl] { background: color-mix(in oklab, var(--seg) 62%, var(--sb-surface)); }
+.sb__segment[data-dim] { opacity: 0.5; }
+.sb__segment[data-leaving] { opacity: 0; }
+.sb__cap { position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: var(--seg); }
+.sb__inside { position: absolute; top: 0; left: 0; display: flex; align-items: center; padding-top: 14px; color: var(--sb-ink); font-size: 12px; line-height: 16.8px; white-space: nowrap; transition: opacity 0.24s var(--sb-ease); }
+.sb__inside[data-mode="outside"] { opacity: 0; }
+.sb__insideName { display: inline-block; overflow: hidden; }
+/* the rolling digits take the line height of the text they sit in, so name and share share a baseline */
+.sb .at-number { line-height: inherit; }
+.sb__inside .at-number, .sb__outside .at-number { font-weight: 500; }
+.sb__emptyLabel { position: absolute; inset: 0; display: grid; place-items: center; color: var(--sb-subtle); font-size: 13px; }
+
+/* the lane of outside labels */
+.sb__lane { position: relative; height: 0; margin-top: -12px; overflow: hidden; }
+.sb__leaders { position: absolute; top: 0; left: 0; display: block; overflow: visible; }
+.sb__leader { fill: none; stroke: var(--sb-line); stroke-width: 1; stroke-linecap: butt; }
+.sb__outside { position: absolute; top: 18px; left: 0; display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; line-height: 16.8px; white-space: nowrap; }
+.sb__outsideName { color: var(--sb-muted); font-weight: 400; }
+
+/* legend */
+.sb__legend { display: flex; flex-wrap: wrap; gap: 2px 4px; margin: 0; padding: 0; list-style: none; }
+.sb__legendItem { display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 8px; border: 0; border-radius: 10px; background: transparent; color: var(--sb-ink); font-size: 14px; line-height: 19.6px; text-align: left; transition: background-color 0.16s var(--sb-ease), color 0.16s var(--sb-ease), transform 0.12s var(--sb-ease); -webkit-tap-highlight-color: transparent; }
+@media (hover: hover) and (pointer: fine) { .sb__legendItem:hover { background: var(--sb-track); } .sb__legendItem:hover .sb__legendName { color: var(--sb-ink); } }
+.sb__legendItem:active { transform: scale(0.98); }
+.sb__legendItem:focus-visible { outline: 2px solid #497eee; outline-offset: 2px; }
+.sb__legendLabel { display: inline-flex; align-items: center; gap: 8px; }
+.sb__swatch { width: 12px; height: 12px; border-radius: 3px; border-right: 3px solid var(--seg); background: color-mix(in oklab, var(--seg) 42%, var(--sb-surface)); transition: background-color 0.24s var(--sb-ease), border-color 0.24s var(--sb-ease), box-shadow 0.24s var(--sb-ease); }
+.sb__legendName { color: var(--sb-muted); transition: color 0.16s var(--sb-ease); }
+.sb__legendShare { font-variant-numeric: tabular-nums; }
+.sb__legendItem[data-off] .sb__swatch { border-right-color: transparent; background: transparent; box-shadow: inset 0 0 0 1.5px var(--sb-line); }
+.sb__legendItem[data-off] .sb__legendName { text-decoration: line-through; }
+.sb__legendOff { color: var(--sb-subtle); }
+
+@media (prefers-reduced-motion: reduce) { .sb__segment, .sb__inside, .sb__legendItem, .sb__swatch { transition-duration: 0s; } }

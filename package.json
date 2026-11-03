@@ -1,0 +1,83 @@
+{
+  "name": "@dietrichgebert/ponytail",
+  "version": "5.3.3",
+  "description": "Lazy senior dev mode for AI agents. The best code is the code you never wrote.",
+  "keywords": ["opencode-plugin", "opencode", "ponytail", "pi-package", "pi", "skills", "qoder"],
+  "license": "MIT",
+  "author": {
+    "name": "Dietrich Gebert",
+    "url": "https://github.com/DietrichGebert"
+  },
+  "homepage": "https://github.com/DietrichGebert/ponytail",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DietrichGebert/ponytail.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DietrichGebert/ponytail/issues"
+  },
+  "main": "./.opencode/plugins/ponytail.mjs",
+  "exports": {
+    ".": "./.opencode/plugins/ponytail.mjs",
+    "./plugin": "./.opencode/plugins/ponytail.mjs"
+  },
+  "files": [
+    "AGENTS.md",
+    "hooks/",
+    "skills/",
+    ".opencode/",
+    ".qoder/",
+    ".qoder-plugin/",
+    "pi-extension/",
+    "!pi-extension/test/",
+    "scripts/uninstall.js",
+    "scripts/cursor-hooks.js",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.js && npm test --prefix pi-extension",
+    "dev": "next dev",
+    "dev:clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && npm run dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit -p src/tsconfig.json",
+    "test:app": "node --experimental-strip-types --test \"src/**/*.test.mjs\"",
+    "check": "npm run lint && npm run typecheck && npm run build",
+    "predev": "node scripts/storage-assets.mjs",
+    "prebuild": "node scripts/storage-assets.mjs"
+  },
+  "devDependencies": {
+    "@base-ui/react": "^1.3.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^24",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.8",
+    "eslint-plugin-react-hooks": "7.0.1",
+    "fflate": "^0.8.3",
+    "lucide-react": "^1.6.0",
+    "motion": "^13.4.0",
+    "next": "16.3.8",
+    "pdfjs-dist": "^6.4.299",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "shadcn": "^4.1.0",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^4",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "^5",
+    "zod": "^4.3.6"
+  },
+  "pi": {
+    "extensions": ["./pi-extension/index.js"],
+    "skills": ["./skills"]
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
+

@@ -1,0 +1,53 @@
+{
+  "passed": 19,
+  "checks": [
+    "No original upload after selecting a local file",
+    "One-click action enabled after valid parse/profile",
+    "One click works offline and produces both real local downloads",
+    "Result is accurately labelled partial, with all sheets accounted",
+    "Downloaded XLSX contains approved source text and preserves protected fields",
+    "Review exposes one atomic undo for automatic repair",
+    "Undo enables redo",
+    "Header action leaves desktop suggestion geometry unchanged",
+    "Review does not overflow horizontally at 390px",
+    "Review does not overflow horizontally at 320px",
+    "Existing suggestion stage and details remain mounted",
+    "Large worker run responds to cancellation, main thread still ticks",
+    "Cancellation does not produce a workbook or report",
+    "Cancellation leaves original review history intact",
+    "Model path: the button produced a .repaired.xlsx",
+    "Independent parser confirms changed cells in the downloaded file and no structural change",
+    "Nothing provable: NO_REPAIR_APPLIED, honest text, no automatic download",
+    "No page errors",
+    "No external requests and no automatic archive calls"
+  ],
+  "errors": [],
+  "externalRequests": 0,
+  "automaticUploads": 0,
+  "suggestionGeometry": {
+    ".cg-stage": {
+      "x": 274,
+      "y": 420.734375,
+      "w": 1104,
+      "h": 320
+    },
+    ".cd-root": {
+      "x": 253,
+      "y": 853.8125,
+      "w": 1146,
+      "h": 742.609375
+    },
+    ".cg-rail": {
+      "x": 274,
+      "y": 752.734375,
+      "w": 952.84375,
+      "h": 58.078125
+    }
+  },
+  "workerMeasurement": {
+    "mainThreadTicks": 26,
+    "timerIntervalMs": 10,
+    "cancellationMs": 433,
+    "inputRows": 50000
+  }
+}

@@ -1,0 +1,43 @@
+/* Run notifications on the map: a blinking four-point star beside a block, and the card it opens. Screen-space (the layer sits over the
+   map, so the star and the card keep their size when the map is zoomed). Above the page's floating cards (permission requests are 13), so a
+   star whose block lies behind one can still be reached. */
+.pmap__sparks { position: absolute; inset: 0; z-index: 14; pointer-events: none; }
+.pmap[data-pushing] .pmap__sparks { transform: translateX(var(--push, 0px)); }
+.pmap__spark {
+  --spark-a: #4285f4; --spark-b: #a56cf0; --spark-glow: rgba(110, 120, 255, .45);
+  position: absolute; display: grid; place-items: center; width: 28px; height: 28px; margin: -14px 0 0 -14px; padding: 0; border: 0; border-radius: 50%;
+  background: var(--proc-panel, #fff); box-shadow: 0 0 0 .5px rgba(0, 0, 0, .1), 0 1px 3px rgba(0, 0, 0, .16), 0 6px 14px -6px rgba(0, 0, 0, .22);
+  cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; transition: transform 160ms cubic-bezier(.22, 1, .36, 1), box-shadow 160ms ease;
+}
+.pmap__spark::before { content: ""; position: absolute; inset: -6px; border-radius: 50%; }
+.pmap__spark::after { content: ""; position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 0 var(--spark-glow); opacity: 0; pointer-events: none; }
+.pmap__spark[data-tone="success"] { --spark-a: #12a05c; --spark-b: #5dd39e; --spark-glow: rgba(18, 160, 92, .4); }
+.pmap__spark[data-tone="error"] { --spark-a: #e5412d; --spark-b: #ff8a5c; --spark-glow: rgba(229, 65, 45, .45); }
+.pmap__spark[data-tone="attention"] { --spark-a: #e08a00; --spark-b: #ffc247; --spark-glow: rgba(224, 138, 0, .45); }
+.pmap__spark svg { width: 17px; height: 17px; opacity: .72; }
+.pmap__spark:hover { transform: scale(1.08); }
+.pmap__spark:active { transform: scale(.94); }
+.pmap__spark:focus-visible { outline: 2px solid var(--agt-focus, rgba(0, 96, 226, .5)); outline-offset: 2px; }
+.pmap__spark[data-open] { box-shadow: 0 0 0 1.5px var(--spark-a), 0 6px 14px -6px rgba(0, 0, 0, .22); }
+.pmap__spark[data-open] svg { opacity: 1; }
+/* Not opened yet: the star blinks, and a ring spreads from it */
+.pmap__spark[data-blinking] svg { opacity: 1; animation: spark-blink 1.5s ease-in-out infinite; }
+.pmap__spark[data-blinking]::after { animation: spark-ring 1.5s ease-out infinite; }
+.pmap__spark[data-pinned] { box-shadow: 0 0 0 1.5px var(--spark-a), 0 4px 12px -4px rgba(0, 0, 0, .3); }
+.pmap__spark-count { position: absolute; right: -5px; bottom: -4px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 8px; background: var(--spark-a); color: #fff; font: 600 9px/15px Inter, ui-sans-serif, system-ui, sans-serif; text-align: center; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 1.5px var(--proc-panel, #fff); }
+@keyframes spark-blink { 0%, 100% { transform: scale(.74) rotate(-8deg); opacity: .5; } 50% { transform: scale(1.12) rotate(8deg); opacity: 1; } }
+@keyframes spark-ring { 0% { opacity: .9; box-shadow: 0 0 0 0 var(--spark-glow); } 70%, 100% { opacity: 0; box-shadow: 0 0 0 9px var(--spark-glow); } }
+
+.pmap__notice { position: absolute; z-index: 1; pointer-events: auto; cursor: default; animation: notice-pop 200ms cubic-bezier(.22, 1, .36, 1) backwards; }
+.pmap__notice[data-side="right"] { transform-origin: 0 0; --from: translateX(-8px); }
+.pmap__notice[data-side="left"] { transform-origin: 100% 0; --from: translateX(8px); }
+.pmap__notice[data-side="below"] { transform-origin: 50% 0; --from: translateY(-8px); }
+.pmap__notice[data-side="above"] { transform-origin: 50% 100%; --from: translateY(8px); }
+.pmap__notice .nsc { --nsc-card: var(--proc-panel, #fff); width: 100%; max-width: none; }
+@keyframes notice-pop { from { opacity: 0; transform: var(--from, none) scale(.96); } to { opacity: 1; transform: none; } }
+@media (pointer: coarse) { .pmap__spark { width: 36px; height: 36px; margin: -18px 0 0 -18px; } .pmap__spark svg { width: 20px; height: 20px; } }
+@media (prefers-reduced-motion: reduce) {
+  .pmap__spark, .pmap__spark svg, .pmap__spark::after, .pmap__notice { animation: none; transition: none; }
+  /* Without the blink, a star that has not been opened is told apart by its ring */
+  .pmap__spark[data-blinking] { box-shadow: 0 0 0 2px var(--spark-a), 0 4px 10px -4px rgba(0, 0, 0, .3); }
+}

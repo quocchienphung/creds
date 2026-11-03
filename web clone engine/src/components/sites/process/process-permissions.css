@@ -1,0 +1,41 @@
+.proc-permission-preview { border: 1px solid var(--proc-line); border-radius: 9px; }
+.proc-permission-preview summary { display: flex; align-items: center; gap: 7px; min-height: 36px; padding: 8px 10px; color: var(--proc-text); font-size: 12px; cursor: pointer; list-style: none; }
+.proc-permission-preview summary::-webkit-details-marker { display: none; }
+.proc-permission-preview summary > span { flex: 1; }
+.proc-permission-preview summary > svg:last-child { transition: transform 160ms ease; }
+.proc-permission-preview[open] summary > svg:last-child { transform: rotate(90deg); }
+.proc-permission-preview[open] summary { border-bottom: 1px solid var(--proc-line); }
+.proc-permission-preview__body { display: grid; gap: 10px; padding: 10px; background: var(--proc-bg); border-radius: 0 0 9px 9px; }
+.proc-permission-preview__label { color: var(--proc-muted); font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; }
+.proc-permissions { position: absolute; z-index: 13; left: 16px; bottom: 76px; box-sizing: border-box; width: min(400px, calc(100% - 32px)); max-height: calc(100% - 158px); display: flex; flex-direction: column; overflow: hidden; padding: 6px; border-radius: 15px; background: var(--proc-panel); box-shadow: var(--proc-float); }
+.proc-permissions__inner { display: flex; flex: 0 1 auto; flex-direction: column; min-height: 0; width: 100%; }
+.proc-permissions[data-morphing] > .proc-permissions__inner { flex: none; }
+.proc-permissions__bar { display: flex; flex: none; align-items: center; justify-content: space-between; gap: 6px; min-height: 28px; padding: 0 0 6px 8px; }
+.proc-permissions__bar > span { display: flex; align-items: center; gap: 7px; color: var(--proc-text); font-size: 11px; font-weight: 500; }
+.proc-permissions__bar > span > svg { color: var(--proc-warn); }
+.proc-permissions__number { padding: 1px 5px; border-radius: 4px; background: var(--proc-warn-bg); color: var(--proc-warn); font-size: 10px; }
+.proc-permissions__content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1px; scrollbar-width: thin; }
+.proc-permissions .permission-request { max-width: none; }
+.proc-permissions__queue { display: flex; align-items: center; gap: 2px; padding: 0 6px 6px; color: var(--proc-muted); font-size: 11px; }
+.proc-permissions__queue > span { margin-right: auto; }
+.proc-permissions__queue .proc-icon-button { width: 26px; height: 26px; }
+.proc-permissions__locate { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 32px; padding: 8px; border: 0; background: transparent; color: var(--proc-muted); font-size: 11px; text-align: center; }
+.proc-permissions__locate:hover { color: var(--proc-ink); }
+.proc-permissions__after { display: flex; align-items: center; gap: 10px; padding: 10px 7px 4px; }
+.proc-permissions__after p { flex: 1; margin: 0; color: var(--proc-muted); font-size: 11px; line-height: 16px; }
+.proc-permissions--minimized { width: auto; max-width: calc(100% - 32px); padding: 0; }
+.proc-permissions__trigger { display: flex; align-items: center; gap: 9px; min-height: 42px; padding: 10px 12px; border: 0; color: var(--proc-ink); }
+.proc-permissions__trigger > svg { color: var(--proc-warn); }
+.proc-permissions__count { display: flex; align-items: center; gap: 5px; padding-left: 12px; margin-left: auto; color: var(--proc-muted); font-size: 11px; }
+@container proc-workspace (max-width: 760px) {
+  .proc-permissions { left: 8px; bottom: 72px; width: min(400px, calc(100% - 16px)); max-height: calc(100% - 244px); }
+  .proc-permissions--minimized { width: auto; }
+  .proc-permissions__locate { min-height: 40px; }
+}
+@container proc-workspace (max-width: 420px) {
+  .proc-pill--bar .agt__bar { flex-wrap: wrap; gap: 6px; }
+  .proc-pill--bar .agt__sum { flex: 1 1 100%; justify-content: flex-start; margin-left: 0; }
+  .proc-pill--bar .agt__sum-cost { margin-left: auto; }
+  .proc-pill--bar .agt__sum-btn { white-space: nowrap; }
+}
+@media (pointer: coarse) { .proc-permission-preview summary { min-height: 44px; } .proc-permissions__queue .proc-icon-button { width: 38px; height: 38px; } }

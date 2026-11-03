@@ -1,0 +1,200 @@
+/* Trace Waterfall. Authored for this project from the values observed on the public preview (docs/research/trace-waterfall/observed-rules.css):
+   sizes, colors, spacing, easing and the container-query breakpoints at 560, 400 and 360 px. Colors are variables on .twf; dark mode follows an
+   ancestor with the class "dark" or data-theme="dark". */
+.twf {
+  --twf-card: #fff; --twf-strong: #000; --twf-ink: rgba(0, 0, 0, .88); --twf-text: rgba(0, 0, 0, .61); --twf-muted: rgba(0, 0, 0, .45); --twf-faint: rgba(0, 0, 0, .27);
+  --twf-line: rgba(0, 0, 0, .06); --twf-grid: rgba(0, 0, 0, .045); --twf-guide: rgba(0, 0, 0, .08); --twf-hover: rgba(0, 0, 0, .02); --twf-selected: rgba(0, 96, 226, .05);
+  --twf-fill: rgba(0, 0, 0, .06); --twf-wash: rgba(0, 0, 0, .025); --twf-accent: rgba(0, 96, 226, .765); --twf-now: rgba(0, 96, 226, .45);
+  --twf-agent-bg: rgba(0, 0, 0, .045); --twf-agent-edge: rgba(0, 0, 0, .1); --twf-agent-ink: rgba(0, 0, 0, .61); --twf-agent-mark: rgba(0, 0, 0, .3);
+  --twf-llm-bg: rgba(91, 91, 214, .1); --twf-llm-edge: rgba(91, 91, 214, .3); --twf-llm-ink: #4a4ac2; --twf-llm-mark: rgba(91, 91, 214, .72);
+  --twf-tool-bg: rgba(0, 123, 172, .085); --twf-tool-edge: rgba(0, 123, 172, .28); --twf-tool-ink: #006a94; --twf-tool-mark: rgba(0, 123, 172, .62);
+  --twf-wait-bg: rgba(255, 156, 0, .14); --twf-wait-edge: rgba(204, 78, 0, .3); --twf-wait-ink: #a24300; --twf-wait-mark: rgba(204, 78, 0, .6);
+  --twf-error-bg: #f52b0018; --twf-error-edge: rgba(215, 36, 0, .34); --twf-error-ink: #d72400da; --twf-error-mark: rgba(215, 36, 0, .62);
+  --twf-brand-bg: #008ff519; --twf-brand-fg: #006dcbf2; --twf-ok-bg: #00a43319; --twf-ok-fg: #007d2ee0; --twf-slow-bg: #ff9c0029; --twf-slow-fg: #cc4e00;
+  --twf-focus: rgba(0, 96, 226, .35); --twf-shine: rgba(0, 0, 0, .22);
+  --twf-shadow: 0 0 0 .5px rgba(0, 0, 0, .06), 0 1px 1px -1px rgba(0, 0, 0, .1), 0 1px 2px 0 rgba(0, 0, 0, .05);
+  --twf-pop: 0 0 0 .5px rgba(0, 0, 0, .08), 0 12px 28px -10px rgba(0, 0, 0, .18), 0 1px 2px rgba(0, 0, 0, .05);
+  --twf-row: 30px; --twf-bar: 14px; --twf-axis: 30px; --twf-name: 232px; --twf-pad: 10px; --twf-gap: 14px; --twf-end: 16px; --twf-indent: 14px;
+  --twf-ease: cubic-bezier(.32, .72, .24, 1); --twf-range: 10000; --twf-at: 0;
+  position: relative; box-sizing: border-box; width: 100%; border-radius: 12px; background: var(--twf-card); box-shadow: var(--twf-shadow);
+  container: twf / inline-size; font-family: Inter, InterVariable, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 13px; font-weight: 400; line-height: 20px;
+  color: var(--twf-text); text-align: left; -webkit-font-smoothing: antialiased;
+}
+:where(.dark, [data-theme="dark"]) .twf {
+  --twf-card: #1c1c1f; --twf-strong: #fff; --twf-ink: rgba(255, 255, 255, .9); --twf-text: rgba(255, 255, 255, .62); --twf-muted: rgba(255, 255, 255, .45); --twf-faint: rgba(255, 255, 255, .28);
+  --twf-line: rgba(255, 255, 255, .08); --twf-grid: rgba(255, 255, 255, .05); --twf-guide: rgba(255, 255, 255, .1); --twf-hover: rgba(255, 255, 255, .025); --twf-selected: rgba(91, 154, 255, .08);
+  --twf-fill: rgba(255, 255, 255, .08); --twf-wash: rgba(255, 255, 255, .03); --twf-accent: #5b9aff; --twf-now: rgba(91, 154, 255, .55);
+  --twf-agent-bg: rgba(255, 255, 255, .07); --twf-agent-edge: rgba(255, 255, 255, .14); --twf-agent-ink: rgba(255, 255, 255, .7); --twf-agent-mark: rgba(255, 255, 255, .4);
+  --twf-llm-bg: rgba(130, 130, 255, .16); --twf-llm-edge: rgba(130, 130, 255, .38); --twf-llm-ink: #b1a9ff; --twf-llm-mark: rgba(140, 140, 255, .8);
+  --twf-tool-bg: rgba(0, 170, 220, .13); --twf-tool-edge: rgba(0, 170, 220, .34); --twf-tool-ink: #4ccce6; --twf-tool-mark: rgba(40, 180, 225, .75);
+  --twf-wait-bg: rgba(251, 106, 0, .18); --twf-wait-edge: rgba(255, 160, 87, .4); --twf-wait-ink: #ffa057; --twf-wait-mark: rgba(255, 160, 87, .75);
+  --twf-error-bg: #ff35232b; --twf-error-edge: rgba(255, 90, 70, .4); --twf-error-ink: #ff977d; --twf-error-mark: rgba(255, 110, 90, .75);
+  --twf-brand-bg: #0077ff3a; --twf-brand-fg: #70b8ff; --twf-ok-bg: #00f04a1f; --twf-ok-fg: #3dd68c; --twf-slow-bg: #fb6a0025; --twf-slow-fg: #ffa057;
+  --twf-focus: rgba(91, 154, 255, .45); --twf-shine: rgba(255, 255, 255, .35);
+  --twf-shadow: 0 0 0 .5px rgba(255, 255, 255, .1), 0 1px 2px 0 rgba(0, 0, 0, .4); --twf-pop: 0 0 0 .5px rgba(255, 255, 255, .12), 0 12px 28px -10px rgba(0, 0, 0, .6);
+}
+.twf *, .twf *::before, .twf *::after { box-sizing: border-box; }
+.twf button { margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.twf button:focus-visible { outline: 2px solid var(--twf-focus); outline-offset: 1px; }
+.twf :is(p, dl, dd) { margin: 0; }
+.twf svg { display: block; flex: 0 0 auto; }
+
+/* The bar on top: the heading, what the run is about, and its state */
+.twf__head { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 12px 14px 12px 16px; border-bottom: .5px solid var(--twf-line); }
+.twf__spark { display: grid; flex: 0 0 auto; place-items: center; width: 16px; color: var(--twf-accent); }
+.twf__heading { flex: 0 0 auto; font-weight: 500; color: var(--twf-strong); }
+.twf__task { flex: 1 1 0; min-width: 0; overflow: hidden; color: var(--twf-muted); white-space: nowrap; text-overflow: ellipsis; }
+.twf__pill { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 5px; height: 20px; padding: 0 7px; border-radius: 5px; background: var(--twf-fill); font-size: 12px; font-weight: 500; line-height: 16px; color: var(--twf-text); white-space: nowrap; }
+.twf__pill[data-status="running"] { background: var(--twf-brand-bg); color: var(--twf-brand-fg); }
+.twf__pill[data-status="done"] { background: var(--twf-ok-bg); color: var(--twf-ok-fg); }
+.twf__pill[data-status="failed"] { background: var(--twf-error-bg); color: var(--twf-error-ink); }
+.twf__pill[data-status="waiting"] { background: var(--twf-slow-bg); color: var(--twf-slow-fg); }
+.twf__pulse { width: 6px; height: 6px; border-radius: 50%; background: currentcolor; animation: twf-pulse 1400ms ease-in-out infinite; }
+
+/* The six numbers */
+.twf__stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); padding: 12px 0; border-bottom: .5px solid var(--twf-line); }
+.twf__stat { display: grid; gap: 2px; min-width: 0; padding: 0 16px; }
+.twf__stat:first-child { padding-left: 22px; }
+.twf__stat:last-child { padding-right: 10px; }
+.twf__stat + .twf__stat { border-left: .5px solid var(--twf-line); }
+.twf__stat dt { overflow: hidden; font-size: 10px; font-weight: 500; line-height: 16px; letter-spacing: .5px; text-transform: uppercase; color: var(--twf-muted); white-space: nowrap; text-overflow: ellipsis; }
+.twf__stat dd { overflow: hidden; font-size: 15px; font-weight: 500; line-height: 24px; color: var(--twf-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.twf__stat[data-kind="failed"] dd { color: var(--twf-error-ink); }
+
+/* The timeline behind the rows: ticks, grid lines and the line for "now" */
+.twf__body { position: relative; padding-bottom: 18px; }
+.twf__layer { position: absolute; top: 0; bottom: 0; left: calc(var(--twf-pad) + var(--twf-name) + var(--twf-gap)); right: var(--twf-end); overflow: hidden; pointer-events: none; }
+.twf__tick { position: absolute; top: 0; bottom: 0; left: calc(var(--v) * 100% / var(--twf-range)); width: .5px; background: var(--twf-grid); animation: twf-fade 420ms ease both; transition: opacity 420ms; }
+.twf__tick[data-zero] { background: rgba(0, 0, 0, .1); }
+:where(.dark, [data-theme="dark"]) .twf__tick[data-zero] { background: rgba(255, 255, 255, .12); }
+.twf__tick[data-leaving] { opacity: 0; }
+.twf__tick > span { position: absolute; top: 7px; left: 6px; font-size: 12px; line-height: 16px; color: var(--twf-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.twf__now { position: absolute; top: 0; bottom: 0; left: calc(var(--twf-at) * 100% / var(--twf-range)); width: 1px; background: var(--twf-now); }
+.twf__now::before { content: ""; position: absolute; top: calc(var(--twf-axis) - 2.5px); left: -2px; width: 5px; height: 5px; border-radius: 50%; background: var(--twf-accent); box-shadow: 0 0 0 3px var(--twf-card); }
+.twf__axis { display: flex; align-items: center; height: var(--twf-axis); padding-left: calc(var(--twf-pad) + 6px); border-bottom: .5px solid var(--twf-line); font-size: 10px; font-weight: 500; line-height: 16px; letter-spacing: .5px; text-transform: uppercase; color: var(--twf-muted); }
+
+/* The rows */
+.twf__rows { position: relative; padding-top: 4px; }
+.twf__row { display: grid; grid-template-columns: var(--twf-name) minmax(0, 1fr); column-gap: var(--twf-gap); height: var(--twf-row); padding: 0 var(--twf-end) 0 var(--twf-pad); overflow: hidden; outline: none; cursor: pointer; transition: height 360ms var(--twf-ease), opacity 260ms ease, background-color 140ms ease; animation: twf-row 420ms var(--twf-ease) backwards; }
+.twf__row:hover { background: var(--twf-hover); }
+.twf__row[data-open] { background: var(--twf-selected); }
+.twf__row:focus-visible { box-shadow: inset 0 0 0 2px var(--twf-focus); }
+.twf__row:is([data-hidden], [data-leaving]) { height: 0; opacity: 0; pointer-events: none; }
+.twf__row[data-leaving] { animation: twf-leave 280ms var(--twf-ease) both; }
+.twf__row[data-leaving][data-hidden] { animation: none; }
+.twf__row[data-leaving] :is(.twf__bar, .twf__tag, .twf__more, .twf__slow) { animation: none; }
+.twf__name { display: flex; align-items: center; min-width: 0; height: var(--twf-row); }
+.twf__guides { flex: 0 0 auto; align-self: stretch; background: repeating-linear-gradient(90deg, transparent 0 7.75px, var(--twf-guide) 7.75px 8.25px, transparent 8.25px var(--twf-indent)); }
+.twf__chev { display: grid; flex: 0 0 auto; place-items: center; width: 16px; height: 20px; margin-right: 4px; border-radius: 4px; color: var(--twf-muted); transition: background-color 140ms, color 140ms; }
+.twf__chev:not([data-leaf]):hover { background: var(--twf-fill); color: var(--twf-ink); }
+.twf__chev > svg { transition: transform 240ms var(--twf-ease); }
+.twf__row[data-folded] .twf__chev > svg { transform: rotate(-90deg); }
+.twf__icon { display: grid; flex: 0 0 auto; place-items: center; width: 20px; height: 20px; margin-right: 8px; border-radius: 5px; background: var(--twf-card); box-shadow: var(--twf-shadow); }
+.twf__icon > svg { width: 12px; height: 12px; }
+.twf__icon[data-wait] { color: var(--twf-wait-ink); }
+.twf__swatch { width: 8px; height: 8px; border-radius: 2px; background: var(--k-mark); }
+.twf__label { display: flex; align-items: baseline; gap: 6px; flex: 1 1 0; min-width: 0; overflow: hidden; white-space: nowrap; }
+.twf__title { flex: 0 0 auto; max-width: 100%; overflow: hidden; color: var(--twf-ink); text-overflow: ellipsis; }
+.twf__row[data-parent] .twf__title { font-weight: 500; color: var(--twf-strong); }
+.twf__detail { min-width: 0; overflow: hidden; font-size: 12px; color: var(--twf-muted); text-overflow: ellipsis; }
+.twf__more { flex: 0 0 auto; height: 18px; margin-left: 6px; padding: 0 5px; border-radius: 4px; background: var(--twf-fill); font-size: 11px; font-weight: 500; line-height: 18px; color: var(--twf-text); font-variant-numeric: tabular-nums; animation: twf-pop 220ms var(--twf-ease) both; }
+.twf__state { display: grid; flex: 0 0 auto; place-items: center; width: 16px; margin-left: 4px; }
+.twf__state[data-status="running"] { color: var(--twf-brand-fg); }
+.twf__state[data-status="failed"] { color: var(--twf-error-ink); }
+.twf__spin { animation: twf-spin 900ms linear infinite; }
+.twf__meta { display: none; }
+
+/* The kind of a span picks its colors */
+.twf [data-kind] { --k-bg: var(--twf-agent-bg); --k-edge: var(--twf-agent-edge); --k-ink: var(--twf-agent-ink); --k-mark: var(--twf-agent-mark); }
+.twf [data-kind="llm"] { --k-bg: var(--twf-llm-bg); --k-edge: var(--twf-llm-edge); --k-ink: var(--twf-llm-ink); --k-mark: var(--twf-llm-mark); }
+.twf [data-kind="tool"] { --k-bg: var(--twf-tool-bg); --k-edge: var(--twf-tool-edge); --k-ink: var(--twf-tool-ink); --k-mark: var(--twf-tool-mark); }
+.twf [data-kind="wait"] { --k-bg: var(--twf-wait-bg); --k-edge: var(--twf-wait-edge); --k-ink: var(--twf-wait-ink); --k-mark: var(--twf-wait-mark); }
+.twf [data-kind][data-status="failed"] { --k-bg: var(--twf-error-bg); --k-edge: var(--twf-error-edge); --k-ink: var(--twf-error-ink); --k-mark: var(--twf-error-mark); }
+.twf__track { position: relative; min-width: 0; height: var(--twf-row); overflow: hidden; }
+.twf__bar { position: absolute; top: calc(50% - var(--twf-bar) / 2); left: calc(var(--s) * 100% / var(--twf-range)); width: max(3px, calc(var(--d) * 100% / var(--twf-range))); height: var(--twf-bar); overflow: hidden; border-radius: 4px; background: var(--k-bg); box-shadow: inset 0 0 0 .5px var(--k-edge); transition: box-shadow 160ms, background-color 240ms, opacity 240ms; animation: twf-grow 560ms var(--twf-ease) backwards; }
+.twf__row:is(:hover, [data-open]) .twf__bar { box-shadow: inset 0 0 0 1px var(--k-mark); }
+.twf__row[data-folded] .twf__bar { opacity: .75; }
+.twf__mark { position: absolute; top: calc(50% - 2.5px); left: calc(var(--s) * 100% / var(--twf-range)); width: max(2px, calc(var(--d) * 100% / var(--twf-range))); height: 5px; border-radius: 1.5px; background: var(--k-mark); opacity: 0; transform: scaleY(.2); transition: opacity 200ms ease, transform 200ms var(--twf-ease); pointer-events: none; }
+.twf__row[data-folded] .twf__mark { opacity: .9; transform: none; transition-delay: 140ms; }
+.twf__bar[data-status="running"]::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, var(--twf-card), transparent) -60px 0 / 60px 100% no-repeat; opacity: .7; animation: twf-sweep 1500ms linear infinite; }
+.twf__bar[data-status="running"]::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: min(28px, 100%); background: linear-gradient(90deg, transparent, var(--k-edge)); animation: twf-glow 1100ms ease-in-out infinite alternate; }
+.twf__tag { position: absolute; top: calc(50% - 9px); display: flex; align-items: center; gap: 6px; height: 18px; padding: 0 4px; border-radius: 4px; background: var(--twf-card); font-size: 12px; line-height: 16px; color: var(--twf-text); white-space: nowrap; font-variant-numeric: tabular-nums; pointer-events: none; }
+.twf__tag[data-side="after"] { left: calc((var(--s) + var(--d)) * 100% / var(--twf-range) + 2px); }
+.twf__tag[data-side="inside"] { right: calc(100% - (var(--s) + var(--d)) * 100% / var(--twf-range) + 2px); flex-direction: row-reverse; background: none; color: var(--k-ink); }
+.twf__tag[data-side="before"] { right: calc(100% - var(--s) * 100% / var(--twf-range) + 2px); flex-direction: row-reverse; }
+.twf__row[data-open] .twf__tag { background: none; }
+.twf__row[data-status="failed"] .twf__tag { color: var(--twf-error-ink); }
+.twf__slow { flex: 0 0 auto; height: 16px; padding: 0 5px; border-radius: 4px; background: var(--twf-slow-bg); font-size: 10px; font-weight: 500; line-height: 16px; letter-spacing: .3px; text-transform: uppercase; color: var(--twf-slow-fg); animation: twf-pop 260ms var(--twf-ease) both; }
+.twf__slow--bar { position: absolute; top: calc(50% - 8px); left: calc(var(--e) * 100% / var(--twf-range) + 96px); }
+.twf__amount[data-live] { background-image: linear-gradient(90deg, currentcolor 35%, var(--twf-shine) 50%, currentcolor 65%); background-size: 300% 100%; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: twf-shine 1100ms linear infinite; }
+
+/* The details window of a span */
+.twf__anchor { position: relative; height: 0; z-index: 5; }
+.twf__anchor[data-above] .twf__pop { top: auto; bottom: 0; }
+.twf__pop { position: absolute; top: 0; z-index: 5; display: grid; gap: 10px; width: min(320px, 100% - 16px); padding: 12px; border-radius: 10px; background: var(--twf-card); box-shadow: var(--twf-pop); cursor: auto; transform-origin: 24px top; animation: twf-open 220ms var(--twf-ease) both; }
+.twf__pop[data-side="above"] { transform-origin: 24px bottom; }
+.twf__pop[data-closing] { animation: twf-close 160ms ease forwards; pointer-events: none; }
+.twf__pop-head { display: flex; align-items: center; min-width: 0; }
+.twf__pop-head .twf__icon { width: 28px; height: 28px; margin-right: 10px; border-radius: 6px; }
+.twf__pop-head .twf__icon > svg { width: 15px; height: 15px; }
+.twf__pop-who { display: grid; flex: 1 1 0; min-width: 0; }
+.twf__pop-name { overflow: hidden; font-weight: 500; line-height: 18px; color: var(--twf-strong); white-space: nowrap; text-overflow: ellipsis; }
+.twf__pop-kind { overflow: hidden; font-size: 12px; line-height: 16px; color: var(--twf-muted); white-space: nowrap; text-overflow: ellipsis; }
+.twf__pop-head .twf__pill { height: 18px; margin-left: 8px; padding: 0 6px; font-size: 11px; border-radius: 4px; }
+.twf__close { display: grid; flex: 0 0 auto; place-items: center; width: 28px; height: 28px; margin: -2px -4px 0 4px; border-radius: 6px; color: var(--twf-muted); transition: background-color 140ms, color 140ms; }
+.twf__close:hover { background: var(--twf-fill); color: var(--twf-ink); }
+.twf__pop-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 8px 10px; border-radius: 8px; background: var(--twf-wash); box-shadow: inset 0 0 0 .5px var(--twf-line); }
+.twf__pop-stats dt { font-size: 10px; font-weight: 500; line-height: 16px; letter-spacing: .5px; text-transform: uppercase; color: var(--twf-muted); }
+.twf__pop-stats dd { font-weight: 500; line-height: 20px; color: var(--twf-ink); font-variant-numeric: tabular-nums; }
+.twf__pop-error { display: flex; gap: 8px; padding: 8px 10px; border-radius: 8px; background: var(--twf-error-bg); font-size: 12px; line-height: 16px; color: var(--twf-error-ink); }
+.twf__pop-error > svg { margin-top: 2px; }
+.twf__pop-io { display: grid; gap: 2px; }
+.twf__pop-io > span { font-size: 10px; font-weight: 500; line-height: 16px; letter-spacing: .5px; text-transform: uppercase; color: var(--twf-muted); }
+.twf__pop-io > p { display: -webkit-box; overflow: hidden; font-size: 12px; line-height: 16px; color: var(--twf-text); -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+
+/* Narrower than 560px each row stacks: name, duration and cost on one line, the bar across the whole width under it */
+@container twf (max-width: 560px) {
+  .twf__head { padding: 10px 12px; }
+  .twf__stats { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 10px; padding: 10px 0; }
+  .twf__stat { padding: 0 12px; }
+  .twf__stat:is(:first-child, :nth-child(4)) { padding-left: 16px; }
+  .twf__stat:is(:nth-child(3), :last-child) { padding-right: 8px; }
+  .twf__stat:nth-child(4) { border-left: 0; }
+  .twf__body { --twf-row: 46px; --twf-bar: 10px; --twf-end: 12px; }
+  .twf__layer { left: var(--twf-pad); right: var(--twf-end); }
+  .twf__tick { bottom: auto; height: var(--twf-axis); }
+  .twf__now { bottom: auto; height: var(--twf-axis); }
+  .twf__axis > span { display: none; }
+  .twf__row { grid-template-columns: minmax(0, 1fr); grid-template-rows: 28px 12px; column-gap: 0; }
+  .twf__name { height: 28px; }
+  .twf__track { height: 12px; }
+  .twf__bar { border-radius: 3px; }
+  .twf__mark { top: calc(50% - 2px); height: 4px; }
+  .twf__tag, .twf__slow--bar { display: none; }
+  .twf__meta { display: flex; flex: 0 0 auto; align-items: center; gap: 6px; margin-left: 8px; font-size: 12px; line-height: 16px; color: var(--twf-text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .twf__row[data-status="failed"] .twf__meta { color: var(--twf-error-ink); }
+  .twf__pop-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container twf (max-width: 400px) {
+  .twf__stat { padding-inline: 10px; }
+  .twf__stat:is(:first-child, :nth-child(4)) { padding-left: 14px; }
+  .twf__stat dt { letter-spacing: .2px; }
+  .twf__meta-cost { display: none; }
+  .twf__meta .twf__slow { width: 6px; height: 6px; padding: 0; border-radius: 50%; background: var(--twf-slow-fg); font-size: 0; }
+}
+@container twf (max-width: 360px) { .twf__detail { display: none; } }
+
+@keyframes twf-row { 0% { height: 0; opacity: 0; transform: translateY(-4px); } }
+@keyframes twf-leave { 0% { height: var(--twf-row); opacity: 1; } 100% { height: 0; opacity: 0; } }
+@keyframes twf-grow { 0% { clip-path: inset(0 100% 0 0 round 4px); } 100% { clip-path: inset(0 round 4px); } }
+@keyframes twf-fade { 0% { opacity: 0; } }
+@keyframes twf-pop { 0% { opacity: 0; transform: scale(.9); } }
+@keyframes twf-open { 0% { opacity: 0; transform: translateY(-4px) scale(.96); } }
+@keyframes twf-close { 100% { opacity: 0; transform: translateY(-3px) scale(.97); } }
+@keyframes twf-sweep { 100% { background-position: calc(100% + 60px) 0; } }
+@keyframes twf-glow { 0% { opacity: .45; } 100% { opacity: 1; } }
+@keyframes twf-pulse { 50% { opacity: .35; } }
+@keyframes twf-spin { 100% { transform: rotate(360deg); } }
+@keyframes twf-shine { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+@media (pointer: coarse) { .twf__chev { width: 24px; height: 28px; margin-left: -4px; } }
+@media (prefers-reduced-motion: reduce) { .twf *, .twf *::before, .twf *::after { animation: none !important; transition: none !important; } }

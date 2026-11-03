@@ -1,0 +1,96 @@
+/* Import-only adaptation of public Link unfurl measurements; see docs/research/link-unfurl. */
+.collateral:has(.cr-import) { display: flex; flex-direction: column; min-height: calc(100svh - 18px); padding-bottom: 32px; }
+.collateral:has(.cr-import) > .ui-sb__body { display: flex; flex: 1; }
+.collateral .cr-import.cr-import { display: grid; flex: 1; grid-template-columns: minmax(0, 1fr); align-items: center; justify-items: center; padding: 28px 0; }
+.collateral .cr-import__center { width: min(100%, 576px); min-width: 0; }
+.collateral .cr-import__intro { margin-bottom: 22px; text-align: center; }
+.collateral .cr-import__intro h2 { margin: 0 0 7px; font-size: 22px; font-weight: 500; line-height: 1.3; letter-spacing: -.5px; color: var(--ink); }
+.collateral .cr-import__intro p { margin: 0; font-size: 13px; line-height: 20px; color: var(--muted); text-wrap: balance; }
+.collateral .cr-import__drop { position: relative; }
+.collateral .cr-import .storage-dropzone { max-width: none; }
+.collateral .cr-import .storage-dropzone__area { min-height: 224px; align-content: center; gap: 5px; }
+.collateral .cr-import .storage-dropzone__stack { margin-bottom: 18px; }
+.collateral .cr-import .storage-dropzone__footer { display: none; }
+.collateral .cr-import__options { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px 20px; margin-top: 18px; }
+.collateral .cr-import__options .cr-switch-row { align-items: center; padding: 0; border: 0; font-size: 12px; color: var(--text); }
+.collateral .cr-import__options .cr-local { margin: 0; font-size: 11.5px; }
+.collateral .cr-import__options .cr-switch::before { content: ""; position: absolute; inset: -12px -4px; }
+.collateral.cr-excel[data-upload-only="true"] > .ui-sb__body { margin-top: 0; }
+.collateral.cr-excel[data-upload-only="true"] .cr-import { padding-bottom: 100px; }
+.collateral .cr-archive { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 16px; color: var(--muted); font-size: 11px; line-height: 18px; }
+.collateral .cr-archive a, .collateral .cr-archive button { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.collateral .cr-archive button { border: 0; padding: 0; background: transparent; font: inherit; cursor: pointer; }
+.collateral .cr-archive[data-error="true"] { justify-content: flex-start; color: #c74a4a; }
+.collateral .cr-archive__spin { animation: cr-archive-spin 1s linear infinite; }
+@keyframes cr-archive-spin { to { transform: rotate(360deg); } }
+@media (max-height: 650px) { .collateral.cr-excel[data-upload-only="true"] .cr-import { padding-bottom: 28px; } }
+@media (prefers-reduced-motion: reduce) { .collateral .cr-archive__spin { animation-duration: 2.4s; } }
+
+.import-unfurl { --import-accent: var(--ink); --import-green: #21834e; position: relative; width: 100%; min-width: 0; color: var(--ink); font-size: 14px; line-height: 1.4; container-type: inline-size; }
+:where(.dark, [data-theme="dark"]) .import-unfurl { --import-green: #76c995; }
+.import-unfurl *, .import-unfurl *::before, .import-unfurl *::after { box-sizing: border-box; }
+.import-unfurl button { font: inherit; border: 0; cursor: pointer; }
+.import-unfurl button:focus-visible, .import-unfurl [tabindex]:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.import-unfurl button:disabled { cursor: default; opacity: .45; }
+.import-unfurl__composer { border: 1px solid var(--line); border-radius: 26px; background: var(--card); }
+.import-unfurl__selected { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 10px; min-height: 84px; padding: 18px 22px 14px; }
+.import-unfurl__selected > span { font-size: 13px; line-height: 26px; color: var(--muted); }
+.import-unfurl button.import-unfurl__chip { position: relative; display: inline-flex; align-items: center; gap: 6px; max-width: min(100%, 16em); height: 26px; padding: 0 10px 0 5px; overflow: hidden; border-radius: 999px; background: color-mix(in oklab, var(--import-accent) 11%, transparent); color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--import-accent) 34%, transparent); }
+.import-unfurl__chip > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.import-unfurl__chip > svg, .import-unfurl__head > svg { flex: none; color: var(--import-green); }
+.import-unfurl[data-scanning] .import-unfurl__chip::after { content: ""; position: absolute; inset: 0; width: 55%; background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--ink) 9%, transparent), transparent); transform: translateX(-110%); animation: import-unfurl-sweep 1.15s ease-in-out infinite; pointer-events: none; }
+.import-unfurl[data-paused] .import-unfurl__chip::after { animation-play-state: paused; }
+.import-unfurl__lane { position: relative; height: 0; margin: 0 16px; }
+/* rAF owns these values; shared reduced-motion CSS must not turn them into CSS transitions. */
+.import-unfurl__lane, .import-unfurl__plate, .import-unfurl__card, .import-unfurl__body { transition-property: none !important; }
+.import-unfurl__plate { position: absolute; top: 0; left: 0; opacity: 0; background: var(--card); box-shadow: inset 0 0 0 1px var(--line); pointer-events: none; }
+.import-unfurl__plate::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 18px 40px -18px color-mix(in oklab, var(--ink) 32%, transparent), 0 4px 12px -6px color-mix(in oklab, var(--ink) 18%, transparent); opacity: var(--import-lift, 0); }
+.import-unfurl__card { position: relative; width: min(100%, 440px); padding: 8px; visibility: hidden; }
+.import-unfurl__head { display: flex; align-items: center; gap: 8px; height: 30px; padding-left: 7px; touch-action: none; cursor: grab; }
+.import-unfurl__head > span { flex: 1; min-width: 0; font-size: 12px; color: var(--muted); }
+.import-unfurl__head button { position: relative; display: grid; flex: none; place-items: center; width: 30px; height: 30px; padding: 0; border-radius: 50%; color: var(--muted); background: transparent; }
+.import-unfurl__head button::before { content: ""; position: absolute; inset: -7px; }
+.import-unfurl__head button:hover { background: var(--chip); color: var(--ink); }
+.import-unfurl__body { display: grid; gap: 2px; padding: 2px 6px 0; }
+.import-unfurl__body h2 { margin: 0; font-size: 16px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
+.import-unfurl__description { margin: 0; color: var(--muted); font-size: 12px; line-height: 20px; }
+.import-unfurl__media { display: grid; grid-auto-rows: max-content; align-content: start; gap: 8px; margin: 8px -6px 0; padding: 14px; aspect-ratio: 1.91; overflow: auto; border-radius: 10px; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line-soft); }
+.import-unfurl__grid { min-height: 134px; overflow: hidden; border: 1px solid var(--line); border-radius: 6px; background: var(--card); }
+.import-unfurl__grid table { table-layout: fixed; width: 100%; border-collapse: collapse; font-size: 9px; line-height: 22px; }
+.import-unfurl__grid th, .import-unfurl__grid td { overflow: hidden; padding: 0 5px; border-right: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.import-unfurl__grid th { background: var(--chip); color: var(--muted); font-weight: 400; }
+.import-unfurl__grid th:first-child { width: 25px; text-align: center; }
+.import-unfurl__grid [data-header] td { color: var(--import-green); background: color-mix(in oklab, var(--import-green) 5%, var(--card)); font-weight: 500; }
+.import-unfurl__sheet { min-width: 0; padding: 10px 12px; border: 1px solid var(--line-soft); border-radius: 7px; background: var(--card); }
+.import-unfurl__sheet > div { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 11px; }
+.import-unfurl__sheet b { flex: 1; min-width: 0; font-size: 12px; font-weight: 500; overflow-wrap: anywhere; }
+.import-unfurl__sheet svg { color: var(--import-green); flex: none; }
+.import-unfurl__sheet > div > span { color: var(--muted); }
+.import-unfurl__sheet p { margin: 8px 0 0; color: var(--text); font-size: 10px; line-height: 17px; overflow-wrap: anywhere; }
+.import-unfurl__sheet p > span { color: var(--muted); }
+.import-unfurl__error { margin: 12px 0 8px; font-size: 13px; line-height: 20px; color: var(--red, #d44848); overflow-wrap: anywhere; }
+.import-unfurl__toolbar { position: relative; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 10px 12px 12px 18px; }
+.import-unfurl__replace { min-height: 36px; padding: 5px 0; background: transparent; color: var(--muted); font-size: 12px !important; }
+.import-unfurl__replace:hover:not(:disabled) { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.import-unfurl__action { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 8px 12px; border-radius: 999px; background: var(--chip); color: var(--ink); font-size: 12px !important; }
+.import-unfurl__action[data-primary] { background: var(--ink); color: var(--card); }
+.import-unfurl__status { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 7px; min-height: 20px; margin-top: 12px; color: var(--muted); font-size: 12px; }
+.import-unfurl__status > svg { color: var(--import-green); }
+.import-unfurl__progress { display: block; width: calc(100% - 44px); height: 3px; margin: 8px auto 0; accent-color: var(--ink); }
+@keyframes import-unfurl-sweep { to { transform: translateX(210%); } }
+@container (max-width: 559px) {
+  .import-unfurl__selected { padding: 16px 18px 12px; }
+  .import-unfurl__lane { margin-inline: 12px; }
+}
+@media (max-width: 600px) {
+  .collateral:has(.cr-import) { min-height: calc(100svh - 76px); padding-bottom: 24px; }
+  .collateral .cr-import.cr-import { padding: 24px 0; }
+  .collateral .cr-import__intro h2 { font-size: 20px; }
+  .collateral .cr-import__options { justify-content: center; }
+  .import-unfurl__head button { width: 36px; height: 36px; }
+  .import-unfurl__head { height: 36px; }
+  .import-unfurl__replace, .import-unfurl__action { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .import-unfurl[data-scanning] .import-unfurl__chip::after { animation: none; transform: none; width: 100%; opacity: .5; }
+}

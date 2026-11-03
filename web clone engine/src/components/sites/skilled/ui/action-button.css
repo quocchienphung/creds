@@ -1,0 +1,28 @@
+/* Action button. Sizes, radii, colours, transitions measured from the public UIArc preview (docs/research/uiarc-action-button/styles.json), on this workspace's tokens. */
+.ab {
+  --ab-bg: var(--sk-ink, #171717); --ab-fg: var(--sk-surface, #fff); --ab-ring: color-mix(in oklab, var(--sk-ink, #171717) 72%, transparent);
+  position: relative; display: inline-flex; flex: none; align-items: center; justify-content: center; height: 44px; padding: 0 20px; border: 1px solid var(--ab-bg); border-radius: 18px;
+  background: var(--ab-bg); color: var(--ab-fg); font: 500 14px/19.6px inherit; letter-spacing: -0.16px; white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  transition: background 0.16s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.16s cubic-bezier(0.22, 1, 0.36, 1), color 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.16s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ab[data-size="sm"] { height: 36px; padding: 0 16px; border-radius: 14px; }
+@media (hover: hover) and (pointer: fine) { .ab:not([aria-disabled="true"]):hover { box-shadow: 0 1px 2px oklch(0% 0 0 / 0.035); } }
+.ab:focus-visible { outline: 2px solid var(--ab-ring); outline-offset: 2px; }
+/* dimmed only while it is waiting for something to do: Saving and Saved are results and stay solid */
+.ab[aria-disabled="true"][data-state="idle"] { opacity: 0.45; cursor: not-allowed; }
+.ab[aria-busy="true"] { cursor: progress; }
+.ab *, .ab *::before, .ab *::after { box-sizing: border-box; }
+
+.ab__content { display: flex; align-items: center; gap: 8px; }
+/* the label: its width is the only thing that springs; the two copies of text sit on top of each other */
+/* the hidden copy stays in the flow: it gives the label its natural width before (and without) any measuring */
+.ab__morph { position: relative; display: block; height: 19.6px; overflow: hidden; }
+.ab__sizer { display: block; width: max-content; visibility: hidden; white-space: nowrap; pointer-events: none; }
+.ab__label { position: absolute; top: 0; left: 0; display: block; white-space: nowrap; }
+.ab__iconSlot { display: grid; flex: none; width: 17px; height: 17px; }
+.ab__phase { grid-area: 1 / 1; display: grid; place-items: center; width: 17px; height: 17px; }
+.ab__phase svg { display: block; }
+.ab__spinner { animation: ab-spin 0.9s linear infinite; }
+.ab__sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@keyframes ab-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ab { transition-duration: 0s; } .ab__spinner { animation-duration: 2.4s; } }

@@ -1,0 +1,30 @@
+/*
+ * Gradient Floor. Measured on the public preview (docs/research/gradient-floor/README.md), written from scratch.
+ * One drawing unit is 1/2200 of the container width (`--gf-u`), so the floor scales with its container and stays
+ * anchored to the bottom edge. The SVGs are drawn at a quarter of their size, blurred a quarter as much and scaled
+ * back up by 4: the same look for a fraction of the blur cost.
+ */
+.gf { --gf-u: calc(100cqw / 2200); position: relative; container-type: inline-size; overflow: hidden; isolation: isolate; background: var(--gf-bg, #fafafa); }
+.gf-layer { position: absolute; pointer-events: none; }
+.gf-layer--color { left: calc(-290 * var(--gf-u)); bottom: calc(-484.5 * var(--gf-u)); width: calc(2864.5 * var(--gf-u)); height: calc(931.5 * var(--gf-u)); }
+.gf-layer--light { left: calc(-65 * var(--gf-u)); bottom: calc(-507 * var(--gf-u)); width: calc(2414 * var(--gf-u)); height: calc(785 * var(--gf-u)); mix-blend-mode: plus-lighter; }
+.gf-bleed { position: absolute; inset: -31.27% -10.17%; transform-origin: 50% 70%; will-change: transform; }
+.gf-bleed svg { position: absolute; top: 0; left: 0; display: block; width: 25%; height: 25%; overflow: visible; transform: scale(4); transform-origin: 0 0; will-change: transform; }
+.gf-layer--color svg { filter: blur(calc(145.65 * var(--gf-u) / 4)); }
+.gf-layer--light svg { filter: blur(calc(122.74 * var(--gf-u) / 4)); }
+.gf-layer--color .gf-bleed { animation: gf-drift-color 2.5s ease-in-out infinite; }
+.gf-layer--light .gf-bleed { animation: gf-drift-light 2.5s ease-in-out infinite; }
+@keyframes gf-drift-color {
+  0%, 100% { transform: translate(0, 0) scale(1, 1); }
+  33% { transform: translate(calc(-120 * var(--gf-u)), calc(-20 * var(--gf-u))) scale(1.05, 1.08); }
+  66% { transform: translate(calc(100 * var(--gf-u)), calc(12 * var(--gf-u))) scale(.98, .96); }
+}
+@keyframes gf-drift-light {
+  0%, 100% { transform: translate(0, 0) scale(1, 1); }
+  33% { transform: translate(calc(-100 * var(--gf-u)), calc(-10 * var(--gf-u))) scale(1.03, 1); }
+  66% { transform: translate(calc(85 * var(--gf-u)), calc(10 * var(--gf-u))) scale(.98, .94); }
+}
+.gf[data-paused] .gf-bleed { animation-play-state: paused; }
+.gf-content { position: relative; z-index: 1; height: 100%; }
+:where(.dark, [data-theme="dark"]) .gf { --gf-bg: #111113; }
+@media (prefers-reduced-motion: reduce) { .gf-layer .gf-bleed { animation: none; } }

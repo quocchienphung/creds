@@ -1,0 +1,63 @@
+/* Confirm morph. Sizes, radii, colours, transitions measured from the public UIArc preview (docs/research/uiarc-confirm-morph/styles.json), on this workspace's tokens. */
+.cm {
+  --cm-ink: var(--sk-ink, #171717); --cm-surface: var(--sk-surface, #fff);
+  --cm-muted: color-mix(in oklab, var(--cm-ink) 64%, var(--sk-muted, #737373));
+  --cm-tone: oklch(0.54 0.21 25); --cm-on-tone: #fff; --cm-success: oklch(0.49 0.19 150);
+  --cm-shadow: 0 1px 2px oklch(0% 0 0 / 0.035);
+  --cm-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  display: inline-flex; max-width: 100%; vertical-align: middle; font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: -0.01em; color: var(--cm-ink); outline: none;
+}
+.cm[data-tone="neutral"] { --cm-tone: var(--cm-ink); --cm-on-tone: var(--cm-surface); }
+:where(.dark, [data-theme="dark"]) .cm { --cm-tone: oklch(0.76 0.2 25); --cm-on-tone: oklch(0.19 0 0); --cm-success: oklch(0.78 0.18 150); --cm-shadow: 0 1px 2px oklch(0% 0 0 / 0.18); }
+:where(.dark, [data-theme="dark"]) .cm[data-tone="neutral"] { --cm-tone: var(--cm-ink); --cm-on-tone: var(--cm-surface); }
+.cm *, .cm *::before, .cm *::after { box-sizing: border-box; }
+.cm button { font: inherit; letter-spacing: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cm__sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* the pill: only its width moves */
+.cm__surface { position: relative; flex: none; height: 36px; overflow: hidden; border-radius: 9999px; background: var(--cm-surface); box-shadow: var(--cm-shadow); transition: background-color 0.24s var(--cm-ease), box-shadow 0.24s var(--cm-ease); }
+.cm__face { position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 2px; width: max-content; height: 36px; padding: 0 4px; white-space: nowrap; }
+.cm__face[data-face="idle"] { padding: 0; }
+.cm__part { display: flex; align-items: center; }
+
+/* resting button */
+.cm__trigger { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px 0 14px; border: 0; border-radius: 9999px; background: transparent; color: var(--cm-ink); transition: background-color 0.16s var(--cm-ease), color 0.16s var(--cm-ease); }
+.cm__icon { display: grid; place-items: center; width: 16px; height: 16px; color: var(--cm-muted); }
+.cm__trigger:disabled { opacity: 0.5; cursor: not-allowed; }
+@media (hover: hover) and (pointer: fine) { .cm__trigger:not(:disabled):hover { background: color-mix(in oklab, var(--cm-ink) 5%, transparent); } }
+
+/* the question */
+.cm__prompt { padding: 0 8px 0 12px; color: var(--cm-ink); }
+.cm__secondary { display: flex; align-items: center; height: 28px; padding: 0 12px; border: 0; border-radius: 9999px; background: transparent; color: var(--cm-muted); transition: background-color 0.16s var(--cm-ease), color 0.16s var(--cm-ease); }
+.cm__undo, .cm__status--error + .cm__part .cm__secondary { color: var(--cm-ink); }
+@media (hover: hover) and (pointer: fine) { .cm__secondary:hover { background: color-mix(in oklab, var(--cm-ink) 7%, transparent); color: var(--cm-ink); } }
+.cm__confirm { position: relative; display: flex; align-items: center; justify-content: center; height: 28px; padding: 0 12px; overflow: hidden; border: 0; border-radius: 9999px; background: color-mix(in oklab, var(--cm-tone) 13%, transparent); color: var(--cm-tone); transition: background-color 0.16s var(--cm-ease), color 0.16s var(--cm-ease); touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+@media (hover: hover) and (pointer: fine) { .cm__confirm:hover { background: color-mix(in oklab, var(--cm-tone) 18%, transparent); } }
+.cm__confirm[data-holding] { background: color-mix(in oklab, var(--cm-tone) 22%, transparent); transition: none; }
+/* a solid copy of the button, revealed from the left as the hold fills */
+.cm__fill { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border-radius: inherit; background: var(--cm-tone); color: var(--cm-on-tone); pointer-events: none; }
+.cm__secondary:focus-visible, .cm__trigger:focus-visible, .cm__confirm:focus-visible { outline: 2px solid color-mix(in oklab, var(--cm-ink) 72%, transparent); outline-offset: -2px; }
+
+/* pending, result, failure */
+.cm__status { gap: 8px; padding: 0 16px 0 12px; color: var(--cm-muted); }
+.cm__status--done { padding: 0 10px 0 12px; color: var(--cm-ink); }
+.cm__status--error { padding: 0 10px 0 12px; color: var(--cm-ink); }
+.cm__status--error svg { color: var(--cm-tone); }
+.cm__spinner { flex: none; animation: cm-spin 0.9s linear infinite; }
+.cm__check { flex: none; }
+.cm__check circle { fill: var(--cm-success); }
+.cm__check path { stroke: #fff; }
+/* sm: 32 px pill for dense rows (an adaptation, the preview has one size) */
+.cm[data-size="sm"] { font-size: 13px; line-height: 18px; }
+.cm[data-size="sm"] .cm__surface, .cm[data-size="sm"] .cm__face { height: 32px; }
+.cm[data-size="sm"] .cm__trigger { height: 32px; padding: 0 12px 0 10px; gap: 6px; }
+.cm[data-size="sm"] .cm__icon { width: 14px; height: 14px; }
+.cm[data-size="sm"] .cm__secondary, .cm[data-size="sm"] .cm__confirm { height: 24px; padding: 0 10px; }
+.cm[data-size="sm"] .cm__prompt { padding: 0 6px 0 10px; }
+.cm[data-size="sm"] .cm__status { padding: 0 12px 0 10px; gap: 6px; }
+.cm[data-size="sm"] .cm__status--done, .cm[data-size="sm"] .cm__status--error { padding: 0 8px 0 10px; }
+@keyframes cm-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .cm__spinner { animation-duration: 2.4s; }
+  .cm__surface, .cm__trigger, .cm__secondary, .cm__confirm { transition-duration: 0s; }
+}

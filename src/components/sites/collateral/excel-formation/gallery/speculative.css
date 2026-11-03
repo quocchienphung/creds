@@ -1,0 +1,48 @@
+/* Workbook correction workbench, authored for the review flow. */
+.collateral .sd-card { display: grid; min-width: 0; border: 1px solid var(--line); border-radius: 12px; overflow: clip; color: var(--ink); font-size: 13px; line-height: 1.5; background: var(--card); }
+.collateral .sd-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: start; gap: 8px 20px; padding: 16px 18px; }
+.collateral .sd-title { margin: 0; font-size: 13px; font-weight: 600; }
+.collateral .sd-status { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+.collateral .sd-card[aria-busy], .collateral .sd-card:has(> .sd-status) { padding: 16px 18px; }
+.collateral .sd-count { color: var(--muted); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.collateral .sd-tablehead, .collateral .sd-wordrow { display: grid; grid-template-columns: 112px minmax(0, 1fr) 190px; gap: 12px 20px; padding: 10px 18px; }
+.collateral .sd-tablehead { background: var(--tray); border-block: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.collateral .sd-wordrow + .sd-wordrow { border-top: 1px solid var(--line); }
+.collateral .sd-source { display: flex; align-items: center; justify-content: space-between; gap: 6px; align-self: start; padding-top: 5px; color: var(--muted); }
+.collateral .sd-wordrow__text { color: var(--ink); background: color-mix(in oklab, #ef4444 10%, transparent); padding: 1px 6px; border-radius: 4px; overflow-wrap: anywhere; font-size: 12px; }
+.collateral .sd-wordrow__choices { min-width: 0; display: grid; gap: 8px; }
+.collateral .sd-wordrow__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.collateral .sd-alt, .collateral .sd-keep { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 32px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--ink); font: inherit; font-size: 12px; cursor: pointer; }
+.collateral .sd-alt small { color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+.collateral .sd-alt[aria-pressed="true"], .collateral .sd-keep[aria-pressed="true"] { border-color: var(--ink); background: var(--chip); }
+.collateral .sd-keep { color: var(--muted); border-color: transparent; }
+.collateral .sd-alt:hover, .collateral .sd-keep:hover { background: var(--tray); }
+.collateral .sd-alt:focus-visible, .collateral .sd-keep:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.collateral .sd-manual { display: block; max-width: 260px; }
+.collateral .sd-manual input { width: 100%; min-height: 32px; padding: 5px 9px; border-radius: 6px; font-size: 12px; }
+.collateral .sd-evidence { display: grid; align-content: start; justify-items: start; gap: 3px; padding-top: 4px; }
+.collateral .sd-evidence small { color: var(--muted); font-size: 11px; }
+.collateral .sd-flag { color: light-dark(#925b12, #e2ba77); font-size: 11px; }
+.collateral .sd-flag[data-clear] { color: var(--muted); }
+.collateral .sd-use { display: grid; gap: 6px; padding: 14px 18px; border-top: 1px solid var(--line); background: var(--tray); }
+.collateral .sd-use > div { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.collateral .sd-use small, .collateral .sd-note { color: var(--muted); font-size: 11.5px; }
+.collateral .sd-method { border-top: 1px solid var(--line); padding: 10px 18px; color: var(--muted); font-size: 11.5px; }
+.collateral .sd-method summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; list-style: none; cursor: pointer; }
+.collateral .sd-method summary::-webkit-details-marker { display: none; }
+.collateral .sd-method p { margin: 8px 0 2px; max-width: 80ch; }
+@container (max-width: 760px) {
+  .collateral .sd-tablehead { display: none; }
+  .collateral .sd-wordrow { grid-template-columns: 80px minmax(0, 1fr); gap: 6px 12px; padding: 12px; border-top: 1px solid var(--line); }
+  .collateral .sd-wordrow + .sd-wordrow { border-top: 1px solid var(--line); }
+  .collateral .sd-evidence { grid-column: 2; }
+  .collateral .sd-header, .collateral .sd-use { padding: 12px; }
+}
+.cg-viewer .sd-tablehead { display: none; }
+.cg-viewer .sd-wordrow { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; }
+.cg-viewer .sd-evidence { grid-column: auto; }
+.cg-viewer .sd-source { justify-content: start; }
+.collateral .sd-manual { max-width: 260px; color: var(--muted); font-size: 12px; }
+.collateral .sd-manual summary { min-height: 32px; display: flex; align-items: center; padding: 4px 6px; cursor: pointer; list-style: none; box-sizing: border-box; }
+.collateral .sd-manual summary::-webkit-details-marker { display: none; }
+.collateral .sd-manual label { display: block; margin-top: 5px; }

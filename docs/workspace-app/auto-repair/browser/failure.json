@@ -1,0 +1,26 @@
+{
+  "passed": [
+    "No original upload after selecting a local file",
+    "One-click action enabled after valid parse/profile",
+    "One click works offline and produces both real local downloads",
+    "Result is accurately labelled partial, with all sheets accounted",
+    "Downloaded XLSX contains approved source text and preserves protected fields",
+    "Review exposes one atomic undo for automatic repair",
+    "Undo enables redo",
+    "Header action leaves desktop suggestion geometry unchanged",
+    "Review does not overflow horizontally at 390px",
+    "Review does not overflow horizontally at 320px",
+    "Existing suggestion stage and details remain mounted",
+    "Large worker run responds to cancellation, main thread still ticks",
+    "Cancellation does not produce a workbook or report"
+  ],
+  "errors": [],
+  "message": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Close Tự động sửa Excel', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"Close Tự động sửa Excel\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n",
+  "inputs": [
+    {
+      "accept": ".json,application/json",
+      "label": "Progress file",
+      "parent": "cr-tools"
+    }
+  ]
+}

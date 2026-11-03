@@ -1,0 +1,60 @@
+/* Measured public UIArc motion values. Visual design stays owned by each page. */
+:root {
+  --interaction-duration-instant: 120ms;
+  --interaction-duration-fast: 160ms;
+  --interaction-duration-standard: 240ms;
+  --interaction-duration-spring: 580ms;
+  --interaction-duration-exit: 130ms;
+  --interaction-ease-standard: cubic-bezier(.22,1,.36,1);
+  --interaction-ease-enter: cubic-bezier(.16,1,.3,1);
+  --interaction-ease-spring: cubic-bezier(.22,1,.36,1);
+}
+@supports (animation-timing-function: linear(0, .5, 1)) {
+  :root { --interaction-ease-spring: linear(0,.0213,.0739,.1443,.2235,.305,.3849,.4606,.5305,.594,.6508,.7011,.7452,.7836,.8168,.8454,.8699,.8907,.9084,.9234,.9361,.9467,.9557,.9632,.9694,.9747,.979,.9826,.9857,.9882,.9902,.992,.9934,.9946,.9955,.9963,1); }
+}
+:where(button,a.Button,[data-slot="button"]) { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+[data-interaction-menu] { animation: none !important; transform-origin: left top; }
+[data-interaction-menu][data-interaction-side="top"], [data-interaction-menu][data-side="top"] { transform-origin: left bottom; }
+[data-interaction-menu][data-align="end"] { transform-origin: right top; }
+[data-interaction-menu][data-interaction-side="top"][data-align="end"] { transform-origin: right bottom; }
+[data-interaction-menu][data-interaction-state="closed"] { pointer-events: none; }
+@media (max-width: 939px) and (prefers-reduced-motion: no-preference) {
+  .hds-navigation-menu__popup { clip-path: none; max-height: none; opacity: 0; transform: translateY(-5px) scale(.97); transform-origin: 50% 0; transition: opacity var(--interaction-duration-fast) var(--interaction-ease-enter), transform var(--interaction-duration-spring) var(--interaction-ease-spring), height var(--interaction-duration-spring) var(--interaction-ease-spring); }
+  .hds-navigation-menu__popup[data-status="open"] { opacity: 1; transform: none; }
+  .hds-navigation-menu__popup[data-status="close"] { opacity: 0; transform: translateY(-2.5px) scale(.985); transition-duration: var(--interaction-duration-exit); }
+}
+[data-interaction-highlight] { position: absolute; z-index: 0; top: 0; left: 0; border-radius: 6px; pointer-events: none; opacity: 0; background: var(--hover,var(--proc-hover,color-mix(in srgb,currentColor 6%,transparent))); transition: opacity var(--interaction-duration-fast) var(--interaction-ease-standard); }
+[data-interaction-highlight][data-danger] { background: color-mix(in srgb,#d94a42 9%,transparent); }
+[data-interaction-menu] [data-interaction-row] { position: relative; z-index: 1; }
+[data-interaction-menu] [data-interaction-row]:is(:hover,:focus,:focus-visible) { background-color: transparent !important; }
+:root .crm-page button:not(:disabled):active { scale: 1; }
+:root .permission-request .permission-request__button:active:not(:disabled), :root .crm-page button.ui-button:active:not(:disabled), :root .proc-workspace button.proc-button:active:not(:disabled), :root .crm-page button[aria-haspopup]:active, :root .crm-page button[aria-expanded]:active { transform: none; }
+.hero-subnav-dropdown-item__list[data-interaction-menu][hidden] { visibility: hidden; }
+.hero-subnav-dropdown-item__drawer { --hero-subnav-drawer-duration: var(--interaction-duration-spring); --hero-subnav-drawer-easing: var(--interaction-ease-spring); }
+[data-interaction-menu].assistant-menu {
+  opacity: 0; transform: translateY(-2.5px) scale(.985);
+  transition: opacity var(--interaction-duration-exit) var(--interaction-ease-standard), transform var(--interaction-duration-exit) var(--interaction-ease-standard), display var(--interaction-duration-exit) allow-discrete, overlay var(--interaction-duration-exit) allow-discrete;
+}
+[data-interaction-menu].assistant-menu[data-interaction-side="top"] { transform: translateY(2.5px) scale(.985); }
+[data-interaction-menu].assistant-menu:popover-open {
+  opacity: 1; transform: none;
+  transition: opacity var(--interaction-duration-fast) var(--interaction-ease-enter), transform var(--interaction-duration-spring) var(--interaction-ease-spring), display var(--interaction-duration-exit) allow-discrete, overlay var(--interaction-duration-exit) allow-discrete;
+}
+@starting-style {
+  [data-interaction-menu].assistant-menu:popover-open { opacity: 0; transform: translateY(-5px) scale(.97); }
+  [data-interaction-menu].assistant-menu[data-interaction-side="top"]:popover-open { transform: translateY(5px) scale(.97); }
+}
+@keyframes interaction-menu-opacity { from { opacity: 0; } to { opacity: 1; } }
+@keyframes interaction-menu-transform { from { transform: translateY(var(--interaction-menu-y,-5px)) scale(.97); } to { transform: none; } }
+@keyframes interaction-menu-close { to { opacity: 0; transform: translateY(calc(var(--interaction-menu-y,-5px) * .5)) scale(.985); } }
+/* Existing mounted folds share timing without changing their keyboard/state engines. */
+.crm-page .workspace-help-answer, .crm-page .ui-tc__fold, .crm-page .ui-tg__fold { transition-timing-function: var(--interaction-ease-spring), var(--interaction-ease-enter); transition-duration: var(--interaction-duration-spring), var(--interaction-duration-fast); }
+@supports (interpolate-size: allow-keywords) {
+  details[data-interaction-accordion] { interpolate-size: allow-keywords; }
+  details[data-interaction-accordion]::details-content { overflow: clip; block-size: 0; opacity: 0; transition: block-size var(--interaction-duration-spring) var(--interaction-ease-spring), opacity var(--interaction-duration-fast) var(--interaction-ease-enter), content-visibility var(--interaction-duration-spring) allow-discrete; }
+  details[data-interaction-accordion][open]::details-content { block-size: auto; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-interaction-menu].assistant-menu, [data-interaction-menu].assistant-menu:popover-open { transform: none; transition-duration: var(--interaction-duration-instant); }
+  .workspace-help-answer, .ui-tc__fold, .ui-tg__fold, details[data-interaction-accordion]::details-content { transition-duration: 0ms !important; }
+}

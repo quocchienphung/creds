@@ -1,0 +1,12 @@
+.ui-sb-logo img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+.crm-page .settings-key-name { padding: 0; color: inherit; font: inherit; text-align: left; }
+.crm-page .settings-key-name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.crm-page .settings-dialog-intro { margin: 18px 0; }
+.crm-page .settings-demo-key { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+.ui-sb .ui-sb-row { position: relative; }
+.ui-sb .ui-sb-row:focus-within { z-index: 3; }
+.ui-sb .ui-as-menu__item[aria-checked="true"] > svg { margin-left: auto; }
+.ui-sb .ui-sb-row__text b .ui-sb-pill { flex: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ui-sb .ui-as-rise, .ui-sb .ui-as-popover { animation: none; }
+}

@@ -1,0 +1,14 @@
+/* Workbook adaptation of the observed Card to article box morph. The sheet text is never stretched. */
+.cg-root[data-workbook] .cg-stage { height: 320px; min-height: 320px; max-height: 420px; transition: none; }
+.cg-root[data-workbook] .cg-stage[data-open] { visibility: hidden; }
+.cg-workbook-viewer .cg-frame { cursor: default; touch-action: auto; transform-origin: center top; }
+.cg-morph-content { position: absolute; inset: 0; }
+.cg-frame[data-moving] .sv-lens { display: none; }
+.cg-frame[data-closing] { pointer-events: none; }
+.cg-sheet-slot, .cg-sheet-host { position: absolute; inset: 0; }
+.cg-workbook-sheet { position: absolute; inset: 26px 0 0; }
+.cg-pull { position: absolute; top: 0; left: 0; right: 0; height: 26px; display: grid; place-items: center; cursor: grab; touch-action: none; overflow: hidden; background: var(--tray); }
+.cg-pull:active { cursor: grabbing; }
+.cg-pull span { width: 34px; height: 3px; border-radius: 4px; background: var(--line-strong); }
+.cg-pull:focus-visible { outline: 2px solid var(--ink); outline-offset: -3px; }
+@container (max-width: 620px) { .cg-root[data-workbook] .cg-stage { height: 300px; min-height: 300px; } }

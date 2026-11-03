@@ -1,0 +1,42 @@
+/* Local integration; source measurements are preserved in context-window-reference.css. */
+.ui-cwc__field { --ui-cwc-cols: 36; --ui-cwc-cols-narrow: 24; }
+.ui-cwc button.ui-cwc__compact { display: inline-flex; align-items: center; gap: 4px; height: 24px; margin-right: -8px; padding: 0 8px 0 6px; border-radius: 6px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--ui-cwc-text); }
+.ui-cwc button.ui-cwc__compact[data-done] { color: var(--ui-cwc-ok); background: var(--ui-cwc-ok-bg); }
+.ui-cwc button.ui-cwc__compact[data-leaving] { visibility: hidden; }
+.ui-cwc button.ui-cwc__action { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px 0 10px; border-radius: 6px; background: var(--ui-cwc-card); box-shadow: var(--ui-cwc-shadow); font-size: 13px; font-weight: 500; line-height: 20px; color: var(--ui-cwc-strong); }
+.ui-cwc button.ui-cwc__action:hover { background: var(--ui-cwc-wash); }
+/* Full-bleed in the Guide me frame, like the other live frames: the card fills the whole 380:401 box with no inset and no
+   border, radius or shadow of its own (the frame supplies the edge). The legend rows share any spare height; when Files
+   unfolds the card grows past the frame and the frame scrolls (without a scrollbar). */
+.guide-context-window { display: block; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 0; background: #fff; }
+.guide-context-window::-webkit-scrollbar { display: none; }
+/* The card is designed 384px wide and scales as a unit with the frame (as the other live frames do), so the whole card
+   fits a short phone frame instead of scrolling. The scale steps down every 8px of frame width (a ratio of two lengths
+   cannot be computed portably: WebKit resolves cqw inside the zoomed card against the card itself). A step never scales
+   above the frame's width, and the legend rows absorb the sliver of spare height, so nothing overflows or shows a gap. */
+.guide-context-window { --ui-cwc-z: 1; }
+@container (max-width: 383.99px) { .guide-context-window { --ui-cwc-z: 0.9792; } }
+@container (max-width: 375.99px) { .guide-context-window { --ui-cwc-z: 0.9583; } }
+@container (max-width: 367.99px) { .guide-context-window { --ui-cwc-z: 0.9375; } }
+@container (max-width: 359.99px) { .guide-context-window { --ui-cwc-z: 0.9167; } }
+@container (max-width: 351.99px) { .guide-context-window { --ui-cwc-z: 0.8958; } }
+@container (max-width: 343.99px) { .guide-context-window { --ui-cwc-z: 0.8750; } }
+@container (max-width: 335.99px) { .guide-context-window { --ui-cwc-z: 0.8542; } }
+@container (max-width: 327.99px) { .guide-context-window { --ui-cwc-z: 0.8333; } }
+@container (max-width: 319.99px) { .guide-context-window { --ui-cwc-z: 0.8125; } }
+@container (max-width: 311.99px) { .guide-context-window { --ui-cwc-z: 0.7917; } }
+@container (max-width: 303.99px) { .guide-context-window { --ui-cwc-z: 0.7708; } }
+@container (max-width: 295.99px) { .guide-context-window { --ui-cwc-z: 0.7500; } }
+@container (max-width: 287.99px) { .guide-context-window { --ui-cwc-z: 0.7292; } }
+@container (max-width: 279.99px) { .guide-context-window { --ui-cwc-z: .7; } }
+.guide-context-window .ui-cwc { zoom: var(--ui-cwc-z); display: flex; flex-direction: column; width: 100%; max-width: none; min-height: 100%; margin: 0; border-radius: 0; box-shadow: none; }
+.guide-context-window .ui-cwc__card { display: flex; flex: 1; flex-direction: column; }
+.guide-context-window .ui-cwc__parts { display: flex; flex: 1; flex-direction: column; justify-content: space-evenly; }
+.guide-preview__frame[inert] .ui-cwc * { animation-play-state: paused; }
+@container (max-width: 310px) {
+  .ui-cwc button.ui-cwc__compact { padding: 0 6px; }
+}
+@media (pointer: coarse) {
+  .ui-cwc button.ui-cwc__compact { height: 30px; padding: 0 9px 0 7px; }
+  .ui-cwc button.ui-cwc__action { height: 34px; }
+}

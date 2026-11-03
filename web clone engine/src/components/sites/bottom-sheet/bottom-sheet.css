@@ -1,0 +1,44 @@
+/* Bottom sheet: a modal sheet that rises from the bottom edge and rests at detents. Written from measurements of the public preview of UIArc's
+   Bottom sheet (docs/research/bottom-sheet/README.md): layout, tokens, the backdrop, the drag and the springs. */
+.bs-root {
+  --bs-surface: oklch(100% 0 0); --bs-muted: oklch(97.8% 0 0); --bs-border: oklch(93.5% 0 0); --bs-border-strong: oklch(82% 0 0); --bs-fg: oklch(15% 0 0); --bs-text: oklch(46% 0 0); --bs-text-muted: oklch(59% 0 0);
+  --bs-shadow: 0 20px 48px oklch(0% 0 0 / .105), 0 3px 10px oklch(0% 0 0 / .045); --bs-overlay: oklch(16% 0 0 / .34); --bs-focus: oklab(24% 0 0 / .72); --bs-ease: cubic-bezier(.22, 1, .36, 1);
+  --bs-danger: oklch(54% .21 25); --bs-accent: oklch(15% 0 0); --bs-accent-fg: oklch(100% 0 0);
+  color: var(--bs-fg);
+}
+.bs-root[data-theme="dark"] {
+  --bs-surface: oklch(24% 0 0); --bs-muted: oklch(26% 0 0); --bs-border: oklch(29% 0 0); --bs-border-strong: oklch(40% 0 0); --bs-fg: oklch(96% 0 0); --bs-text: oklch(77% 0 0); --bs-text-muted: oklch(64% 0 0);
+  --bs-shadow: 0 22px 55px oklch(0% 0 0 / .34); --bs-overlay: oklch(0% 0 0 / .52); --bs-focus: oklab(90% 0 0 / .72); --bs-danger: oklch(70% .17 25); --bs-accent: oklch(96% 0 0); --bs-accent-fg: oklch(19% 0 0);
+}
+.bs-root *, .bs-root *::before, .bs-root *::after { box-sizing: border-box; }
+.bs-overlay { position: fixed; inset: 0; z-index: 50; background: var(--bs-overlay); }
+.bs-overlay[data-state="closed"], .bs-sheet[data-state="closed"] { pointer-events: none !important; }
+.bs-sheet {
+  position: fixed; z-index: 51; right: 0; bottom: calc(var(--sheet-extension) * -1); left: 0; display: flex; flex-direction: column; width: min(100%, 36rem); height: calc(var(--sheet-max) * 100dvh + var(--sheet-extension));
+  margin-inline: auto; overflow: hidden; padding-bottom: calc(var(--sheet-extension) + env(safe-area-inset-bottom, 0px)); border-radius: 34px 34px 0 0; background: var(--bs-surface); color: var(--bs-fg);
+  box-shadow: var(--bs-shadow); font-family: Inter, "Inter Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: -.01em; outline: none; will-change: transform;
+}
+.bs-header { position: relative; flex: 0 0 auto; padding: .5rem 1.25rem 1rem; cursor: grab; touch-action: none; user-select: none; }
+.bs-sheet[data-dragging] .bs-header { cursor: grabbing; }
+.bs-header::after { position: absolute; right: 0; bottom: 0; left: 0; height: 1px; background: var(--bs-border); content: ""; opacity: 0; transition: opacity .16s var(--bs-ease); }
+.bs-sheet[data-scrolled] .bs-header::after { opacity: 1; }
+.bs-grabber { display: flex; width: 3.5rem; height: 1.25rem; align-items: center; justify-content: center; margin: 0 auto .25rem; padding: 0; border: 0; border-radius: 9999px; background: transparent; cursor: inherit; -webkit-tap-highlight-color: transparent; }
+.bs-grabber-bar { width: 2.25rem; height: 5px; border-radius: 9999px; background: var(--bs-border-strong); transition: background-color .16s var(--bs-ease); }
+.bs-sheet[data-dragging] .bs-grabber-bar { background: var(--bs-text-muted); }
+.bs-head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.bs-head-text { min-width: 0; }
+.bs-title { margin: 0; font-family: inherit; font-size: 1.125rem; font-weight: 500; letter-spacing: -.01em; line-height: 1.1; }
+.bs-description { margin: 2px 0 0; color: var(--bs-text); font-size: .875rem; line-height: 1.4; }
+.bs-close { display: grid; flex: 0 0 auto; width: 2rem; height: 2rem; place-items: center; margin-top: -2px; padding: 0; border: 1px solid var(--bs-border); border-radius: 9999px; background: var(--bs-muted); color: var(--bs-text); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color .16s var(--bs-ease), color .16s var(--bs-ease); }
+.bs-close:active { color: var(--bs-fg); }
+.bs-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: .25rem 1.25rem 1.5rem; overscroll-behavior: contain; scrollbar-width: thin; touch-action: pan-y; font-size: .875rem; line-height: 1.4; }
+.bs-sheet:not([data-expanded]) .bs-body { overflow: hidden; touch-action: none; }
+.bs-sheet :focus-visible { outline: 2px solid var(--bs-focus); outline-offset: 2px; }
+.bs-sheet:focus-visible { outline: none; }
+.bs-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+@media (hover: hover) and (pointer: fine) {
+  .bs-grabber:hover .bs-grabber-bar { background: var(--bs-text-muted); }
+  .bs-close:hover { color: var(--bs-fg); border-color: var(--bs-border-strong); }
+}
+@media (max-width: 40rem) { .bs-body, .bs-header { padding-inline: 1rem; } }
+@media (prefers-reduced-motion: reduce) { .bs-close, .bs-grabber-bar, .bs-header::after { transition: none; } }

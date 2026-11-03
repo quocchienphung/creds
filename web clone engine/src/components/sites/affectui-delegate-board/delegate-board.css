@@ -1,0 +1,149 @@
+/*
+ * Delegate Board. Colors, radii, easing and timings are the ones measured on the public preview; the CSS is written from
+ * scratch. The board is designed 380px wide and everything is sized from `--k`, one design pixel (frame width / 380), so it
+ * keeps its proportions in any box it fills. At that width the preview's own rule applies: the columns stay side by side
+ * but tighter (a 136px pile, queue chips on their own row under the avatar).
+ */
+.dgb-frame { position: relative; width: 100%; height: 100%; container-type: inline-size; }
+.dgb {
+  --k: calc(100cqw / 380);
+  --dgb-card: #fff; --dgb-strong: #000; --dgb-ink: rgba(0, 0, 0, .88); --dgb-text: rgba(0, 0, 0, .61); --dgb-muted: rgba(0, 0, 0, .45);
+  --dgb-faint: rgba(0, 0, 0, .27); --dgb-line: rgba(0, 0, 0, .06); --dgb-lane: rgba(0, 0, 0, .035); --dgb-switch-off: rgba(0, 0, 0, .12);
+  --dgb-fill: rgba(0, 0, 0, .06); --dgb-accent: rgba(0, 96, 226, .765);
+  --dgb-brand-bg: #008ff519; --dgb-brand-fg: #006dcbf2; --dgb-ok-bg: #00a43319; --dgb-ok-fg: #00713fde;
+  --dgb-focus: rgba(0, 96, 226, .35); --dgb-target-bg: rgba(0, 120, 245, .045); --dgb-target-edge: rgba(0, 96, 226, .3);
+  --dgb-shadow: 0 0 0 calc(.5 * var(--k)) rgba(0, 0, 0, .06), 0 calc(1 * var(--k)) calc(1 * var(--k)) calc(-1 * var(--k)) rgba(0, 0, 0, .1), 0 calc(1 * var(--k)) calc(2 * var(--k)) 0 rgba(0, 0, 0, .05);
+  --dgb-lift: 0 0 0 calc(.5 * var(--k)) rgba(0, 0, 0, .08), 0 calc(16 * var(--k)) calc(32 * var(--k)) calc(-12 * var(--k)) rgba(0, 0, 0, .25), 0 calc(2 * var(--k)) calc(6 * var(--k)) rgba(0, 0, 0, .06);
+  --dgb-ease: cubic-bezier(.32, .72, .24, 1);
+  position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden;
+  border-radius: calc(10 * var(--k)); background: var(--dgb-card); box-shadow: var(--dgb-shadow); color: var(--dgb-text);
+  font-family: Inter, InterVariable, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: calc(13 * var(--k)); font-weight: 400; line-height: calc(20 * var(--k)); text-align: left;
+  -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+}
+.dgb[data-dragging] { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+.dgb *, .dgb *::before, .dgb *::after { box-sizing: border-box; }
+:where(.dgb) button { margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: inherit; cursor: pointer; appearance: none; -webkit-tap-highlight-color: transparent; }
+.dgb button:focus-visible { outline: calc(2 * var(--k)) solid var(--dgb-focus); outline-offset: calc(1 * var(--k)); }
+.dgb ul { margin: 0; padding: 0; list-style: none; }
+.dgb h4, .dgb p { margin: 0; }
+.dgb svg { display: block; flex: none; }
+.dgb__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* The bar */
+.dgb__bar { display: flex; flex: none; align-items: center; gap: calc(10 * var(--k)); min-width: 0; padding: calc(12 * var(--k)) calc(12 * var(--k)) calc(12 * var(--k)) calc(16 * var(--k)); border-bottom: calc(.5 * var(--k)) solid var(--dgb-line); }
+.dgb__spark { display: grid; flex: none; place-items: center; width: calc(16 * var(--k)); color: var(--dgb-accent); }
+.dgb__spark svg { width: 100%; height: auto; }
+.dgb__title { font-weight: 500; color: var(--dgb-strong); white-space: nowrap; }
+.dgb__hint { flex: 1; min-width: 0; overflow: hidden; font-size: calc(12 * var(--k)); line-height: calc(16 * var(--k)); color: var(--dgb-muted); white-space: nowrap; text-overflow: ellipsis; }
+.dgb__auto { display: inline-flex; flex: none; align-items: center; gap: calc(8 * var(--k)); height: calc(28 * var(--k)); padding: 0 0 0 calc(6 * var(--k)); border-radius: calc(6 * var(--k)); }
+.dgb__auto-label { font-size: calc(12 * var(--k)); font-weight: 500; color: var(--dgb-strong); transition: opacity 200ms ease; }
+.dgb__auto[aria-checked="false"] .dgb__auto-label { opacity: .45; }
+.dgb__switch { position: relative; width: calc(28 * var(--k)); height: calc(16 * var(--k)); border-radius: 999px; background: var(--dgb-switch-off); transition: background-color 220ms ease; }
+.dgb__switch > span { position: absolute; top: calc(2 * var(--k)); left: calc(2 * var(--k)); width: calc(12 * var(--k)); height: calc(12 * var(--k)); border-radius: 50%; background: #fff; box-shadow: 0 calc(1 * var(--k)) calc(2 * var(--k)) rgba(0, 0, 0, .18), 0 0 0 calc(.5 * var(--k)) rgba(0, 0, 0, .04); transition: transform 240ms var(--dgb-ease); }
+.dgb__auto[aria-checked="true"] .dgb__switch { background: var(--dgb-accent); }
+.dgb__auto[aria-checked="true"] .dgb__switch > span { transform: translateX(calc(12 * var(--k))); }
+
+/* Body: the pile, then the agents */
+.dgb__body { display: grid; flex: 1; min-height: 0; grid-template-columns: calc(136 * var(--k)) minmax(0, 1fr); }
+.dgb__head { display: flex; align-items: center; gap: calc(6 * var(--k)); margin: 0 calc(4 * var(--k)) calc(6 * var(--k)); font-size: calc(12 * var(--k)); font-weight: 400; line-height: calc(16 * var(--k)); color: var(--dgb-muted); }
+.dgb__count { display: grid; place-items: center; min-width: calc(16 * var(--k)); height: calc(16 * var(--k)); padding: 0 calc(4 * var(--k)); border-radius: calc(4 * var(--k)); background: var(--dgb-card); box-shadow: var(--dgb-shadow); font-size: calc(10 * var(--k)); font-weight: 500; color: var(--dgb-text); font-variant-numeric: tabular-nums; }
+
+.dgb__pile { display: flex; flex-direction: column; margin: calc(8 * var(--k)) 0 calc(8 * var(--k)) calc(10 * var(--k)); padding: calc(10 * var(--k)) calc(6 * var(--k)) calc(6 * var(--k)); border-radius: calc(10 * var(--k)); background: var(--dgb-lane); transition: background-color 200ms ease, box-shadow 200ms ease; }
+.dgb__pile .dgb__head { margin-left: calc(4 * var(--k)); }
+.dgb__pile[data-over] { box-shadow: inset 0 0 0 calc(1 * var(--k)) var(--dgb-line); }
+.dgb__tasks { display: grid; gap: calc(4 * var(--k)); }
+.dgb__task, .dgb__ghost { display: flex; align-items: flex-start; gap: calc(5 * var(--k)); width: 100%; padding: calc(7 * var(--k)) calc(8 * var(--k)) calc(7 * var(--k)) calc(5 * var(--k)); border-radius: calc(8 * var(--k)); background: var(--dgb-card); box-shadow: var(--dgb-shadow); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: opacity 160ms ease, box-shadow 160ms ease; }
+.dgb__task:hover { box-shadow: 0 0 0 calc(.5 * var(--k)) rgba(0, 0, 0, .1), 0 calc(2 * var(--k)) calc(6 * var(--k)) calc(-2 * var(--k)) rgba(0, 0, 0, .12); }
+.dgb__task[data-dragging], .dgb__chip[data-dragging] { opacity: .35; }
+.dgb__task[data-picked] { background: var(--dgb-target-bg); box-shadow: inset 0 0 0 calc(.5 * var(--k)) var(--dgb-target-edge), var(--dgb-shadow); }
+.dgb__grip { display: grid; flex: none; place-items: center; width: calc(10 * var(--k)); height: calc(18 * var(--k)); color: var(--dgb-faint); }
+.dgb__grip svg { width: calc(8 * var(--k)); height: calc(12 * var(--k)); }
+.dgb__task-main { display: grid; gap: calc(2 * var(--k)); min-width: 0; flex: 1; }
+.dgb__task-title { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; font-weight: 500; line-height: calc(18 * var(--k)); color: var(--dgb-ink); overflow-wrap: anywhere; }
+.dgb__task-meta { display: flex; align-items: center; gap: calc(6 * var(--k)); font-size: calc(12 * var(--k)); line-height: calc(16 * var(--k)); color: var(--dgb-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dgb__tools { display: flex; gap: calc(4 * var(--k)); }
+.dgb__tool { position: relative; display: block; flex: none; width: calc(12 * var(--k)); height: calc(12 * var(--k)); }
+/* Logos keep their brand colors; the black marks (Notion, GitHub, OpenAI) follow the strong text color, so they turn white in dark mode */
+/* Marks are laid over their box, so a tall logo (Figma) is fitted inside it instead of stretching the line. */
+.dgb__mark { display: block; width: 100%; height: 100%; overflow: visible; }
+.dgb__tool > .dgb__mark { position: absolute; inset: 0; }
+.dgb__mark[data-mono] { color: var(--dgb-strong); }
+.dgb__empty { display: grid; place-items: center; min-height: calc(52 * var(--k)); padding: calc(8 * var(--k)) calc(10 * var(--k)); font-size: calc(12 * var(--k)); line-height: calc(16 * var(--k)); color: var(--dgb-muted); text-align: center; }
+/* The lifted card: tilted a touch, a deeper shadow, under the pointer */
+.dgb__ghost { position: absolute; z-index: 1000; box-shadow: var(--dgb-lift); cursor: grabbing; pointer-events: none; transform: rotate(1.5deg) scale(1.02); }
+
+/* Both column heads sit on one line (8 + 10 from the top), the right edge of the totals, the tags and the Auto switch is one line (12), and the roster spreads over the full height so the bottom edge matches the pile's. */
+.dgb__agents { display: flex; flex-direction: column; min-width: 0; padding: calc(18 * var(--k)) calc(6 * var(--k)) calc(8 * var(--k)) calc(8 * var(--k)); }
+.dgb__agents .dgb__head { margin: 0 calc(6 * var(--k)) calc(4 * var(--k)); }
+/* Equal slots, one per agent: names step down at a steady pitch, and a drop target is always the full slot. */
+.dgb__roster { display: grid; flex: 1; grid-auto-rows: minmax(min-content, 1fr); }
+.dgb__agent { display: grid; grid-template-columns: calc(28 * var(--k)) minmax(0, 1fr) auto; grid-template-areas: "avatar who load" "queue queue queue"; column-gap: calc(8 * var(--k)); row-gap: calc(4 * var(--k)); padding: calc(6 * var(--k)); align-content: start; border-radius: calc(8 * var(--k)); transition: background-color 180ms ease, box-shadow 180ms ease; }
+.dgb[data-dragging] .dgb__agent { box-shadow: inset 0 0 0 calc(.5 * var(--k)) var(--dgb-line); }
+/* The agent under a dragged task: just a light blue wash, no stroke */
+.dgb__agent[data-target] { background: var(--dgb-target-bg); }
+.dgb__avatar { grid-area: avatar; display: grid; place-items: center; width: calc(28 * var(--k)); height: calc(28 * var(--k)); border-radius: calc(7 * var(--k)); background: var(--dgb-fill); font-size: calc(10 * var(--k)); font-weight: 500; line-height: 1; color: var(--dgb-text); }
+.dgb__avatar[data-logo] { background: var(--dgb-card); box-shadow: var(--dgb-shadow); }
+.dgb__avatar > .dgb__mark { width: calc(15 * var(--k)); height: calc(15 * var(--k)); }
+.dgb__who { grid-area: who; display: grid; align-content: center; min-width: 0; }
+.dgb__name-line { display: flex; align-items: center; gap: calc(6 * var(--k)); min-width: 0; }
+.dgb__name { overflow: hidden; font-weight: 500; color: var(--dgb-ink); white-space: nowrap; text-overflow: ellipsis; }
+.dgb__key { display: none; place-items: center; min-width: calc(16 * var(--k)); height: calc(16 * var(--k)); padding: 0 calc(4 * var(--k)); border-radius: calc(4 * var(--k)); background: var(--dgb-card); box-shadow: var(--dgb-shadow); font-size: calc(10 * var(--k)); font-weight: 500; color: var(--dgb-muted); }
+/* The number shortcuts only show while the keyboard drives (not after a click or tap on the Auto switch). */
+.dgb:has(:focus-visible) .dgb__key { display: grid; }
+.dgb__model { overflow: hidden; font-size: calc(12 * var(--k)); line-height: calc(16 * var(--k)); color: var(--dgb-muted); white-space: nowrap; text-overflow: ellipsis; }
+.dgb__rate { margin-left: calc(6 * var(--k)); color: var(--dgb-faint); font-variant-numeric: tabular-nums; }
+.dgb__load { grid-area: load; align-self: start; display: flex; align-items: center; gap: calc(8 * var(--k)); }
+.dgb__spend { margin-left: auto; font-variant-numeric: tabular-nums; animation: dgb-in 260ms var(--dgb-ease) both; }
+.dgb__price { font-size: calc(11 * var(--k)); font-weight: 500; line-height: calc(16 * var(--k)); color: var(--dgb-brand-fg); white-space: nowrap; font-variant-numeric: tabular-nums; animation: dgb-in 260ms var(--dgb-ease) both; }
+.dgb__tag { display: inline-flex; align-items: center; height: calc(20 * var(--k)); padding: 0 calc(6 * var(--k)); border-radius: calc(5 * var(--k)); font-size: calc(11 * var(--k)); font-weight: 500; line-height: calc(16 * var(--k)); white-space: nowrap; font-variant-numeric: tabular-nums; animation: dgb-in 260ms var(--dgb-ease) both; }
+.dgb__tag[data-kind="free"] { background: var(--dgb-ok-bg); color: var(--dgb-ok-fg); }
+.dgb__tag[data-kind="busy"] { background: var(--dgb-fill); color: var(--dgb-text); }
+.dgb__tag[data-kind="preview"] { background: var(--dgb-card); box-shadow: var(--dgb-shadow); color: var(--dgb-brand-fg); }
+
+.dgb__queue { grid-area: queue; display: flex; flex-wrap: nowrap; gap: calc(4 * var(--k)); min-width: 0; }
+/* One row under the avatar, as wide as the row above it: chips give up title width (ellipsis), never a second line. */
+.dgb__chip-slot { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.dgb__more { flex: none; }
+.dgb__chip { display: flex; align-items: center; gap: calc(4 * var(--k)); max-width: 100%; height: calc(22 * var(--k)); padding: 0 calc(6 * var(--k)) 0 calc(5 * var(--k)); border-radius: calc(6 * var(--k)); background: var(--dgb-card); box-shadow: var(--dgb-shadow); font-size: calc(12 * var(--k)); line-height: calc(16 * var(--k)); color: var(--dgb-text); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.dgb__chip[data-running] { background: var(--dgb-brand-bg); box-shadow: none; color: var(--dgb-brand-fg); font-weight: 500; }
+.dgb__chip[data-picked] { box-shadow: inset 0 0 0 calc(.5 * var(--k)) var(--dgb-target-edge), var(--dgb-shadow); }
+.dgb__chip > .dgb__tool, .dgb__chip > .dgb__spin { flex: none; }
+.dgb__chip-title { min-width: 0; max-width: calc(150 * var(--k)); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.dgb__more { position: relative; }
+.dgb__chip--more { padding: 0 calc(8 * var(--k)); font-weight: 500; color: var(--dgb-text); cursor: default; touch-action: manipulation; }
+/* The tooltip: dark and a little see-through; light in dark mode. The black marks flip with it. */
+.dgb__tip { position: absolute; right: 0; bottom: calc(100% + 6 * var(--k)); z-index: 10; display: grid; width: max-content; max-width: calc(250 * var(--k)); padding: calc(8 * var(--k)) calc(10 * var(--k)); border-radius: calc(8 * var(--k)); background: rgba(24, 24, 27, .92); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 calc(8 * var(--k)) calc(24 * var(--k)) calc(-8 * var(--k)) rgba(0, 0, 0, .35); font-size: calc(12 * var(--k)); line-height: calc(16 * var(--k)); color: rgba(255, 255, 255, .86); opacity: 0; visibility: hidden; transform: translateY(calc(3 * var(--k))); transition: opacity 160ms ease, transform 160ms ease, visibility 0s linear 160ms; pointer-events: none; }
+.dgb__more:hover .dgb__tip, .dgb__more:focus-within .dgb__tip, .dgb__more[data-open] .dgb__tip { opacity: 1; visibility: visible; transform: none; transition: opacity 160ms ease, transform 160ms ease, visibility 0s; }
+.dgb__tip-list { display: grid; gap: calc(2 * var(--k)); }
+.dgb__tip-list li { display: flex; align-items: center; gap: calc(6 * var(--k)); min-width: 0; white-space: nowrap; }
+.dgb__tip-list li > span:not(.dgb__tool):not(.dgb__tip-min) { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.dgb__tip-min { flex: none; }
+.dgb__tip .dgb__mark[data-mono] { color: #fff; }
+.dgb__tip-min { color: rgba(255, 255, 255, .5); }
+.dgb__spin { animation: dgb-spin 900ms linear infinite; }
+@keyframes dgb-spin { to { transform: rotate(360deg); } }
+@keyframes dgb-in { from { opacity: 0; transform: translateY(calc(2 * var(--k))); } }
+
+/* Bigger touch targets without bigger layout: the hit area grows, the box does not (the card must keep its 380:401 fit). */
+@media (pointer: coarse) {
+  .dgb__auto, .dgb__chip { position: relative; }
+  .dgb__auto::after { content: ""; position: absolute; inset: calc(-8 * var(--k)) calc(-8 * var(--k)); }
+  .dgb__chip::after { content: ""; position: absolute; inset: calc(-3 * var(--k)) calc(-2 * var(--k)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dgb *, .dgb *::before, .dgb *::after { animation: none !important; transition: none !important; }
+  .dgb__ghost { transform: none; }
+}
+/* Dark mode: follows a .dark class or data-theme="dark" on any ancestor */
+:where(.dark, [data-theme="dark"]) .dgb {
+  --dgb-card: #1c1c1f; --dgb-strong: #fff; --dgb-ink: rgba(255, 255, 255, .9); --dgb-text: rgba(255, 255, 255, .62); --dgb-muted: rgba(255, 255, 255, .45);
+  --dgb-faint: rgba(255, 255, 255, .28); --dgb-line: rgba(255, 255, 255, .08); --dgb-lane: rgba(255, 255, 255, .035); --dgb-switch-off: rgba(255, 255, 255, .16);
+  --dgb-fill: rgba(255, 255, 255, .08); --dgb-accent: #5b9aff; --dgb-brand-bg: #0077ff3a; --dgb-brand-fg: #70b8ff; --dgb-ok-bg: #22ff991e; --dgb-ok-fg: #46fea5d4;
+  --dgb-focus: rgba(91, 154, 255, .45); --dgb-target-bg: rgba(91, 154, 255, .08); --dgb-target-edge: rgba(112, 184, 255, .35);
+  --dgb-shadow: 0 0 0 calc(.5 * var(--k)) rgba(255, 255, 255, .1), 0 calc(1 * var(--k)) calc(2 * var(--k)) 0 rgba(0, 0, 0, .4);
+  --dgb-lift: 0 0 0 calc(.5 * var(--k)) rgba(255, 255, 255, .14), 0 calc(16 * var(--k)) calc(32 * var(--k)) calc(-12 * var(--k)) rgba(0, 0, 0, .7);
+}
+:where(.dark, [data-theme="dark"]) .dgb__tip { background: rgba(250, 250, 250, .94); box-shadow: 0 calc(8 * var(--k)) calc(24 * var(--k)) calc(-8 * var(--k)) rgba(0, 0, 0, .6); color: rgba(0, 0, 0, .82); }
+:where(.dark, [data-theme="dark"]) .dgb__tip .dgb__mark[data-mono] { color: rgba(0, 0, 0, .88); }
+:where(.dark, [data-theme="dark"]) .dgb__tip-min { color: rgba(0, 0, 0, .55); }

@@ -1,0 +1,4 @@
+/* Used only by FittedLanes, and only when trimming the card's own padding lets one more lane fit (a 390-393px phone).
+   The lanes keep their 48px rows; the header and the time axis keep their content, just less air around it. */
+.agl--tight .agl__bar { padding-top: 11px; padding-bottom: 11px; }
+.agl--tight .agl__body { padding-top: 22px; padding-bottom: 8px; }

@@ -1,0 +1,15 @@
+/* Sohne variable (Klim) as served by stripe.com, plus Source Code Pro Medium for code graphics.
+   Weight range and display strategy match the reference @font-face declarations. */
+@font-face {
+  font-family: sohne-var;
+  src: url("/fonts/Sohne.woff2") format("woff2-variations");
+  font-weight: 1 1000;
+  font-display: block;
+}
+@font-face {
+  font-family: SourceCodePro;
+  src: url("/fonts/SourceCodePro-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}

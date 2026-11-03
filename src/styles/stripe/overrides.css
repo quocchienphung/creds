@@ -1,0 +1,266 @@
+/* Local adjustments on top of the generated reference rules (kept separate so the generated
+   files can be regenerated). Add rules here only with a measurement that justifies them. */
+
+/* Base UI sets the overlay's position inline on the reference; the authored CSS only supplies
+   inset/top/z-index. */
+.hds-navigation-menu__overlay {
+  position: fixed;
+  pointer-events: none;
+}
+
+/* A desktop popup locks background scrolling, but must keep the document's full height. The
+   captured mobile height lock collapses a scrolled page to one viewport, resets scrollY, and moves
+   the trigger away from the pointer while its menu opens. */
+@media (min-width: 940px) {
+  html:has(.hds-navigation-menu__overlay),
+  html:has(.hds-navigation-menu__overlay) body {
+    height: auto;
+  }
+}
+
+/* Static fallbacks for the WebGL bento backgrounds (the reference renders these through its
+   responsive image component; the canvas fills the same -20px inset box). */
+.issuing-graphic__background-static,
+.agentic-graphic__background-static {
+  width: 100%;
+  height: 100%;
+}
+.issuing-graphic__background-static img,
+.agentic-graphic__background-static img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.globe__static {
+  width: 100%;
+  height: 100%;
+}
+.globe__static img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Measured: the reference does not render the product-recommendations section between the tablet
+   and desktop breakpoints (present at 768 and ≥1280, absent at 1024). */
+@media (min-width: 940px) and (max-width: 1263px) {
+  .personalize-section {
+    display: none;
+  }
+  .section:has(> .personalize-section) {
+    display: none;
+  }
+}
+
+/* Hero ribbon tail. The reference clips the wave at the bottom of the hero/logo strip
+   (`.section-background { overflow: hidden }`), which reads as a hard horizontal seam. The canvas
+   is extended below the strip by `--wave-tail` and only that lower tail is alpha-masked to nothing.
+   WaveRenderer reads the same variable to keep the orthographic frustum anchored to the reference
+   top edge, so the upper ribbon is pixel-identical; the tail simply reveals more of the same mesh. */
+@property --wave-tail {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+.hero-section-container {
+  --wave-tail: 900px;
+}
+@media (max-width: 1263px) {
+  .hero-section-container {
+    --wave-tail: 680px;
+  }
+}
+@media (max-width: 639px) {
+  .hero-section-container {
+    --wave-tail: 460px;
+  }
+}
+/* Let the tail overflow vertically while keeping the horizontal bleed clipped (no x scrollbar). */
+.hero-section__background {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+.hero-wave-animation {
+  bottom: calc(-1 * var(--wave-tail));
+}
+/* Static fallback stays centred on the reference region, not the extended canvas. The source
+   image only carries ~40px below the former cut line, so it also fades over its own lower edge
+   (the tail mask below still applies on top); WebGL devices hide this layer after the first draw. */
+.hero-wave-animation__static {
+  top: calc((100% - var(--wave-tail)) / 2);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 140px), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 140px), transparent 100%);
+}
+/* Alpha falloff on the tail only: fully opaque through the former cut line, then a long ease-out. */
+.hero-wave-animation__contents {
+  --wave-cut: calc(100% - var(--wave-tail));
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(var(--wave-cut) - 64px),
+    #000 calc(var(--wave-cut) + var(--wave-tail) * 0.12),
+    rgba(0, 0, 0, 0.9) calc(var(--wave-cut) + var(--wave-tail) * 0.4),
+    rgba(0, 0, 0, 0.62) calc(var(--wave-cut) + var(--wave-tail) * 0.65),
+    rgba(0, 0, 0, 0.22) calc(var(--wave-cut) + var(--wave-tail) * 0.85),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(var(--wave-cut) - 64px),
+    #000 calc(var(--wave-cut) + var(--wave-tail) * 0.12),
+    rgba(0, 0, 0, 0.9) calc(var(--wave-cut) + var(--wave-tail) * 0.4),
+    rgba(0, 0, 0, 0.62) calc(var(--wave-cut) + var(--wave-tail) * 0.65),
+    rgba(0, 0, 0, 0.22) calc(var(--wave-cut) + var(--wave-tail) * 0.85),
+    transparent 100%
+  );
+}
+
+/* Keep the Guide me icon beside its label in the mobile callout. */
+.navigation__personalize-callout--mobile .hds-link[href="/personalize"] {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+}
+
+/* Morph nav motion adapted to the existing Stripe layout. Timings/travel were read from UIArc's
+   public preview; see docs/research/morph-nav. Measure intrinsic content, not the animated viewport:
+   stretching the observed child to height:100% made ResizeObserver chase its own transition. */
+@media (min-width: 940px) {
+  .hds-navigation-menu__viewport > .hds-navigation-menu__content {
+    align-self: start;
+    height: max-content;
+  }
+  .hds-navigation-menu__popup {
+    height: var(--hds-navigation-menu-popup-height, auto);
+  }
+  .hds-navigation-menu__content[data-status="close"] {
+    pointer-events: none;
+  }
+}
+@media (min-width: 940px) and (prefers-reduced-motion: no-preference) {
+  .hds-navigation-menu__popup {
+    clip-path: none;
+    max-height: none;
+    opacity: 0;
+    transform: translateY(-4px);
+    transform-origin: 50% 0;
+    transition-property: opacity, transform, height;
+    transition-duration: var(--interaction-duration-fast), var(--interaction-duration-spring), var(--interaction-duration-spring);
+    transition-timing-function: var(--interaction-ease-enter), var(--interaction-ease-spring), var(--interaction-ease-spring);
+  }
+  .hds-navigation-menu__popup[data-status="open"] {
+    clip-path: none;
+    opacity: 1;
+    transform: none;
+  }
+  .hds-navigation-menu__popup[data-status="close"] {
+    clip-path: none;
+    opacity: 0;
+    transform: translateY(-2px);
+    transition-duration: var(--interaction-duration-exit), var(--interaction-duration-exit), var(--interaction-duration-exit);
+    transition-timing-function: var(--interaction-ease-standard);
+  }
+  .hds-navigation-menu__overlay {
+    transition-duration: 180ms;
+  }
+  .hds-navigation-menu__popup .hds-navigation-menu__content[data-status="open"] {
+    opacity: 1;
+    transform: none;
+    transition-duration: 240ms, var(--interaction-duration-spring);
+    transition-delay: 40ms, 0ms;
+    transition-timing-function: var(--interaction-ease-enter), var(--interaction-ease-spring);
+  }
+  .hds-navigation-menu__popup .hds-navigation-menu__content[data-status="close"] {
+    opacity: 0;
+    transform: translateY(-4px);
+    transition-duration: 120ms, var(--interaction-duration-spring);
+    transition-delay: 0ms;
+    transition-timing-function: var(--interaction-ease-standard), var(--interaction-ease-spring);
+  }
+  .hds-navigation-menu__popup[data-activation-direction="following"] .hds-navigation-menu__content[data-status="close"] {
+    transform: translateX(-10px);
+  }
+  .hds-navigation-menu__popup[data-activation-direction="preceding"] .hds-navigation-menu__content[data-status="close"] {
+    transform: translateX(10px);
+  }
+  @starting-style {
+    .hds-navigation-menu__popup .hds-navigation-menu__content[data-status="open"] {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    .hds-navigation-menu__popup[data-activation-direction="following"] .hds-navigation-menu__content[data-status="open"] {
+      transform: translateX(10px);
+    }
+    .hds-navigation-menu__popup[data-activation-direction="preceding"] .hds-navigation-menu__content[data-status="open"] {
+      transform: translateX(-10px);
+    }
+  }
+}
+@media (min-width: 940px) and (prefers-reduced-motion: reduce) {
+  .hds-navigation-menu__popup,
+  .hds-navigation-menu__popup .hds-navigation-menu__content {
+    transform: none;
+    clip-path: none;
+    transition: opacity 120ms linear;
+  }
+  .hds-navigation-menu__popup[data-status="initial"],
+  .hds-navigation-menu__popup[data-status="close"],
+  .hds-navigation-menu__popup .hds-navigation-menu__content[data-status="close"] {
+    opacity: 0;
+  }
+}
+
+/* "Book of the week" cover: reserve its box before it loads. The reference renders a placeholder while the cover
+   arrives; here the lazy <img> was `width:auto; height:auto`, i.e. 0px tall until loaded, and the section then
+   grew by 310–440px under the reader, pushing the call to action and the footer down (CLS 0.24 on a phone with
+   slow images). The sizes below are exactly what the loaded cover resolves to (592:880, capped by the
+   max-height / max-width the reference sets), so nothing moves when it arrives. */
+.book-of-the-week__image {
+  aspect-ratio: 592 / 880;
+}
+@media (max-width: 639px) {
+  .book-of-the-week__image {
+    height: 310px;
+  }
+}
+@media (min-width: 640px) and (max-width: 939px) {
+  .book-of-the-week__image {
+    height: 365px;
+  }
+}
+@media (min-width: 940px) {
+  .book-of-the-week__image {
+    width: 100%;
+  }
+}
+
+/* Phone menu, first level: let the list scroll. The reference only makes the second-level panels scroll
+   (`overflow: auto` plus a spacer the height of the fixed "Start now / Contact sales" bar), so on a short screen,
+   a phone held sideways, Pricing, Sign in and the callout sat under that bar and could not be reached. */
+@media (max-width: 939px) {
+  .hds-navigation-menu__viewport > .hds-navigation-menu__content:first-child {
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .hds-navigation-menu__viewport > .hds-navigation-menu__content:first-child::after {
+    content: "";
+    display: block;
+    height: calc(var(--navigation-menu-footer-height) + var(--hds-space-core-400));
+  }
+}
+
+/* Locked vertical at 280px (a folded foldable): the sticky call-to-action bar of the product pages kept two buttons 4px wider than the screen. */
+@media (max-width: 300px) {
+  .MobileStickyNav__container { gap: 6px; padding-inline: 10px; }
+  .MobileStickyNav__container > * { flex: 0 1 auto; min-width: 0; }
+  .MobileStickyNav__container .CtaButton { padding-inline: 12px; white-space: normal; }
+  /* a single grid column took the width of its widest graphic (278px in a 248px row) */
+  .columns, .side-by-side, .feature-detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .feature-card, .feature-detail { min-width: 0; max-width: 100%; }
+  .feature-card__graphic, .feature-detail__content { overflow-x: clip; }
+  .feature-detail, .feature-detail__content { width: 100%; box-sizing: border-box; }
+  .feature-detail > *, .feature-detail__content > * { min-width: 0; max-width: 100%; }
+}

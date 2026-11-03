@@ -1,0 +1,56 @@
+/* Notification Stack. Authored for this project from the values observed on the public preview (docs/research/notification-stack/observed-rules.css):
+   380 px wide at most, 10 px corners, 460 ms ease for the stack's height and each card's move, a card leaves 40 px to the right in 320 ms,
+   cards behind the front one hide their content. Colors are variables; dark mode follows an ancestor with the class "dark" or data-theme="dark". */
+.nsc {
+  --nsc-card: #fff; --nsc-strong: #000; --nsc-ink: rgba(0, 0, 0, .88); --nsc-text: rgba(0, 0, 0, .61); --nsc-icon: rgba(0, 0, 0, .447); --nsc-line: rgba(0, 0, 0, .06);
+  --nsc-wash: rgba(0, 0, 0, .03); --nsc-fill: rgba(0, 0, 0, .06); --nsc-art: rgba(0, 0, 0, .07); --nsc-accent: rgba(0, 96, 226, .765); --nsc-accent-bg: rgba(0, 96, 226, .05);
+  --nsc-focus: rgba(0, 96, 226, .35);
+  --nsc-shadow: 0 0 0 .5px rgba(0, 0, 0, .06), 0 1px 1px -1px rgba(0, 0, 0, .1), 0 1px 2px 0 rgba(0, 0, 0, .05), 0 10px 24px -12px rgba(0, 0, 0, .18);
+  --nsc-shadow-hover: 0 0 0 .5px rgba(0, 0, 0, .1), 0 1px 1px -1px rgba(0, 0, 0, .12), 0 1px 3px 0 rgba(0, 0, 0, .07);
+  --nsc-ease: cubic-bezier(.22, 1, .36, 1);
+  position: relative; box-sizing: border-box; container-type: inline-size; width: 100%; max-width: 380px; font-family: Inter, InterVariable, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px; font-weight: 400; line-height: 20px; color: var(--nsc-ink); text-align: left; -webkit-font-smoothing: antialiased; transition: height 460ms var(--nsc-ease);
+}
+:where(.dark, [data-theme="dark"]) .nsc {
+  --nsc-card: #1c1c1e; --nsc-strong: #fff; --nsc-ink: rgba(255, 255, 255, .9); --nsc-text: rgba(255, 255, 255, .62); --nsc-icon: rgba(255, 255, 255, .46); --nsc-line: rgba(255, 255, 255, .08);
+  --nsc-wash: rgba(255, 255, 255, .04); --nsc-fill: rgba(255, 255, 255, .08); --nsc-art: rgba(255, 255, 255, .07); --nsc-accent: #4d8dff; --nsc-accent-bg: rgba(77, 141, 255, .1); --nsc-focus: rgba(77, 141, 255, .5);
+  --nsc-shadow: 0 0 0 .5px rgba(255, 255, 255, .1), 0 1px 2px 0 rgba(0, 0, 0, .4), 0 10px 24px -12px rgba(0, 0, 0, .6); --nsc-shadow-hover: 0 0 0 .5px rgba(255, 255, 255, .16), 0 1px 2px 0 rgba(0, 0, 0, .4);
+}
+.nsc *, .nsc ::before, .nsc ::after { box-sizing: border-box; }
+.nsc button { margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.nsc button:focus-visible, .nsc a:focus-visible { outline: 2px solid var(--nsc-focus); outline-offset: 1px; }
+.nsc svg { flex: 0 0 auto; }
+/* What the tone changes: the badge and the dot of the drawing */
+.nsc__card[data-tone="success"] { --nsc-accent: #0d9a52; --nsc-accent-bg: rgba(13, 154, 82, .07); --nsc-tone-bg: rgba(0, 164, 51, .1); --nsc-tone-fg: #007d2e; }
+.nsc__card[data-tone="error"] { --nsc-accent: #d72400; --nsc-accent-bg: rgba(215, 36, 0, .07); --nsc-tone-bg: rgba(245, 43, 0, .1); --nsc-tone-fg: #c01f00; }
+.nsc__card[data-tone="attention"] { --nsc-accent: #cc6a00; --nsc-accent-bg: rgba(255, 156, 0, .1); --nsc-tone-bg: rgba(255, 156, 0, .16); --nsc-tone-fg: #a24300; }
+:where(.dark, [data-theme="dark"]) .nsc__card[data-tone="success"] { --nsc-accent: #3dd68c; --nsc-tone-bg: rgba(0, 240, 74, .12); --nsc-tone-fg: #3dd68c; }
+:where(.dark, [data-theme="dark"]) .nsc__card[data-tone="error"] { --nsc-accent: #ff6a55; --nsc-tone-bg: rgba(255, 53, 35, .18); --nsc-tone-fg: #ff977d; }
+:where(.dark, [data-theme="dark"]) .nsc__card[data-tone="attention"] { --nsc-accent: #ffa057; --nsc-tone-bg: rgba(251, 106, 0, .18); --nsc-tone-fg: #ffa057; }
+.nsc__card { position: absolute; top: 0; left: 0; right: 0; overflow: hidden; border-radius: 10px; background: var(--nsc-card); box-shadow: var(--nsc-shadow); transform-origin: 50% 100%; transition: transform 460ms var(--nsc-ease), opacity 300ms ease, box-shadow 300ms ease; }
+.nsc__card > * { transition: opacity 260ms; }
+.nsc__card:not([data-depth="0"]) > * { opacity: 0; }
+.nsc__card[data-leaving] { opacity: 0; pointer-events: none; transition: transform 320ms var(--nsc-ease), opacity 240ms ease; transform: translateX(40px) scale(.98) !important; }
+.nsc__pattern { position: absolute; top: 0; right: 0; width: 220px; height: 160px; stroke: var(--nsc-art); stroke-width: .75; pointer-events: none; mask-image: radial-gradient(120% 110% at 100% 0%, #000 20%, transparent 70%); -webkit-mask-image: radial-gradient(120% 110% at 100% 0%, #000 20%, transparent 70%); }
+.nsc__dot { fill: var(--nsc-accent); stroke: none; }
+.nsc__fill { fill: var(--nsc-accent-bg); }
+.nsc__body { position: relative; padding: 12px 12px 16px 16px; }
+.nsc__top { display: flex; align-items: center; justify-content: space-between; min-height: 28px; margin-bottom: 8px; }
+.nsc__badge { padding: 2px 6px; border-radius: 5px; background: var(--nsc-tone-bg, var(--nsc-fill)); font-size: 10px; font-weight: 500; line-height: 16px; letter-spacing: .5px; text-transform: uppercase; color: var(--nsc-tone-fg, var(--nsc-text)); }
+.nsc__close { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; color: var(--nsc-icon); transition: background-color 140ms, color 140ms; }
+.nsc__close:hover { background: var(--nsc-wash); color: var(--nsc-ink); }
+.nsc__title { margin: 0; padding-right: 4px; font-size: 15px; font-weight: 500; line-height: 24px; color: var(--nsc-strong); }
+.nsc__text { margin: 2px 0 0; padding-right: 4px; max-width: 38ch; font-size: 13px; line-height: 20px; color: var(--nsc-text); overflow-wrap: anywhere; }
+.nsc__btn { display: inline-flex; align-items: center; gap: 6px; height: 28px; margin-top: 12px; padding: 0 10px; border-radius: 6px; white-space: nowrap; font-size: 13px; font-weight: 500; line-height: 20px; text-decoration: none; background: var(--nsc-card); box-shadow: var(--nsc-shadow); color: var(--nsc-strong); transition: background-color 140ms ease, box-shadow 140ms ease, transform 160ms var(--nsc-ease); }
+.nsc__btn:has(svg) { padding: 0 8px 0 10px; }
+.nsc__btn:hover { box-shadow: var(--nsc-shadow-hover); }
+.nsc__btn:active { transform: scale(.97); }
+.nsc__btn svg { color: var(--nsc-icon); }
+:where(.dark, [data-theme="dark"]) .nsc .nsc__btn { background: rgba(255, 255, 255, .04); }
+.nsc__foot { position: absolute; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; font-size: 12px; line-height: 20px; color: var(--nsc-text); transition: top 460ms var(--nsc-ease); }
+.nsc__foot button { height: 22px; padding: 0 6px; border-radius: 5px; font-weight: 500; color: var(--nsc-text); }
+.nsc__foot button:hover { background: var(--nsc-wash); color: var(--nsc-ink); }
+.nsc__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@container (max-width: 340px) { .nsc__body { padding: 10px 10px 14px 14px; } .nsc__text { max-width: none; } }
+@media (pointer: coarse) { .nsc__close { width: 36px; height: 36px; margin: -4px -4px -4px 0; } .nsc__btn { height: 36px; padding: 0 14px; } .nsc__btn:has(svg) { padding: 0 12px 0 14px; } .nsc__foot button { height: 30px; } }
+@media (prefers-reduced-motion: reduce) { .nsc, .nsc__card, .nsc__card > *, .nsc__foot { transition: none; } }

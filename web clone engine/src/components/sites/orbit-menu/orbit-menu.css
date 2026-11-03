@@ -1,0 +1,40 @@
+.orbit-menu,.orbit-menu-portal{--orbit-trigger-size:56px;--orbit-ink:#171717;--orbit-paper:#fff;--orbit-edge:rgba(0,0,0,.12);--orbit-material:rgba(255,255,255,.82);--orbit-shadow:0 2px 5px #00000006,0 5px 16px #0000000a;--orbit-danger:#ee3047;color:var(--orbit-ink);font-family:inherit;letter-spacing:normal;isolation:isolate}
+.orbit-menu{position:relative;display:inline-block;width:var(--orbit-trigger-size);height:var(--orbit-trigger-size);flex:none;vertical-align:middle;user-select:none}
+.orbit-menu-trigger{position:absolute;inset:0;display:grid;place-items:center;padding:0;border:1px solid transparent;border-radius:50%;background:var(--orbit-ink);color:var(--orbit-paper);box-shadow:var(--orbit-shadow);cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;transition:background-color .2s,color .2s,border-color .2s,transform .25s}
+.orbit-menu[data-open] .orbit-menu-trigger{border-color:var(--orbit-edge);background:var(--orbit-material);color:var(--orbit-ink);backdrop-filter:blur(18px) saturate(1.6);transform:scale(.94)}
+.orbit-menu-trigger:disabled{cursor:not-allowed;opacity:.45}
+.orbit-menu-glyph{width:22px;height:22px;overflow:visible}
+.orbit-menu-trigger:focus-visible,.orbit-menu-item:focus-visible{outline:2px solid #6581e8;outline-offset:4px}
+.orbit-menu-portal{position:fixed;width:0;height:0;z-index:80;pointer-events:none;user-select:none;font-family:Arial,Helvetica,sans-serif;font-size:14px}
+.orbit-menu-actions{position:absolute;inset:0;pointer-events:none}
+.orbit-menu-track{position:absolute;overflow:visible;pointer-events:none}
+.orbit-menu-track path{fill:none;stroke:var(--orbit-edge);stroke-width:1.5;stroke-linecap:round}
+.orbit-menu-item,.orbit-menu-lens{position:absolute;left:0;top:0;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%}
+.orbit-menu-item{display:grid;place-items:center;padding:0;border:1px solid var(--orbit-edge);background:var(--orbit-paper);color:var(--orbit-ink);box-shadow:var(--orbit-shadow);cursor:pointer;touch-action:none;pointer-events:auto;transition:background-color .15s,border-color .15s,color .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent}
+.orbit-menu-item>span{display:grid;place-items:center;pointer-events:none}
+.orbit-menu-item svg{width:20px;height:20px;stroke-width:1.75}
+.orbit-menu-item[data-danger]{color:var(--orbit-danger)}
+.orbit-menu-item[data-active]{background:transparent;border-color:transparent;box-shadow:none;color:var(--orbit-paper)}
+.orbit-menu-item[data-active][data-danger]{color:var(--orbit-danger)}
+.orbit-menu-item[aria-disabled="true"]{opacity:.45!important;cursor:not-allowed;box-shadow:none}
+.orbit-menu-lens{background:var(--orbit-ink);box-shadow:var(--orbit-shadow);pointer-events:none}
+.orbit-menu-lens[data-danger]{background:color-mix(in srgb,var(--orbit-danger) 14%,var(--orbit-paper));box-shadow:var(--orbit-shadow),inset 0 0 0 1px color-mix(in srgb,var(--orbit-danger) 36%,transparent)}
+.orbit-menu-pill-anchor{position:absolute;z-index:4;width:0;height:0;display:grid;place-items:center;pointer-events:none}
+.orbit-menu-pill{position:absolute;display:flex;align-items:center;justify-content:center;min-height:32px;padding:0 14px;overflow:hidden;border:1px solid var(--orbit-edge);border-radius:999px;background:var(--orbit-material);box-shadow:var(--orbit-shadow);backdrop-filter:blur(18px) saturate(1.6);color:var(--orbit-ink);font-size:14px;font-weight:500;line-height:1;white-space:nowrap;max-width:260px}
+.orbit-menu-pill>span{display:block;overflow:hidden;text-overflow:ellipsis}
+.orbit-menu-done{color:#238752}
+.orbit-menu-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+[data-theme="dark"] .orbit-menu,.orbit-menu-portal[data-theme="dark"]{--orbit-ink:#f5f5f5;--orbit-paper:#222;--orbit-edge:rgba(255,255,255,.18);--orbit-material:rgba(32,32,32,.86);--orbit-shadow:0 2px 5px #0003,0 5px 16px #0003}
+@media(hover:hover) and (pointer:fine){.orbit-menu-trigger:not(:disabled):hover{filter:brightness(.95)}.orbit-menu-item:not([data-active]):not([aria-disabled="true"]):hover{background:color-mix(in srgb,var(--orbit-ink) 6%,var(--orbit-paper))}}
+@media(prefers-reduced-motion:reduce){.orbit-menu-trigger,.orbit-menu-item{transition:none}}
+@media(prefers-reduced-transparency:reduce){.orbit-menu,.orbit-menu-portal{--orbit-material:var(--orbit-paper)}.orbit-menu-pill,.orbit-menu[data-open] .orbit-menu-trigger{backdrop-filter:none}}
+/* Context-menu mode: the trigger is drawn at the pointer as the close button, and hides again once the fan has folded. */
+.orbit-menu[data-anchored]{position:fixed;z-index:81;margin:0;transition:opacity .16s,visibility 0s}
+.orbit-menu[data-anchored]:not([data-open]):not([data-result]){opacity:0;visibility:hidden;pointer-events:none;transition:opacity .16s .18s,visibility 0s .34s}
+.orbit-menu[data-anchored][data-open] .orbit-menu-trigger{animation:orbit-menu-pop .26s cubic-bezier(.2,1.3,.4,1) backwards}
+@keyframes orbit-menu-pop{from{transform:scale(.4);opacity:0}}
+.orbit-menu-key{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:8px;padding:0 5px;border:1px solid var(--orbit-edge);border-radius:5px;background:color-mix(in srgb,var(--orbit-ink) 6%,transparent);color:color-mix(in srgb,var(--orbit-ink) 70%,transparent);font-weight:600;font-size:11px;line-height:1;vertical-align:1px}
+.orbit-menu[data-theme="dark"]{--orbit-ink:#f5f5f5;--orbit-paper:#222;--orbit-edge:rgba(255,255,255,.18);--orbit-material:rgba(32,32,32,.86);--orbit-shadow:0 2px 5px #0003,0 5px 16px #0003}
+@media(prefers-reduced-motion:reduce){.orbit-menu[data-anchored][data-open] .orbit-menu-trigger{animation:none}}
+/* The middle button holds the focus so letters and arrows work at once; the ring is only for people using the keyboard. */
+.orbit-menu[data-anchored]:not(.is-keyboard) .orbit-menu-trigger:focus-visible{outline:none}

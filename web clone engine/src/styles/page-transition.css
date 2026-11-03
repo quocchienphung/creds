@@ -1,0 +1,53 @@
+/* Page-to-page transition (cross-document View Transitions); behaviour and timings are documented in
+   src/components/page-transition/pageTransitionRuntime.ts, which injects the disc, lens and reveal
+   animations (all compositor-run: scale, transform, opacity) and the lens filters. */
+@view-transition {
+  navigation: auto;
+}
+
+/* the outgoing page is captured under its own name (the runtime adds the class on `pageswap`), so the
+   incoming root is revealed through its disc without the outgoing page sharing that mask */
+html.pt-leaving {
+  view-transition-name: pt-out;
+}
+
+/* Leaving through the phone menu (it is open when a link in it is tapped): the outgoing snapshot is the page
+   itself, not the menu, whose "Back" button floats over the header's logo and whose text the lens would bend. */
+html.pt-leaving .hds-navigation-menu__positioner,
+html.pt-leaving .hds-navigation-menu__overlay {
+  visibility: hidden;
+}
+
+/* stacking: outgoing page, incoming page, its text blocks and media (z-index 2, set by the runtime), header */
+html::view-transition-group(root) {
+  z-index: 1;
+}
+
+/* the runtime drives every pseudo-element; without it the pages simply cut over */
+html::view-transition-old(pt-out),
+html::view-transition-new(root),
+html::view-transition-new(*.pt-text),
+html::view-transition-new(*.pt-media) {
+  animation: none;
+}
+
+/* the site header stays still for the whole transition */
+header.navigation {
+  view-transition-name: pt-header;
+}
+html::view-transition-group(pt-header) {
+  animation: none;
+  z-index: 3;
+}
+html::view-transition-old(pt-header) {
+  display: none;
+}
+html::view-transition-new(pt-header) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}

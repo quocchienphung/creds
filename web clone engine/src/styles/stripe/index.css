@@ -1,0 +1,26 @@
+/* Stripe homepage design system.
+   Cascade layers follow the reference (reset < base < app); unlayered rules win over all layers.
+   Files under generated/ are partitioned from the frozen stripe.com stylesheet — see
+   scripts/forensics/partition-css.mjs. Import order matches the reference cascade. */
+@import "./fonts.css";
+@import "./generated/tokens.css";
+@import "./generated/foundation.css";
+@import "./generated/navigation.css";
+@import "./generated/hero.css";
+@import "./generated/solutions.css";
+@import "./generated/graphics/payments.css";
+@import "./generated/graphics/billing.css";
+@import "./generated/graphics/agentic.css";
+@import "./generated/graphics/issuing.css";
+@import "./generated/graphics/crypto.css";
+@import "./generated/graphics/connect.css";
+@import "./generated/query.css";
+@import "./generated/sessions.css";
+@import "./generated/stats.css";
+@import "./generated/business.css";
+@import "./generated/developers.css";
+@import "./generated/news.css";
+@import "./generated/cta.css";
+@import "./generated/footer.css";
+@import "./overrides.css";
+@import "./mono.css";

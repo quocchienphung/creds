@@ -1,0 +1,5 @@
+*.log
+synthetic-artifacts/
+browser/*.xlsx
+browser/*.repair-report.json
+duplicate-browser/*.xlsx

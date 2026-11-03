@@ -1,0 +1,18 @@
+.ui-ar .run-approval-link {
+  margin: 0;
+  padding: 0;
+  font-weight: inherit;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.ui-ar .run-approval-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.ui-ar .run-approval-link:focus-visible { outline: 2px solid var(--ui-tc-focus, #b45309); outline-offset: 4px; border-radius: 2px; }
+.ui-ar .run-payload-capped { max-height: 238px; }
+.ui-ar .run-activity-text { min-width: 1px; }
+.ui-ar .run-activity-text .ui-tl__label { width: max-content; }
+.run-copy-fallback { position: fixed; left: -9999px; opacity: 0; }
+.ui-pl__step:focus-within .ui-pl__grip,
+.ui-pl__step:focus-within .ui-pl__remove { opacity: 1; }
+.ui-pl__grip:focus-visible { outline: 2px solid var(--ui-pl-ring); outline-offset: 2px; }

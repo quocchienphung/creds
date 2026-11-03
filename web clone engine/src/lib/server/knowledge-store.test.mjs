@@ -1,0 +1,52 @@
+import {test,before,after} from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {mkdtemp,rm,access} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {downloadKnowledge,readKnowledge,removeKnowledge,saveKnowledge,searchKnowledge} from './knowledge-store.ts';
+import {knowledgeApi} from './knowledge-api.ts';
+import {writeResource} from './workspace-store.ts';
+import {emptyStorage,indexDocument} from '../../components/sites/storage/storage-model.ts';
+let root;const prior=process.env.LOGIO_DATA_DIR;
+before(async()=>{root=await mkdtemp(path.join(tmpdir(),'logio-knowledge-'));process.env.LOGIO_DATA_DIR=root;});
+after(async()=>{assert.ok(root.startsWith(tmpdir()));await rm(root,{recursive:true,force:true});if(prior===undefined)delete process.env.LOGIO_DATA_DIR;else process.env.LOGIO_DATA_DIR=prior;});
+const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+const text='Finance source. '+('Evidence capital banking reference. '.repeat(80))+' crossdevicepassage';
+const file=new File([text],'finance.txt',{type:'text/plain'}),fingerprint=sha(text),index=indexDocument(text);
+const doc=id=>({id,name:file.name,category:'Finance',bytes:file.size,mime:file.type,sha256:fingerprint,addedAt:new Date().toISOString(),words:index.words,chunks:index.chunks.length,excerpt:index.excerpt,keywords:index.keywords,extraction:'indexed'});
+test('server stores byte-perfect originals and complete indexes, with idempotent upload receipts',async()=>{
+  const receipt=await saveKnowledge('one','document',file,index.text,fingerprint);
+  assert.deepEqual(receipt,{id:'document',bytes:file.size,sha256:fingerprint});
+  assert.deepEqual(await saveKnowledge('one','document',file,index.text,fingerprint),receipt);
+  assert.deepEqual(await saveKnowledge('one','document',file,index.text.replace(/\n/g,'\r\n'),fingerprint),receipt);
+  assert.deepEqual(await readKnowledge('one','document'),{text:index.text,chunks:index.chunks});
+  assert.equal((await downloadKnowledge('one','document')).bytes.toString(),text);
+  await assert.rejects(saveKnowledge('one','document',new File(['different'],'finance.txt'),'different',sha('different')),e=>e.status===409);
+});
+test('workspace isolation, unsafe paths, bad fingerprints and oversize indexes are rejected',async()=>{
+  await assert.rejects(readKnowledge('other','document'),e=>e.status===404);
+  for(const [workspace,id] of [['../escape','a'],['one','../escape'],['one','a/b']])await assert.rejects(readKnowledge(workspace,id),e=>e.status===400);
+  await assert.rejects(saveKnowledge('one','bad',file,index.text,'a'.repeat(64)),e=>e.status===400);
+  await assert.rejects(saveKnowledge('one','large',file,'x'.repeat(1000001),fingerprint),e=>e.status===400);
+});
+test('search uses server text outside excerpts, and deletion preserves referenced originals',async()=>{
+  await writeResource('one','knowledge-library',{...emptyStorage,documents:[doc('document')]},null);
+  assert.deepEqual(await searchKnowledge('one','crossdevicepassage'),['document']);
+  assert.deepEqual(await searchKnowledge('other','crossdevicepassage'),[]);
+  await assert.rejects(removeKnowledge('one','document'),e=>e.status===409);
+  assert.equal((await downloadKnowledge('one','document')).bytes.toString(),text);
+  await writeResource('one','knowledge-library',emptyStorage,null);
+  await removeKnowledge('one','document');await removeKnowledge('one','document');
+  await assert.rejects(access(path.join(root,'workspaces','one','storage','document')));
+});
+test('multipart/index/original/delete HTTP handlers return safe attachment responses',async()=>{
+  const form=new FormData();form.set('file',file);form.set('text',index.text);form.set('sha256',fingerprint);
+  const upload=await knowledgeApi(new Request('http://localhost/storage',{method:'PUT',body:form}),'http',['documents','one']);
+  assert.equal(upload.status,200);assert.equal((await upload.json()).data.sha256,fingerprint);
+  const loaded=await knowledgeApi(new Request('http://localhost/storage'),'http',['documents','one','index']);
+  assert.equal((await loaded.json()).data.text,index.text);
+  const original=await knowledgeApi(new Request('http://localhost/storage'),'http',['documents','one','original']);
+  assert.match(original.headers.get('content-disposition'),/^attachment;/);assert.equal(original.headers.get('x-content-type-options'),'nosniff');assert.equal(await original.text(),text);
+  const removed=await knowledgeApi(new Request('http://localhost/storage',{method:'DELETE'}),'http',['documents','one']);assert.equal(removed.status,204);
+});

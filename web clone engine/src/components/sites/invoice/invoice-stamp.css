@@ -1,0 +1,111 @@
+/* The invoice stamp: the picker pop-up that turns into a scene (StampStage), the stamp as a 3D solid (Stamp3D), the paper it stamps (the invoice's own
+   sheet) and the impression (StampMark). The look of the controls and of the picker's face is the invoice page's own (tokens, radii, the segmented
+   control and the dark button of the invoice preview). Authored for this project; the choreography was measured from a recording of the interaction
+   (docs/research/invoice-stamp/README.md). The scene's units are design px of a 720 × 480 stage scaled by --k; the controls under the stamp are real
+   pixels so they stay easy to hit on a phone. Nothing here uses will-change on a scaled layer, so text and edges are drawn at their size on screen. */
+@font-face { font-family: "Stamp Barlow"; src: url("/fonts/barlow-condensed-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+
+.inv-stage {
+  --stg-bg: #f8f8f8; --stg-ink: #c9382c; --stg-text: #171717; --stg-text-2: #404040; --stg-muted: #8f8f8f; --stg-card: #fff; --stg-line: #e5e5e5; --stg-tray: rgba(0, 0, 0, .05);
+  --stg-btn-top: #323137; --stg-btn-bottom: #201e25; --stg-btn-ring: #0d0d0d; --stg-btn-text: #fff; --stg-inset: #f6f6f6; --stg-focus: rgba(47, 107, 255, .55);
+  position: fixed; inset: 0; z-index: 2000; overflow: hidden; color: var(--stg-text); -webkit-font-smoothing: antialiased; font-family: "Invoice Inter", Inter, ui-sans-serif, system-ui, sans-serif;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+:where(.dark, [data-theme="dark"]) .inv-stage { --stg-bg: #19191b; --stg-text: #ededed; --stg-text-2: #c4c4c4; --stg-card: #232326; --stg-line: rgba(255, 255, 255, .1); --stg-tray: rgba(255, 255, 255, .06); --stg-inset: #1c1c1f; --stg-btn-top: #f4f4f5; --stg-btn-bottom: #e4e4e7; --stg-btn-ring: rgba(0, 0, 0, .6); --stg-btn-text: #121213; }
+.inv-stage *, .inv-stage *::before, .inv-stage *::after { box-sizing: border-box; }
+.inv-stage :where(button) { margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.inv-stage :where(button):disabled { cursor: default; }
+.inv-stage :focus-visible { outline: 2px solid var(--stg-focus); outline-offset: 2px; }
+.inv-stage:focus { outline: none; }
+.inv-stage__flat, .inv-stage__table { position: absolute; inset: 0; }
+.inv-stage__flat { background: color-mix(in srgb, var(--stg-bg) 94%, transparent); backdrop-filter: blur(22px) saturate(1.1); -webkit-backdrop-filter: blur(22px) saturate(1.1); transition: background-color 260ms ease; }
+/* once the stamping starts the page behind is gone: the paper lies on a table of its own */
+.inv-stage:not([data-phase="pick"]) .inv-stage__flat { background: var(--stg-bg); }
+.inv-stage__table { background: linear-gradient(180deg, #c9c9ce 0%, #d8d8dd 42%, #ebebee 100%); opacity: 0; }
+:where(.dark, [data-theme="dark"]) .inv-stage__table { background: linear-gradient(180deg, #2a2a2e 0%, #1d1d20 55%, #141416 100%); }
+.inv-stage__close { position: absolute; top: 16px; right: 16px; z-index: 5; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; color: var(--stg-muted); transition: background-color 140ms, color 140ms; }
+.inv-stage__close:hover { background: var(--stg-tray); color: var(--stg-text); }
+
+/* the scene: a 720 × 480 box of design px, centred and scaled; the camera looks at the paper and the stamp from the same place */
+.inv-stage__world { position: absolute; left: 50%; top: 50%; width: 720px; height: 480px; margin: -240px 0 0 -360px; transform-origin: 50% 50%; }
+.inv-stage__camera { position: absolute; inset: 0; perspective: 860px; perspective-origin: 50% 50%; }
+.inv-stage__paper { position: absolute; left: 50%; top: 50%; width: 560px; height: 790px; margin: -395px 0 0 -280px; overflow: hidden; background: #fff; opacity: 0;
+  box-shadow: 0 0 0 .5px rgba(0, 0, 0, .08), 0 2px 5px rgba(0, 0, 0, .08), 0 34px 60px -24px rgba(0, 0, 0, .34); }
+/* the invoice's own sheet, laid out at its real width (748) and scaled to the paper: same markup, same stylesheet as the preview in the page */
+.inv-paper.ui-iv { --ui-iv-paper: #fff; --ui-iv-card-line: #e5e5e5; --ui-iv-line: #ececec; --ui-iv-ink: #171717; --ui-iv-text: #404040; --ui-iv-muted: #8f8f8f; --ui-iv-accent: #2f6bff; --ui-iv-inset: #f6f6f6;
+  position: absolute; left: 0; top: 0; width: 748px; height: 1055px; max-width: none; padding: 0; border-radius: 0; background: #fff; color: #171717; overflow: hidden; transform: scale(.7487); transform-origin: 0 0;
+  font-family: "Invoice Inter", Inter, ui-sans-serif, system-ui, sans-serif; font-size: 13px; line-height: 18.571px; font-weight: 400; pointer-events: none; }
+.inv-paper .ui-iv__sheet { min-height: 100%; border: 0; border-radius: 0; box-shadow: none; transition: none; background: #fff; }
+.inv-paper .ui-iv__sheet > * { opacity: 1; transition: none; }
+.inv-stage__shade { position: absolute; left: 0; top: 0; background: rgb(20, 20, 28); opacity: 0; pointer-events: none; }
+.inv-stage__mark { position: absolute; opacity: 0; pointer-events: none; mix-blend-mode: multiply; }
+.inv-mark { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* the stamp: slices of a rounded rectangle piled up into a body (see Stamp3D), a die of rubber under, a neck, a handle with the picker on its top */
+.stp3d { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; }
+.stp3d__part { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+.stp3d__slice { position: absolute; left: 0; top: 0; display: block; pointer-events: none; }
+.stp3d__slice[data-top] { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 0 0 .5px rgba(0, 0, 0, .06); }
+.stp3d__top { position: absolute; left: 0; top: 0; overflow: hidden; background: var(--stg-card); box-shadow: inset 0 0 0 1px var(--stg-line), inset 0 1px 0 rgba(255, 255, 255, .8); }
+
+/* the picker's face: the invoice page's own panel, tray and pill */
+.inv-face { position: absolute; inset: 0; }
+.inv-face__head { position: absolute; left: 16px; right: 16px; top: 12px; display: flex; align-items: center; justify-content: space-between; height: 22px; }
+.inv-face__kind { padding: 1px 8px; border: 1px solid var(--stg-line); border-radius: 6px; background: var(--stg-card); font-size: 11px; font-weight: 500; line-height: 18px; color: var(--stg-muted); }
+.inv-face__ink { width: 8px; height: 8px; border-radius: 50%; background: var(--stg-ink); box-shadow: 0 0 0 3px color-mix(in srgb, var(--stg-ink) 16%, transparent); transition: background-color 200ms; }
+.inv-face__wheels { position: absolute; left: 12px; right: 12px; top: 40px; height: 110px; display: grid; grid-template-columns: 78fr 100fr 100fr; gap: 6px; padding: 0 6px; border-radius: 12px; background: var(--stg-inset); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--stg-line) 70%, transparent); }
+.inv-face__cols { position: absolute; left: 12px; right: 12px; bottom: 9px; display: grid; grid-template-columns: 78fr 100fr 100fr; gap: 6px; padding: 0 6px; text-align: center; font-size: 11px; font-weight: 500; line-height: 14px; color: var(--stg-muted); }
+
+.inv-wheel { position: relative; height: 110px; overflow: hidden; cursor: grab; touch-action: none; outline: none;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 26%, #000 74%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 26%, #000 74%, transparent 100%); }
+.inv-wheel:active { cursor: grabbing; }
+.inv-wheel[data-readonly] { cursor: default; }
+.inv-wheel:focus-visible { box-shadow: inset 0 0 0 2px var(--stg-focus); border-radius: 10px; }
+.inv-wheel__lens { position: absolute; left: -2px; right: -2px; top: 50%; height: 26px; margin-top: -13px; border-radius: 8px; background: var(--stg-card); box-shadow: 0 1px 2px rgba(0, 0, 0, .08), 0 0 0 1px rgba(0, 0, 0, .04); }
+.inv-wheel__row { position: absolute; left: 0; right: 0; top: 50%; height: 22px; margin-top: -11px; display: grid; place-items: center; font-size: 15px; font-weight: 500; line-height: 22px; letter-spacing: -.01em; font-variant-numeric: tabular-nums; color: var(--stg-muted); pointer-events: none; }
+.inv-wheel__row[data-center] { color: var(--stg-text); font-weight: 600; }
+
+/* the controls under the stamp (real pixels) */
+.inv-stage__chrome { position: absolute; left: 50%; width: 340px; max-width: calc(100% - 24px); transform: translateX(-50%); display: grid; justify-items: center; gap: 14px; }
+.inv-stage__date { margin: 0; font-size: 13px; font-weight: 500; line-height: 18px; color: var(--stg-text); }
+.inv-seg { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; padding: 3px; border-radius: 10px; background: var(--stg-tray); }
+.inv-seg__thumb { position: absolute; top: 3px; left: 3px; width: calc((100% - 6px) / var(--n, 4)); height: calc(100% - 6px); border-radius: 7px; background: var(--stg-card); box-shadow: 0 1px 2px rgba(0, 0, 0, .08), 0 0 0 1px rgba(0, 0, 0, .04); transform: translateX(calc(var(--at, 0) * 100%)); transition: transform 420ms cubic-bezier(.65, 0, .25, 1); }
+.inv-seg button { position: relative; height: 30px; padding: 0 8px; font-size: 13px; font-weight: 500; white-space: nowrap; color: var(--stg-muted); transition: color 200ms ease; }
+.inv-seg button[data-active] { color: var(--stg-text); }
+.inv-inks { display: flex; align-items: center; gap: 12px; }
+.inv-inks button { position: relative; width: 16px; height: 16px; border-radius: 50%; background: var(--dot); transition: transform 160ms cubic-bezier(.22, 1, .36, 1); }
+.inv-inks button::before { content: ""; position: absolute; inset: -6px; }
+.inv-inks button::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid var(--dot); opacity: 0; transform: scale(.8); transition: opacity 160ms, transform 160ms cubic-bezier(.22, 1, .36, 1); }
+.inv-inks button[data-active]::after { opacity: 1; transform: scale(1); }
+.inv-inks button:hover:not(:disabled) { transform: scale(1.1); }
+.inv-go { height: 38px; padding: 0 18px; border-radius: 10px; background: linear-gradient(180deg, var(--stg-btn-top), var(--stg-btn-bottom)); box-shadow: 0 0 0 1px var(--stg-btn-ring), inset 0 1px 0 rgba(255, 255, 255, .12); font-size: 14px; font-weight: 500; color: var(--stg-btn-text); white-space: nowrap; transition: filter 160ms ease, transform 160ms ease, opacity 200ms ease; }
+.inv-go:hover:not(:disabled) { filter: brightness(1.12); }
+.inv-go:active:not(:disabled) { transform: scale(.98); }
+.inv-go:disabled { opacity: .4; }
+.inv-go--small { height: 30px; padding: 0 14px; border-radius: 9px; font-size: 13px; }
+.inv-btn { height: 38px; padding: 0 16px; border-radius: 10px; background: var(--stg-card); box-shadow: inset 0 0 0 1px var(--stg-line), 0 1px 1px rgba(0, 0, 0, .03); font-size: 14px; font-weight: 500; color: var(--stg-text); white-space: nowrap; transition: background-color 160ms ease, transform 160ms ease; }
+.inv-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--stg-text) 4%, var(--stg-card)); }
+.inv-btn:active:not(:disabled) { transform: scale(.98); }
+
+/* after the stamp: the toast, and the buttons when the paper has settled */
+.inv-stage__toast, .inv-stage__final { position: absolute; left: 50%; display: flex; align-items: center; gap: 8px; opacity: 0; visibility: hidden; }
+.inv-stage__toast { padding: 6px 6px 6px 14px; border-radius: 14px; background: var(--stg-card); box-shadow: 0 0 0 1px var(--stg-line), 0 2px 4px rgba(0, 0, 0, .05), 0 14px 30px -12px rgba(0, 0, 0, .28); white-space: nowrap; font-size: 13px; font-weight: 500; }
+.inv-stage__toast i { margin: 0 3px; font-style: normal; color: var(--stg-muted); }
+.inv-stage__toast-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.inv-stage__toast .inv-btn { height: 30px; padding: 0 12px; border-radius: 9px; font-size: 13px; }
+.inv-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.inv-stage:not([data-phase="pick"]) .inv-wheel { pointer-events: none; }
+@media (pointer: coarse) {
+  .inv-seg button { height: 36px; }
+  .inv-inks { gap: 16px; } .inv-inks button { width: 22px; height: 22px; }
+  .inv-go { height: 44px; padding: 0 24px; font-size: 15px; } .inv-go--small { height: 36px; font-size: 14px; }
+  .inv-btn { height: 44px; padding: 0 20px; font-size: 15px; } .inv-stage__toast .inv-btn { height: 36px; font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .inv-stage *, .inv-stage *::before, .inv-stage *::after { transition-duration: 1ms !important; animation: none !important; } }
+
+/* the impression on the real invoice (InvoiceBlock) */
+.ui-iv__sheet { position: relative; }
+/* a stamped sheet has room under its totals for the impression, so it never lies over a figure */
+.ui-iv__sheet[data-stamped] { padding-bottom: 150px; }
+.invoice-stamp-on-sheet { position: absolute; right: 48px; bottom: 34px; width: min(290px, 44%); aspect-ratio: 215 / 76; pointer-events: none; mix-blend-mode: multiply; }
+.invoice-stamp-on-sheet .inv-mark { width: 100%; height: 100%; }

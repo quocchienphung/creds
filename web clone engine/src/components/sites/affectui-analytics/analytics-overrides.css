@@ -1,0 +1,27 @@
+.crm-page .ui-as-rev { height: 100%; }
+.crm-page .ui-as-rev__head h1 .crm-icon { width: 16px; height: 16px; }
+.crm-page .ui-as-rev__period .crm-icon { width: 14px; height: 14px; }
+.crm-page .ui-as-rev__period > svg:last-child { margin-left: 2px; }
+.crm-page .ui-button[data-size="sm"] { --h: 32px; --px: 12px; --fs: 13px; --radius: 9px; --icon: 16px; --gap: 6px; }
+.crm-page .ui-as-rev__cap { text-align: left; width: fit-content; }
+.crm-page .ui-as-rev__cap:hover { color: var(--ink); }
+.crm-page .ui-as-rev__stat strong > span { display: inline; }
+.crm-page .ui-as-rev__breakdown li b > span, .crm-page .ui-as-rev__product b > span { color: inherit; }
+.crm-page .ui-kpi__lines path { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.crm-page .ui-kpi__footer { display: block; text-align: left; }
+.analytics-chart-footer { position: relative; }
+.analytics-chart-footer > button:hover { color: var(--ui-kpi-ink); }
+.analytics-legend { display: flex; flex-wrap: wrap; gap: 8px 12px; overflow: hidden; }
+.analytics-legend > button { display: flex; align-items: center; gap: 5px; min-height: 30px; font-size: 12px; color: var(--ui-kpi-muted); }
+.analytics-legend > button > span { height: 3px; width: 12px; border-radius: 2px; }
+.analytics-legend > button[aria-checked="false"] { opacity: 0.4; }
+.analytics-saved { right: 0; left: auto; min-width: 260px; }
+.analytics-saved-row { display: flex; align-items: center; gap: 2px; }
+.analytics-saved-row > .ui-as-menu__item { display: grid; gap: 0; padding: 5px 10px; }
+.analytics-saved-row small { color: var(--faint); font-size: 11px; }
+.analytics-product-total { display: block; margin: 14px 0; font-size: 30px; line-height: 36px; color: var(--ink); font-weight: 500; }
+.crm-page .ui-as-rev__product { width: 100%; }
+.crm-page .ui-as-rev__product:hover > span { color: var(--ink); }
+.crm-page .ui-as-rev__product:hover i { filter: brightness(1.15); }
+@container ui-as-main (max-width: 900px) { .crm-page .ui-as-rev { height: auto; min-height: 100%; } }
+@container ui-as (max-width: 600px) { .crm-page .ui-as-rev__period + .ui-as-menu { max-width: 200px; } }

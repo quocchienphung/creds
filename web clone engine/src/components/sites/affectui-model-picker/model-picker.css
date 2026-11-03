@@ -1,0 +1,149 @@
+/*
+ * Model picker. Written from measurements of the public affectUI Model Picker preview (sizes, spacing, colors,
+ * timings, easing); the markup, class names and code are our own. Every color, the easing and the accent are
+ * custom properties on .mp, so a host can retheme it without touching this file.
+ */
+.mp {
+  --mp-card: #fff; --mp-strong: #000; --mp-ink: rgba(0, 0, 0, .88); --mp-text: rgba(0, 0, 0, .61); --mp-muted: rgba(0, 0, 0, .45); --mp-faint: rgba(0, 0, 0, .27);
+  --mp-icon: rgba(0, 0, 0, .447); --mp-line: rgba(0, 0, 0, .06); --mp-line-strong: rgba(0, 0, 0, .1); --mp-fill: rgba(0, 0, 0, .06); --mp-wash: rgba(0, 0, 0, .03);
+  --mp-bar: rgba(0, 0, 0, .2); --mp-bar-off: rgba(0, 0, 0, .06); --mp-switch: rgba(0, 0, 0, .1); --mp-knob: #fff; --mp-accent: rgba(0, 96, 226, .765); --mp-focus: rgba(0, 96, 226, .35);
+  --mp-glyph-bg: var(--mp-card);
+  --mp-shadow-tile: 0 0 0 .5px rgba(0, 0, 0, .1), 0 1px 1px -1px rgba(0, 0, 0, .1);
+  --mp-shadow-pop: 0 0 0 .5px rgba(0, 0, 0, .08), 0 12px 28px -10px rgba(0, 0, 0, .16), 0 1px 2px 0 rgba(0, 0, 0, .05);
+  --mp-ease: cubic-bezier(.32, .72, .24, 1);
+  position: relative; display: inline-block; flex: none; font-family: Inter, InterVariable, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px; line-height: 20px; font-weight: 400; color: var(--mp-ink); text-align: left; -webkit-font-smoothing: antialiased;
+}
+:where(.dark, [data-theme="dark"]) .mp {
+  --mp-card: #1c1c1e; --mp-strong: #fff; --mp-ink: rgba(255, 255, 255, .9); --mp-text: rgba(255, 255, 255, .62); --mp-muted: rgba(255, 255, 255, .46); --mp-faint: rgba(255, 255, 255, .3);
+  --mp-icon: rgba(255, 255, 255, .5); --mp-line: rgba(255, 255, 255, .08); --mp-line-strong: rgba(255, 255, 255, .12); --mp-fill: rgba(255, 255, 255, .08); --mp-wash: rgba(255, 255, 255, .04);
+  --mp-bar: rgba(255, 255, 255, .24); --mp-bar-off: rgba(255, 255, 255, .08); --mp-switch: rgba(255, 255, 255, .14); --mp-knob: #fff; --mp-accent: #4d8dff; --mp-focus: rgba(77, 141, 255, .5);
+  --mp-glyph-bg: #2a2a2d;
+  --mp-shadow-tile: 0 0 0 .5px rgba(255, 255, 255, .12), 0 1px 2px rgba(0, 0, 0, .4);
+  --mp-shadow-pop: 0 0 0 .5px rgba(255, 255, 255, .12), 0 12px 28px -10px rgba(0, 0, 0, .6), 0 1px 2px 0 rgba(0, 0, 0, .4);
+}
+.mp *, .mp ::before, .mp ::after { box-sizing: border-box; }
+.mp button { appearance: none; margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: inherit; letter-spacing: normal; text-transform: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.mp button:focus-visible { outline: 2px solid var(--mp-focus); outline-offset: 1px; }
+.mp svg { display: block; flex: none; }
+.mp b { font-weight: 500; color: var(--mp-ink); }
+.mp__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Trigger */
+.mp .mp__trigger { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; height: 28px; padding: 0 6px; border-radius: 6px; font-weight: 500; color: var(--mp-text); white-space: nowrap; transition: background-color 160ms, color 160ms; }
+.mp .mp__trigger:hover, .mp[data-open] .mp__trigger { background: var(--mp-wash); color: var(--mp-ink); }
+.mp .mp__trigger:disabled { opacity: .5; cursor: default; }
+.mp__trigger .mp__glyph { width: 18px; height: 18px; border-radius: 5px; font-size: 10px; }
+.mp__trigger .mp__glyph svg { width: 10px; height: 10px; }
+.mp__name { display: grid; min-width: 0; }
+.mp__chevron { margin-left: -2px; color: var(--mp-icon); transition: transform 300ms var(--mp-ease); }
+.mp[data-open] .mp__chevron { transform: rotate(180deg); }
+.mp__flag { display: grid; grid-template-columns: 0fr; margin-left: -6px; opacity: 0; color: var(--mp-accent); transition: grid-template-columns 360ms var(--mp-ease), margin 360ms var(--mp-ease), opacity 220ms ease; }
+.mp__flag > span { min-width: 0; overflow: hidden; }
+.mp__flag[data-on] { grid-template-columns: 1fr; margin-left: -2px; opacity: 1; transition: grid-template-columns 360ms var(--mp-ease), margin 360ms var(--mp-ease), opacity 280ms ease 80ms; }
+.mp__glyph { display: grid; flex: none; place-items: center; width: 20px; height: 20px; overflow: hidden; border-radius: 5px; background: var(--mp-glyph-bg); box-shadow: var(--mp-shadow-tile); font-size: 10px; font-weight: 500; line-height: 1; color: var(--mp-strong); }
+.mp__glyph svg { width: 12px; height: 12px; }
+
+/* Menu: a native popover in the top layer, positioned by script (fixed coordinates). */
+.mp .mp__pop {
+  position: fixed; inset: auto; margin: 0; padding: 0; border: 0; overflow: visible; width: min(320px, 100vw - 32px); container-type: inline-size; color: inherit;
+  border-radius: 10px; background: var(--mp-card); box-shadow: var(--mp-shadow-pop); transform-origin: left top;
+  opacity: 0; visibility: hidden; transform: translateY(-4px) scale(.96);
+  transition: opacity 160ms ease, transform 220ms var(--mp-ease), visibility 0s linear 220ms;
+}
+.mp .mp__pop:popover-open { display: flex; flex-direction: column; }
+.mp[data-align="end"] .mp__pop { transform-origin: right top; }
+.mp[data-side="top"] .mp__pop { transform-origin: left bottom; transform: translateY(4px) scale(.96); }
+.mp[data-side="top"][data-align="end"] .mp__pop { transform-origin: right bottom; }
+.mp[data-open] .mp__pop { opacity: 1; visibility: visible; transform: none; transition: opacity 200ms ease, transform 320ms var(--mp-ease), visibility 0s; }
+.mp__card { display: flex; flex-direction: column; min-height: 0; padding: 4px; }
+.mp__head { display: flex; flex: none; align-items: center; justify-content: space-between; gap: 12px; height: 28px; padding: 4px 8px 0; font-size: 10px; font-weight: 500; line-height: 16px; letter-spacing: .5px; text-transform: uppercase; color: var(--mp-muted); }
+.mp__cols { display: grid; grid-template-columns: repeat(3, 40px); gap: 8px; }
+.mp__cols > span { display: flex; justify-content: center; white-space: nowrap; }
+
+/* Model list: rows scroll when there are more than the screen can hold. */
+.mp__list { display: block; min-height: 96px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; border-radius: 6px; outline: none; }
+.mp__list[data-more-below]:not([data-more-above]) { mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent); }
+.mp__list[data-more-above]:not([data-more-below]) { mask-image: linear-gradient(to top, #000 calc(100% - 28px), transparent); }
+.mp__list[data-more-above][data-more-below] { mask-image: linear-gradient(to bottom, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+.mp__option { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 8px; border-radius: 6px; cursor: pointer; transition: background-color 90ms ease-out, opacity 200ms; }
+.mp__list[data-pointing] .mp__option[data-active] { background: var(--mp-fill); }
+.mp__list:focus-visible .mp__option[data-active] { background: var(--mp-fill); box-shadow: inset 0 0 0 1px var(--mp-focus); }
+.mp__list[data-pointing] .mp__option:not([data-active]) { opacity: .55; }
+.mp__text { display: grid; flex: 1 1 0; min-width: 0; }
+.mp__title { display: flex; align-items: center; gap: 4px; min-width: 0; font-weight: 500; color: var(--mp-strong); }
+.mp__title-name { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mp__check { color: var(--mp-accent); animation: mp-pop 320ms var(--mp-ease) both; }
+.mp__desc { overflow: hidden; font-size: 12px; line-height: 16px; color: var(--mp-text); white-space: nowrap; text-overflow: ellipsis; }
+.mp__bars { display: grid; flex: none; grid-template-columns: repeat(3, 40px); gap: 8px; }
+.mp__meter { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; height: 4px; }
+.mp__seg { border-radius: 1px; background: var(--mp-bar-off); transition: background-color 180ms ease, transform 260ms var(--mp-ease); }
+.mp__seg[data-on] { background: var(--mp-bar); }
+/* Pointing at a row fills its bars segment by segment, meter after meter, in the accent color. */
+.mp__option[data-lit] .mp__seg[data-on] { background: var(--mp-accent); transition-delay: calc(var(--c) * 70ms + var(--s) * 45ms); animation: mp-fill 360ms var(--mp-ease) both; animation-delay: calc(var(--c) * 70ms + var(--s) * 45ms); }
+.mp__varies { flex: none; width: 136px; font-size: 12px; line-height: 16px; color: var(--mp-muted); text-align: center; }
+
+/* Switches and effort */
+.mp__settings { flex: none; margin: 4px -4px 0; padding: 4px 4px 0; border-top: .5px solid var(--mp-line); }
+.mp .mp__toggle { display: flex; align-items: center; gap: 10px; width: 100%; height: 32px; padding: 0 8px; border-radius: 6px; color: var(--mp-ink); transition: background-color 90ms ease-out; }
+.mp .mp__toggle:hover { background: var(--mp-fill); }
+.mp__toggle-icon { display: grid; flex: none; place-items: center; width: 20px; color: var(--mp-icon); transition: color 200ms; }
+.mp__toggle[aria-checked="true"] .mp__toggle-icon { color: var(--mp-ink); }
+.mp__toggle-label { flex: 1 1 0; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mp__switch { position: relative; flex: none; width: 26px; height: 16px; border-radius: 5px; background: var(--mp-switch); transition: background-color 220ms; }
+.mp__switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 3.5px; background: var(--mp-knob); box-shadow: 0 0 0 .5px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .16); transition: transform 280ms var(--mp-ease); }
+.mp__toggle[aria-checked="true"] .mp__switch { background: var(--mp-accent); }
+.mp__toggle[aria-checked="true"] .mp__switch::after { transform: translateX(10px); }
+.mp__fold { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 420ms var(--mp-ease), opacity 220ms ease; }
+.mp__fold[data-open] { grid-template-rows: 1fr; opacity: 1; transition: grid-template-rows 420ms var(--mp-ease), opacity 320ms ease 100ms; }
+.mp__clip { min-height: 0; overflow: hidden; }
+.mp__effort { display: flex; align-items: center; gap: 10px; padding: 2px 8px 6px 38px; }
+.mp__effort-label { flex: 1 1 0; min-width: 0; color: var(--mp-text); }
+.mp__segmented { position: relative; display: flex; flex: none; gap: 4px; }
+.mp__thumb { position: absolute; top: 0; bottom: 0; left: 0; width: var(--w, 0); border-radius: 5px; background: var(--mp-fill); transform: translateX(var(--x, 0)); transition: transform 220ms var(--mp-ease), width 220ms var(--mp-ease); }
+.mp .mp__seg-btn { position: relative; height: 22px; padding: 0 7px; border-radius: 5px; box-shadow: inset 0 0 0 .5px var(--mp-line); font-size: 12px; font-weight: 500; line-height: 16px; color: var(--mp-text); text-align: center; transition: color 160ms, background-color 160ms; }
+.mp__seg-btn[aria-checked="true"] { color: var(--mp-ink); }
+.mp__seg-btn[aria-checked="false"]:hover { background: var(--mp-wash); color: var(--mp-ink); }
+
+/* Footer: what the pointed-at model costs, or the hint of the switch under the pointer */
+.mp__foot { display: flex; flex: none; align-items: center; gap: 8px; height: 36px; padding: 0 8px 0 12px; border-top: .5px solid var(--mp-line); }
+.mp__caption { flex: 1 1 0; min-width: 0; overflow: hidden; font-size: 12px; line-height: 16px; color: var(--mp-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mp__dot { color: var(--mp-faint); }
+.mp__swap { display: grid; min-width: 0; }
+.mp__swap-item { grid-area: 1 / 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: mp-swap-in 320ms ease both; }
+.mp__swap-item[data-out] { animation: mp-swap-out 220ms ease both; }
+.mp__keys { display: flex; flex: none; gap: 2px; }
+.mp__keys kbd { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 5px; box-shadow: inset 0 0 0 .5px var(--mp-line-strong); font-family: inherit; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--mp-muted); }
+
+@keyframes mp-swap-in { from { opacity: 0; filter: blur(2px); } }
+@keyframes mp-swap-out { to { opacity: 0; filter: blur(2px); } }
+@keyframes mp-pop { from { opacity: 0; transform: scale(.6); } }
+@keyframes mp-fill { 45% { transform: scaleY(1.6); } }
+
+/* Narrow menus drop the row marks and the key hints; touch screens get bigger targets. */
+@container (max-width: 300px) {
+  .mp__option .mp__glyph, .mp__keys { display: none; }
+  .mp__effort { padding-left: 8px; }
+}
+@media (pointer: coarse) {
+  .mp .mp__trigger { height: 34px; }
+  .mp__option { min-height: 52px; }
+  .mp .mp__toggle { height: 40px; }
+  .mp .mp__seg-btn { height: 30px; padding: 0 10px; }
+  .mp__keys { display: none; }
+}
+/* One timing vocabulary for model selection and its expanding effort controls. */
+.mp .mp__pop { transform: translateY(-2.5px) scale(.985); transition: opacity var(--interaction-duration-exit) var(--interaction-ease-standard), transform var(--interaction-duration-exit) var(--interaction-ease-standard), visibility 0s linear var(--interaction-duration-exit); }
+.mp[data-side="top"] .mp__pop { transform: translateY(2.5px) scale(.985); }
+.mp[data-open] .mp__pop { transform: none; transition: opacity var(--interaction-duration-fast) var(--interaction-ease-enter), transform var(--interaction-duration-spring) var(--interaction-ease-spring), visibility 0s; }
+.mp__chevron { transition: transform var(--interaction-duration-spring) var(--interaction-ease-spring); }
+.mp__fold, .mp__fold[data-open] { transition: grid-template-rows var(--interaction-duration-spring) var(--interaction-ease-spring), opacity var(--interaction-duration-fast) var(--interaction-ease-enter); }
+@starting-style {
+  .mp[data-open] .mp__pop { opacity: 0; transform: translateY(-5px) scale(.97); }
+  .mp[data-side="top"][data-open] .mp__pop { transform: translateY(5px) scale(.97); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mp *, .mp ::before, .mp ::after { animation: none !important; transition: none !important; }
+  /* Without the fade-out the old copy would sit on top of the new one until it is removed. */
+  .mp__swap-item[data-out] { display: none; }
+}

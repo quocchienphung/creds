@@ -1,0 +1,21 @@
+/* React integration and additional local workflow states; reference CSS remains generated. */
+.ui-ar {position:relative;isolation:isolate;}
+.ui-ar__panel[hidden] {display:none;}
+.ui-ar__bar > b {font-size:13.5px;font-weight:500;color:var(--ink);}
+.ui-ar__bar .crm-icon {flex:none;}
+.ui-ar .ui-ar__crumbs > .crm-icon {width:15px;height:15px;}
+.ui-ar .ui-ar__time > .crm-icon {width:14px;height:14px;}
+.ui-ar__quiet > span > .crm-icon {width:16px;height:16px;}
+.ui-ar__details .crm-icon {width:14px;height:14px;}
+.ui-ar__panel .run-panel-close {display:none;}
+/* The shell's floating sidebar opener must not cover the modal panel title. */
+.crm-page:has(.ui-ar__panel[aria-modal="true"]) .ui-as-side-open {visibility:hidden;}
+.run-options {right:0;left:auto;min-width:185px;}
+.run-dialog {display:grid;gap:16px;padding-top:8px;}
+.run-dialog .crm-field {margin:0;}
+.run-chat-goal,.run-chat-step {padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--subtle);}
+.run-chat-step p,.run-chat-goal p {margin:6px 0 0;white-space:pre-wrap;}
+.run-sr-only {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
+@container ui-as-main (max-width:1000px) {.ui-ar__panel .run-panel-close {display:grid;}}
+@container ui-as (max-width:600px) {.ui-ar .ui-ar__crumbs > .crm-icon {display:none;}.ui-ar__crumbs > span:first-of-type {font-size:0;}}
+@media(prefers-reduced-motion:reduce) {.ui-ar *, .ui-ar *::before,.ui-ar *::after {animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}}

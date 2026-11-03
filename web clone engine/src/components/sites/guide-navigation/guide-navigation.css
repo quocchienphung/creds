@@ -1,0 +1,79 @@
+/* Guide me selector. The shared preview follows the public Writing Assistant's
+   380 × 401 card, including its taller conversation area. `--su` is the stage width in units. */
+/* Inter as a variable font (weight and optical size), self-hosted, with Vietnamese. The static 400/500/600 cuts the other cards bring in are
+   the text-size design; at the size of the heading the optical axis switches to the display cut, whose narrower, finer letters take tight
+   tracking without the words running together. */
+@font-face { font-family: "Guide Inter"; font-style: normal; font-weight: 100 900; font-display: block; src: url(/fonts/inter-vietnamese.woff2) format("woff2"); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+@font-face { font-family: "Guide Inter"; font-style: normal; font-weight: 100 900; font-display: block; src: url(/fonts/inter-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+.guide-page {
+  /* 200 (list) + 28 (the gap between the words and the picture) + 256 (picture) + the stage's 10 of padding */
+  --su: 494;
+  --u: max(min(1px, calc((100vw - 32px) / var(--su))), min(1.5px, calc(100vw / 716)));
+  --guide-ease: cubic-bezier(.22, 1, .36, 1);
+  --guide-time: .775s;
+  --guide-gap: calc(var(--u) * 12);
+  position: relative; isolation: isolate; min-height: 100dvh; display: grid; place-items: center; background: #fdfdfd; color: #0a0a0a;
+  font-family: "Guide Inter", Inter, "Helvetica Neue", Arial, sans-serif; font-optical-sizing: auto; -webkit-font-smoothing: antialiased; overflow-x: clip;
+  /* Vertical pans scroll the page; horizontal swipes are read by the selector. */
+  touch-action: pan-y pinch-zoom;
+}
+.guide-page *, .guide-page *::before, .guide-page *::after { box-sizing: border-box; }
+.guide-stage { position: relative; z-index: 1; width: calc(var(--u) * var(--su)); padding: 0 calc(var(--u) * 9) 0 var(--u); }
+.guide-heading { position: relative; display: inline-block; margin: 0 0 calc(var(--u) * 23.6) calc(var(--u) * 8); font-size: calc(var(--u) * 25); line-height: calc(var(--u) * 28); font-weight: 600; letter-spacing: -.038em; word-spacing: .06em; top: calc(var(--u) * -1); white-space: nowrap; }
+.guide-heading sup { position: absolute; left: calc(100% + var(--u) * 6); top: calc(var(--u) * 1.5); font-size: calc(var(--u) * 6.4); line-height: calc(var(--u) * 7); font-weight: 500; letter-spacing: .06em; }
+.guide-grid { position: relative; top: calc(var(--u) * -1); display: grid; grid-template-columns: calc(var(--u) * 200) calc(var(--u) * 256); column-gap: calc(var(--u) * 28); align-items: center; }
+.guide-list { position: relative; display: flex; flex-direction: column; gap: var(--guide-gap); margin: 0; padding: 0; list-style: none; }
+/* Reserve one-finger list drags for selection before Safari/Chrome can cancel the pointer to scroll.
+   Pinch zoom and vertical page scrolling outside this small control remain available. */
+.guide-list { touch-action: pinch-zoom; user-select: none; -webkit-user-select: none; }
+.guide-list li:not(.guide-bar) { display: block; }
+.guide-bar { position: absolute; left: 0; top: 0; width: calc(var(--u) * 2); background: #111; pointer-events: none; }
+.guide-list[data-ready] .guide-bar { transition: transform var(--guide-time) var(--guide-ease), height var(--guide-time) var(--guide-ease); }
+.guide-item { position: relative; display: flex; align-items: flex-start; gap: calc(var(--u) * 4); min-height: calc(var(--u) * 41.5); padding: calc(var(--u) * 12.5) calc(var(--u) * 8) calc(var(--u) * 12); color: #858585; text-decoration: none; -webkit-tap-highlight-color: transparent; transition: color var(--guide-time) var(--guide-ease), padding-left var(--guide-time) var(--guide-ease); }
+/* The pointer target spans the gaps between rows so moving across the list never drops the selection. */
+.guide-item::after { content: ""; position: absolute; inset: calc(var(--guide-gap) / -2) 0; }
+.guide-list li:not(:last-child):not(.guide-bar) .guide-item::before { content: ""; position: absolute; left: calc(var(--u) * 16); right: calc(var(--u) * 8); bottom: calc(var(--guide-gap) / -2 - .5px); height: 1px; background: #fafafa; }
+.guide-item[aria-current] { color: #0a0a0a; padding-left: calc(var(--u) * 16); }
+/* A fixed slot with equal-width digits: every name starts on the same line, whichever number comes before it. */
+.guide-item__number { flex: none; min-width: calc(var(--u) * 15); font-size: calc(var(--u) * 7); line-height: calc(var(--u) * 8); font-weight: 500; letter-spacing: 0; font-variant-numeric: tabular-nums; color: inherit; opacity: .6; position: relative; top: calc(var(--u) * -1); }
+.guide-item__name { font-size: calc(var(--u) * 16); line-height: calc(var(--u) * 17); font-weight: 600; letter-spacing: -.026em; min-width: 0; overflow-wrap: anywhere; }
+.guide-item:focus-visible { outline: 1.5px solid #111; outline-offset: 2px; }
+.guide-floor { position: absolute; inset: 0; z-index: 0; pointer-events: none; --gf-bg: #fdfdfd; }
+.guide-preview { position: relative; display: block; width: calc(var(--u) * 256); aspect-ratio: 380 / 401; border-radius: calc(var(--u) * 8); overflow: hidden; isolation: isolate; -webkit-tap-highlight-color: transparent; transition: box-shadow var(--guide-time) var(--guide-ease); }
+/* The live card has no backdrop of its own, so a hairline and a soft shadow keep its edge on the floor. */
+.guide-preview:has(.guide-preview__frame[data-live][data-active]) { box-shadow: 0 0 0 .5px rgba(0, 0, 0, .08), 0 calc(var(--u) * 1) calc(var(--u) * 2) 0 rgba(0, 0, 0, .05), 0 calc(var(--u) * 14) calc(var(--u) * 32) calc(var(--u) * -14) rgba(0, 0, 0, .16); }
+.guide-preview__link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; -webkit-tap-highlight-color: transparent; }
+.guide-preview__link:focus-visible { outline: 1.5px solid #111; outline-offset: 2px; }
+.guide-preview__strip { position: absolute; left: 0; top: 0; width: 100%; height: calc(var(--guide-count) * 100%); display: block; transform: translateY(calc(var(--guide-index) * -100% / var(--guide-count))); transition: transform var(--guide-time) var(--guide-ease); will-change: transform; }
+.guide-preview__frame { background: #d6d6d2; position: relative; display: block; width: 100%; height: calc(100% / var(--guide-count)); overflow: hidden; container-type: inline-size; }
+/* At rest only the active frame is painted: a fractional strip offset (stacked layout, zoomed screens) can never show a sliver of its neighbour. */
+.guide-preview[data-settled] .guide-preview__frame:not([data-active]) { visibility: hidden; }
+/* Until a picture is supplied the frame is a quiet warm gray, in the family of the photos' backdrops. */
+.guide-preview__frame[data-empty] { background: linear-gradient(180deg, #dcdad5, #cfcdc7); }
+.guide-preview__frame img { object-fit: cover; }
+/* Each group fills the same taller frame. Live card typography has its own
+   readable scale rather than enlarging everything to fill a short image slot. */
+.guide-preview__frame[data-live] { background: #fff; }
+.guide-live { position: absolute; inset: 0; }
+.guide-live .wra, .guide-live .ap, .guide-live .dgb { border-radius: 0; box-shadow: none; }
+.guide-preview__frame[inert] .wra *, .guide-preview__frame[inert] .ap *, .guide-preview__frame[inert] .dgb * { animation-play-state: paused; }
+.guide-loading { display: grid; place-items: center; height: 100dvh; color: #777; background: #fdfdfc; font: 13px Inter, sans-serif; }
+.crm-page .workspace-sidebar-header { padding: 0 2px; }
+.crm-page .workspace-explore { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none; transition: background-color 140ms ease, border-color 140ms ease; }
+.crm-page .workspace-explore:hover { background: var(--hover); border-color: var(--line-strong); }
+.crm-page .workspace-explore:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.crm-page .workspace-explore svg { flex: none; color: var(--muted); }
+.crm-page .workspace-account-heading { padding: 5px 9px; color: var(--muted); font-size: 11px; font-weight: 500; }
+.crm-page .workspace-account-divider { height: 1px; margin: 5px 0; background: var(--line); }
+/* Portrait screens (phones, small tablets): list above, frame below at full width, so the live card stays readable. */
+@media (orientation: portrait) and (max-width: 899px), (max-width: 639px) {
+  .guide-page { --su: 400; align-content: center; padding: calc(var(--u) * 24) 0; }
+  .guide-grid { grid-template-columns: minmax(0, 1fr); row-gap: calc(var(--u) * 28); column-gap: 0; align-items: stretch; }
+  .guide-preview { width: 100%; }
+}
+/* Short landscape screens may scroll vertically instead of shrinking the card
+   until the greeting and composer overlap. */
+@media (orientation: landscape) and (min-width: 640px) and (max-height: 560px) {
+  .guide-page { --u: clamp(.85px, calc((100vw - 48px) / var(--su)), 1.25px); align-content: start; padding: 24px 0; }
+}
+@media (prefers-reduced-motion: reduce) { .guide-page *, .guide-page *::before, .guide-page *::after { transition-duration: 1ms !important; } }

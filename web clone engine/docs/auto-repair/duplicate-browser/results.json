@@ -1,0 +1,37 @@
+{
+  "passed": 11,
+  "checks": [
+    "Same-asset repeated corruption is found without a conflicting-duplicate issue",
+    "Preview includes the actual hidden row",
+    "Suggestion panel dimensions are unchanged by the confirmation overlay",
+    "Cancel resets Approve value and keeps changes unapplied",
+    "Group confirmation fits a 320px viewport",
+    "Undo reverses the whole batch",
+    "Redo restores all six approved cells",
+    "Exported file contains the grouped repair on all three rows and both equivalent fields",
+    "Other asset with identical damaged text remains unchanged",
+    "Hidden row and lexical monetary value are preserved",
+    "No browser runtime errors"
+  ],
+  "errors": [],
+  "before": {
+    ".cg-stage": {
+      "width": 1104,
+      "height": 320
+    },
+    ".cd-root": {
+      "width": 1146,
+      "height": 1523.65625
+    }
+  },
+  "after": {
+    ".cg-stage": {
+      "width": 1104,
+      "height": 320
+    },
+    ".cd-root": {
+      "width": 1146,
+      "height": 1523.65625
+    }
+  }
+}

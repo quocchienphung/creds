@@ -1,0 +1,13 @@
+/* Layer order: Tailwind theme first, then the Stripe cascade (reset < base < app), then
+   Tailwind utilities so utility classes can still win for glue code. Tailwind's preflight is
+   intentionally not loaded — the reference ships its own reset in @layer reset. */
+@layer theme, reset, base, app, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "../styles/stripe/index.css";
+@import "../styles/page-transition.css";
+@import "../styles/motion.css";
+@import "../styles/interaction.css";
+
+/* Locked vertical: no page of the site slides sideways, whatever sticks out of it. `clip` makes no scroll container, so position: sticky and the page's own scrollers keep working. */
+html, body { overflow-x: clip; overscroll-behavior-x: none; }
