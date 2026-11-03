@@ -16,7 +16,7 @@ export interface GeoDataset {
   osm: { kinds: string[]; names: [string, number, number][] };
 }
 export type NameGroup = "province" | "district" | "ward" | "street" | "place" | "feature" | "admin_osm" | "address_part";
-export interface Gaz { id: number; text: string; toks: string[]; fold: string[]; group: NameGroup; kind: string; era: "recorded" | "current" | "osm"; /** Parent unit (province > district > ward chain), when the source gives one. */ parent: number }
+export interface Gaz { id: number; text: string; toks: string[]; fold: string[]; group: NameGroup; kind: string; era: "recorded" | "current" | "osm"; /** Parent unit (province > district > ward chain), when the source gives one. */ parent: number; /** For an administrative name, its own unit; -1 otherwise. */ unit: number }
 export interface Unit { id: number; level: 0 | 1 | 2; text: string; type: string; core: string; coreFold: string; parent: number; era: "recorded" | "current"; code?: string }
 export interface SyllableCandidate { fold: string; variants: { text: string; count: number }[]; total: number }
 
@@ -48,17 +48,17 @@ export class GeoKnowledge {
     this.version = data.manifest.datasetVersion;
     const exclude = options.exclude ?? (() => false);
     const { recorded, current } = data.admin;
-    const add = (text: string, group: NameGroup, kind: string, era: Gaz["era"], parent: number) => {
+    const add = (text: string, group: NameGroup, kind: string, era: Gaz["era"], parent: number, unit = -1) => {
       const name = nfc(text).trim();
       if (!name || exclude(name, group)) return -1;
       const toks = tokensOf(name);
       if (!toks.length) return -1;
       const id = this.names.length;
-      this.names.push({ id, text: name, toks, fold: toks.map(token => foldKey(token)), group, kind, era, parent });
+      this.names.push({ id, text: name, toks, fold: toks.map(token => foldKey(token)), group, kind, era, parent, unit });
       return id;
     };
     // Administrative units, each kept in the era it comes from.
-    const unitOf = (text: string, level: Unit["level"], parent: number, era: Unit["era"], code?: string) => { const id = this.units.length; this.units.push({ id, level, text: nfc(text), type: "", core: "", coreFold: "", parent, era, ...(code ? { code } : {}) }); add(text, (["province", "district", "ward"] as const)[level], `admin:${level}`, era, parent); return id; };
+    const unitOf = (text: string, level: Unit["level"], parent: number, era: Unit["era"], code?: string) => { const id = this.units.length; this.units.push({ id, level, text: nfc(text), type: "", core: "", coreFold: "", parent, era, ...(code ? { code } : {}) }); add(text, (["province", "district", "ward"] as const)[level], `admin:${level}`, era, parent, id); return id; };
     const provinces = recorded.provinces.map(name => unitOf(name, 0, -1, "recorded"));
     const districts = recorded.districts.map(([name, province]) => unitOf(name, 1, provinces[province], "recorded"));
     const wards = recorded.wards.map(([name, district]) => unitOf(name, 2, districts[district], "recorded"));
