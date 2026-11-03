@@ -55,4 +55,6 @@ Loading worksheet…	Đang tải trang tính…
 Downloaded	Đã tải xuống
 Needs review	Cần rà soát
 Next to review	Ô cần rà soát tiếp theo
+Cell actions	Thao tác với ô
+Saved	Đã lưu
 `);

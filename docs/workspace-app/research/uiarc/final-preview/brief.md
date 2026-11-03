@@ -11,6 +11,10 @@ Source of truth is the open-source (MIT) registry JSON that uiarc.dev serves for
 | Floating button group (`/r/floating-button-group.json`) | `uiarc/floating-button-group/FloatingButtonGroup.tsx`, `.module.css` — measured shared highlight on motion values (spring `morph`), `.94` entry scale, `.965` press, labels reserved by invisible ghosts so a label change never resizes the tray, roving keyboard focus, `variant="floating"` raised tray. Tooltip dependency (`@radix-ui/react-tooltip`) dropped: icon-only items use `title`. Added a `primary` action. |
 | Segmented control (`/r/segmented-control.json`) | `uiarc/segmented-control/SegmentedControl.tsx`, `.module.css` — gliding selection (`layoutId`), fading scroll edges, tab-list keys. |
 
+| Expanding button group, Icon morph | `uiarc/expanding-button-group/`, `uiarc/icon-morph/` — used by the inspector's Restore / Discard / Save group (Save confirms in place) and the replay toggle (play ↔ pause). |
+
+Repeatable: `node scripts/uiarc/port.mjs <name>` fetches a free registry item, renames and re-tokens it for this repo, and reports sibling imports, missing packages and missing tokens it cannot decide. Pro items return 404 and are refused.
+
 Not cloned: **Selection toolbar, AI side panel, Prompt studio, AI feature launch are Arc Pro** (token-gated, paid; `llms.txt` says never to reconstruct a Pro item without access). Their registry URLs return 404 without a Pro token. The preview's contextual surface (docked inspector, tray, Next-to-review) is our own design built from the free parts above, not a copy of those blocks. Expanding button group and Icon morph are free and were fetched (`/r/expanding-button-group.json`, `/r/icon-morph.json`) but are not used yet.
 
 ## Layout

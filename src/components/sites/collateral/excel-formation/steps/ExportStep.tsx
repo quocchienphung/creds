@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "motion/react";
-import { AlertTriangle, Check, ChevronDown, ChevronUp, Download, ListChecks, Play, Redo2, RotateCcw, Undo2 } from "lucide-react";
+import { AlertTriangle, Check, ChevronDown, ChevronUp, Download, ListChecks, Redo2, RotateCcw, Undo2, X } from "lucide-react";
 import { useWorkspaceI18n } from "@/components/sites/i18n/WorkspaceI18n";
 import { Button } from "../../../uiarc/button/Button";
 import { FloatingButtonGroup } from "../../../uiarc/floating-button-group/FloatingButtonGroup";
+import { ExpandingButtonGroup } from "../../../uiarc/expanding-button-group/ExpandingButtonGroup";
+import { PlayPauseIcon } from "../../../uiarc/icon-morph/IconMorph";
 import SegmentedControl from "../../../uiarc/segmented-control/SegmentedControl";
 import { motionTokens } from "../../../uiarc/motion-tokens";
 import type { CollateralEngine } from "../../useCollateralEngine";
@@ -120,9 +122,9 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
     else setDrafts(current => ({ ...current, [selected.key]: value }));
   }
   async function save() {
-    if (!selected || !ready || engine.busy) return;
+    if (!selected || !ready || engine.busy) return false;
     const response = await engine.edit([{ sheet: selected.sheet, row: selected.row, col: selected.col, value: draft, source: "typed" }]);
-    if (response?.type !== "view") { setError(t("The edit was not saved. Your draft is still here.")); return; }
+    if (response?.type !== "view") { setError(t("The edit was not saved. Your draft is still here.")); return false; }
     clearDraft(selected.key); setError(""); notify(t("Change saved in preview"));
   }
   async function approveExport() {
@@ -197,13 +199,13 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
             <div className="fp-field"><label className="fp-field__label" htmlFor="fp-edited">{t("Edited value")}</label>
               <textarea id="fp-edited" value={draft} onChange={event => updateDraft(event.target.value)} disabled={locked} spellCheck={false} maxLength={32767} aria-describedby="fp-draft-hint" />
               {draft !== selected.before && <p className="fp-field__text" data-diff aria-label={t("Words changed")}><Marked parts={diff?.after ?? []} tone="added" /></p>}</div>
-            <div className="fp-edit-actions">
-              <Button variant="ghost" size="sm" disabled={locked || draft === selected.before} onClick={() => updateDraft(selected.before)}><RotateCcw size={14} />{t("Restore original")}</Button>
-              <Button variant="secondary" size="sm" disabled={locked || drafts[selected.key] === undefined} onClick={() => clearDraft(selected.key)}>{t("Discard draft")}</Button>
-              <Button variant="primary" size="sm" disabled={locked || drafts[selected.key] === undefined} onClick={() => void save()}><Check size={14} />{t("Save cell")}</Button>
-            </div>
+            <div className="fp-edit-actions"><ExpandingButtonGroup label={t("Cell actions")} defaultExpanded="save" items={[
+              { id: "restore", label: t("Restore original"), icon: <RotateCcw />, disabled: locked || draft === selected.before, onSelect: () => { updateDraft(selected.before); } },
+              { id: "discard", label: t("Discard draft"), icon: <X />, disabled: locked || drafts[selected.key] === undefined, onSelect: () => { clearDraft(selected.key); } },
+              { id: "save", label: t("Save cell"), doneLabel: t("Saved"), icon: <Check />, disabled: locked || drafts[selected.key] === undefined, onSelect: () => save() },
+            ]} /></div>
             <p id="fp-draft-hint" className="fp-hint">{t("Saving changes only updates this preview. The original workbook is preserved.")}</p>
-            {predictions.some(word => word.broken) && <button type="button" className="fp-replay-toggle" aria-expanded={replay} onClick={() => setReplay(value => !value)}><Play size={13} aria-hidden="true" />{t(replay ? "Hide replay" : "Replay the change")}</button>}
+            {predictions.some(word => word.broken) && <button type="button" className="fp-replay-toggle" aria-expanded={replay} onClick={() => setReplay(value => !value)}><PlayPauseIcon state={replay} size={14} />{t(replay ? "Hide replay" : "Replay the change")}</button>}
             <AnimatePresence initial={false}>{replay && <motion.div className="fp-replay" key="replay" initial={reduce ? false : { height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={reduce ? { duration: 0 } : motionTokens.spring.smooth}>
               <SpeculativeRun key={`${selected.key}:${selected.after}`} predictions={predictions} picks={{}} text={selected.after} variant="preview" title="Before and after" />
             </motion.div>}</AnimatePresence>

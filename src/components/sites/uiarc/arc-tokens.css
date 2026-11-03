@@ -15,6 +15,9 @@
   --arc-control-height-sm: 2.25rem; --arc-control-height-md: 2.75rem; --arc-control-height-lg: 3.125rem;
   --arc-text-xs: 0.75rem; --arc-text-sm: 0.875rem; --arc-text-base: 1rem; --arc-leading-body: 1.4;
   --arc-duration-instant: 0.12s; --arc-duration-fast: 0.16s; --arc-duration-standard: 0.24s; --arc-duration-considered: 0.48s;
+  --arc-radius-pill: 9999px; --arc-tracking-body: -.01em; --arc-success: #278457;
+  --arc-ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --arc-ease-spring: linear(0, 0.0213, 0.0739, 0.1443, 0.2235, 0.305, 0.3849, 0.4606, 0.5305, 0.594, 0.6508, 0.7011, 0.7452, 0.7836, 0.8168, 0.8454, 0.8699, 0.8907, 0.9084, 0.9234, 0.9361, 0.9467, 0.9557, 0.9632, 0.9694, 0.9747, 0.979, 0.9826, 0.9857, 0.9882, 0.9902, 0.992, 0.9934, 0.9946, 0.9955, 0.9963, 1);
   --arc-ease-standard: cubic-bezier(0.22, 1, 0.36, 1); --arc-ease-enter: cubic-bezier(0.16, 1, 0.3, 1); --arc-ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
 }
 [data-theme="dark"], .dark {
@@ -22,6 +25,7 @@
   --arc-text-secondary: oklch(72% 0 0); --arc-text-muted: oklch(58% 0 0);
   --arc-border: oklch(29% 0 0); --arc-border-subtle: oklch(25% 0 0); --arc-border-strong: oklch(38% 0 0);
   --arc-danger: oklch(71% 0.155 8); --arc-focus: oklab(0.91 0 0 / 0.72);
+  --arc-success: #3fa974;
   --arc-shadow-resting: 0 1px 2px oklch(0% 0 0 / 0.3);
   --arc-shadow-raised: 0 6px 18px oklch(0% 0 0 / 0.4), 0 1px 3px oklch(0% 0 0 / 0.3);
 }
