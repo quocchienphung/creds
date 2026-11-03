@@ -14,5 +14,6 @@ import { errors } from './vi-errors';
 import { orchestrator } from './vi-orchestrator';
 import { credit } from './vi-credit';
 import { excel } from './vi-excel';
+import { finalPreview } from './vi-final-preview';
 /** Authored Vietnamese UI copy. English keys remain the original source of truth. */
-export const vi: Readonly<Record<string, string>> = { ...common, ...settings, ...workspace, ...library, ...process, ...documents, ...assistant, ...previews, ...details, ...roles, ...metrics, ...examples, ...errors, ...orchestrator, ...credit, ...excel };
+export const vi: Readonly<Record<string, string>> = { ...common, ...settings, ...workspace, ...library, ...process, ...documents, ...assistant, ...previews, ...details, ...roles, ...metrics, ...examples, ...errors, ...orchestrator, ...credit, ...excel, ...finalPreview };

@@ -29,9 +29,9 @@ function fly(token: HTMLElement, dx: number, dy: number, delay: number) {
  * decides: nothing here changes the value.
  */
 /** `confirmed`: the card replays a correction a person has just approved (what the file had, what was written) instead of guessing one; it has no draft-length or compare controls. */
-export type RunVariant = "suggest" | "confirmed";
+export type RunVariant = "suggest" | "confirmed" | "preview";
 export function SpeculativeRun({ predictions, picks, text, variant = "suggest", title, onClose: onDismiss }: { predictions: WordPrediction[]; picks: Record<number, string>; text: string; variant?: RunVariant; title?: string; onClose?: () => void }) {
-  const confirmed = variant === "confirmed";
+  const confirmed = variant !== "suggest";
   const { t } = useWorkspaceI18n();
   const sliderId = useId();
   const [open, setOpen] = useState(true);
@@ -62,7 +62,7 @@ function Replay({ predictions, picks, draftLength, compare, variant, title, onRe
   onRestart: () => void; onClose: () => void;
 }) {
   const { t, locale } = useWorkspaceI18n();
-  const confirmed = variant === "confirmed";
+  const confirmed = variant !== "suggest";
   const reduce = useReducedMotion() ?? false;
   const run = useMemo(() => simulate(predictions, draftLength), [predictions, draftLength]);
   const timeline = useMemo(() => timelineOf(run), [run]);
@@ -157,6 +157,7 @@ function Replay({ predictions, picks, draftLength, compare, variant, title, onRe
   const pass = run.passes[Math.min(snap.pass, Math.max(0, run.passes.length - 1))];
   const statusText = (status: StatusKind): string => {
     const columns = pass?.columns.length ?? 0;
+    if (variant === "preview") return t(status === "done" ? "Preview ready" : "Comparing original and edited words…");
     if (confirmed) {
       const fixed = predictions.filter(word => word.broken).length;
       if (status === "done") return plural(t, fixed, "Applied: {0} word fixed", "Applied: {0} words fixed", [predictions.length - fixed]);
@@ -218,7 +219,7 @@ function Replay({ predictions, picks, draftLength, compare, variant, title, onRe
     <div className="sdr-lanes">
       <div className="sdr-laneLabels" aria-hidden="true">
         <div className="sdr-laneLabel" data-lane="draft"><span className="sdr-laneDot" /><span className="sdr-laneText"><span className="sdr-laneName">{t(confirmed ? "In the file" : "Draft")}</span><span className="sdr-laneDetail">{t(confirmed ? "Before your fix" : "Frequency, fast")}</span></span></div>
-        <div className="sdr-laneLabel" data-lane="target"><span className="sdr-laneDot" /><span className="sdr-laneText"><span className="sdr-laneName">{t(confirmed ? "Confirmed" : "Target")}</span><span className="sdr-laneDetail">{t(confirmed ? "What you approved" : "Context, careful")}</span></span></div>
+        <div className="sdr-laneLabel" data-lane="target"><span className="sdr-laneDot" /><span className="sdr-laneText"><span className="sdr-laneName">{t(variant === "preview" ? "Edited preview" : confirmed ? "Confirmed" : "Target")}</span><span className="sdr-laneDetail">{t(variant === "preview" ? "Waiting for your approval" : confirmed ? "What you approved" : "Context, careful")}</span></span></div>
       </div>
       <div className="sdr-track">
         {snap.phase === "done"
@@ -265,7 +266,7 @@ function Replay({ predictions, picks, draftLength, compare, variant, title, onRe
         <div className="sdr-stat"><dt className="sdr-statLabel">{t(confirmed ? "Words kept" : "Drafts accepted")}</dt><dd className="sdr-statValue"><RollingNumber value={acceptedPercent} intDigits={3} suffix="%" label={t("{0} percent", [acceptedPercent ?? 0])} /></dd></div>
         <div className="sdr-stat"><dt className="sdr-statLabel">{t("Words per check")}</dt><dd className="sdr-statValue"><RollingNumber value={perCheck} decimals={1} intDigits={2} label={number(perCheck ?? 0)} /></dd></div>
       </dl>
-      <p className="sdr-note">{confirmed ? t("This replays the change you approved: words the file already had right stay, the others are replaced by your fix. You can undo it.") : t("These numbers describe the replay: how often the quick guess matched the careful check. They do not say whether a word is right; the table and your approval do.")}</p>
+      <p className="sdr-note">{variant === "preview" ? t("This animation compares text only. It does not approve a correction or export the file.") : confirmed ? t("This replays the change you approved: words the file already had right stay, the others are replaced by your fix. You can undo it.") : t("These numbers describe the replay: how often the quick guess matched the careful check. They do not say whether a word is right; the table and your approval do.")}</p>
     </div>
   </>;
 }
