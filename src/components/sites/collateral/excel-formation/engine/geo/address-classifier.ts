@@ -22,9 +22,12 @@ const STRONG: readonly NameGroup[] = ["province", "district", "ward", "street", 
 interface TypeInfo { phrase: string; groups: Set<NameGroup>; strong: boolean }
 /** Types and their abbreviations, derived from the knowledge once. */
 export class TypeIndex {
+  /** The one type that fits a damaged type word (huy?n), if exactly one does. */
+  declare findPattern: (parts: string[]) => TypeInfo | undefined;
   readonly types = new Map<string, TypeInfo>();
   readonly abbreviations = new Map<string, TypeInfo[]>();
   readonly longest: number;
+  private byShape = new Map<string, string[]>();
   constructor(knowledge: GeoKnowledge) {
     for (const [group, list] of knowledge.types) for (const phrase of list.keys()) {
       const key = foldKey(phrase), info = this.types.get(key) ?? { phrase, groups: new Set<NameGroup>(), strong: false };
@@ -32,9 +35,15 @@ export class TypeIndex {
       this.types.set(key, info);
     }
     for (const info of this.types.values()) if (info.strong) for (const abbreviation of abbreviationsOf(info.phrase)) { const list = this.abbreviations.get(abbreviation); if (list) list.push(info); else this.abbreviations.set(abbreviation, [info]); }
+    for (const key of this.types.keys()) { const shape = key.split(" ").map(part => part.length).join(","); const list = this.byShape.get(shape); if (list) list.push(key); else this.byShape.set(shape, [key]); }
     this.longest = Math.max(1, ...[...this.types.keys()].map(key => key.split(" ").length));
   }
 }
+TypeIndex.prototype.findPattern = function findPattern(this: TypeIndex, parts: string[]) {
+  const shape = parts.map(part => part.length).join(","), found: TypeInfo[] = [];
+  for (const key of (this as unknown as { byShape: Map<string, string[]> }).byShape.get(shape) ?? []) { const have = key.split(" "); if (parts.every((part, i) => [...part].every((ch, j) => ch === "?" || ch === have[i][j]))) found.push(this.types.get(key)!); }
+  return found.length === 1 ? found[0] : undefined;
+};
 const indexes = new WeakMap<GeoKnowledge, TypeIndex>();
 export const typeIndexOf = (knowledge: GeoKnowledge): TypeIndex => { let index = indexes.get(knowledge); if (!index) indexes.set(knowledge, index = new TypeIndex(knowledge)); return index; };
 
@@ -65,7 +74,7 @@ export function classifySegment(segment: string, knowledge: GeoKnowledge, hints:
   let typeScore = 0, typeHits = 0;
   for (let at = 0; at + 1 < folds.length; at++) {
     let hit: TypeInfo | undefined, size = 0;
-    for (let trySize = Math.min(index.longest, folds.length - at - 1); trySize >= 1 && !hit; trySize--) { hit = index.types.get(folds.slice(at, at + trySize).join(" ")); if (hit) size = trySize; }
+    for (let trySize = Math.min(index.longest, folds.length - at - 1); trySize >= 1 && !hit; trySize--) { const parts = folds.slice(at, at + trySize); hit = index.types.get(parts.join(" ")) ?? (parts.some(part => part.includes("?")) ? index.findPattern(parts) : undefined); if (hit) size = trySize; }
     if (!hit && !words[at].includes("?")) {
       const abbreviated = index.abbreviations.get(folds[at]);
       const dotted = /^\.[\p{L}\d?]/u.test(segment.slice(wordPieces[at].end, wordPieces[at].end + 2)) || NUMBER.test(folds[at + 1]);

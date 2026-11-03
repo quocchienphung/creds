@@ -180,7 +180,9 @@ function repairSegment(segment: Segment, knowledge: GeoKnowledge, options: Requi
     if (state.contextual) evidence.push("under the administrative units found in the cell");
     evidence.push(`${state.unknown ? "unseen" : "known"} syllable (${state.local.toFixed(1)})`);
     if (state.variable) evidence.push("one ? stands for several letters");
-    const ascii = withCase(state.ascii, caseShape(word.piece.text));
+    // A word with no letter of its own (a lone ?) takes the case of the words beside it.
+    const own = caseShape(word.piece.text), shape = /\p{L}/u.test(word.piece.text) ? own : caseShape((words[i - 1] ?? words[i + 1])?.piece.text ?? "");
+    const ascii = withCase(state.ascii, shape);
     let status: GeoStatus;
     if (state.official && margin >= calibration.contextMargin) status = "verified_official";
     else if (margin >= calibration.highMargin) status = "high_confidence_auto";
