@@ -26,7 +26,7 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
   const result = engine.result!, view = engine.view!;
   const [snapshot, setSnapshot] = useState<{ view: ReviewView; patches: Patch[]; error: string | null } | null>(null);
   const [retry, setRetry] = useState(0), [picked, setPicked] = useState("");
-  const [extra, setExtra] = useState<PreviewCell | null>(null);
+  const [extras, setExtras] = useState<Record<string, PreviewCell>>({});
   const [variant, setVariant] = useState<"original" | "edited">("edited");
   const [filter, setFilter] = useState<"all" | "changed" | "review">("all");
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -44,14 +44,19 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
     let alive = true;
     void previewChanges().then(patches => { if (alive) setSnapshot({ view, patches, error: null }); })
       .catch(error => { if (alive) setSnapshot({ view, patches: [], error: error instanceof Error ? error.message : "Could not load changes." }); });
-    return () => { alive = false; selectionRequest.current++; };
+    const pendingSelection = selectionRequest;
+    return () => { alive = false; pendingSelection.current++; };
   }, [previewChanges, view, retry]);
-  const all = useMemo(() => previewCells([...result.issues, ...view.introduced], view.states, patches), [result.issues, view, patches]);
+  const all = useMemo(() => {
+    const known = previewCells([...result.issues, ...view.introduced], view.states, patches);
+    const keys = new Set(known.map(cell => cell.key));
+    return [...known, ...Object.values(extras).filter(cell => !keys.has(cell.key))];
+  }, [result.issues, view, patches, extras]);
   const cells = useMemo(() => {
-    const shown = all.filter(cell => filter === "changed" ? cell.before !== cell.after : filter === "review" ? cell.needsReview : true);
-    const selected = all.find(cell => cell.key === picked) ?? extra;
+    const shown = all.filter(cell => drafts[cell.key] !== undefined || (filter === "changed" ? cell.before !== cell.after : filter === "review" ? cell.needsReview : true));
+    const selected = all.find(cell => cell.key === picked);
     return selected && selected.key === picked && !shown.some(cell => cell.key === picked) ? [selected, ...shown] : shown;
-  }, [all, filter, picked, extra]);
+  }, [all, filter, picked, drafts]);
   const index = Math.max(0, cells.findIndex(cell => cell.key === picked));
   const selected = cells[index];
   const sheetName = selected?.sheet ?? result.sheetScans[0]?.name;
@@ -97,7 +102,7 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
       const rows = await gridRows(row, 1, name);
       if (request !== selectionRequest.current) return;
       const value = rows[0]?.values[col] ?? "";
-      setExtra({ key, sheet: name, row, col, before: value, after: value, field: "", needsReview: false }); setPicked(key);
+      setExtras(current => ({ ...current, [key]: { key, sheet: name, row, col, before: value, after: value, field: "", needsReview: false } })); setPicked(key);
     } catch { setError(t("Could not load this cell. Try again.")); }
   }, [all, gridRows, meta?.sheet, t]);
   const draft = selected ? drafts[selected.key] ?? selected.after : "";
@@ -136,7 +141,7 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
     finally { setExporting(false); }
   }
   const pending = all.filter(cell => cell.needsReview).length;
-  const predictions = useMemo(() => selected ? wordsOfChange(selected.before, draft) : [], [selected, draft]);
+  const predictions = useMemo(() => selected ? wordsOfChange(selected.before, selected.after) : [], [selected]);
   const locked = engine.busy || exporting || !ready;
 
   return <div className="fp" aria-busy={!current || exporting}>
@@ -145,7 +150,7 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
     {(!current || current && snapshot.error) && <div className="fp-message" role={current ? "alert" : "status"}>{current ? snapshot.error : t("Loading the latest workbook changes…")}{current && <Button variant="secondary" size="sm" onClick={() => setRetry(value => value + 1)}>{t("Retry")}</Button>}</div>}
     <div className="fp-options">
       <div className="fp-segment" role="group" aria-label={t("Workbook version")}>{(["original", "edited"] as const).map(value => <button type="button" key={value} aria-pressed={variant === value} onClick={() => setVariant(value)}>{t(value === "original" ? "Original file" : "Edited preview")}</button>)}</div>
-      <label className="fp-filter"><span>{t("Show cells")}</span><select value={filter} onChange={event => { setFilter(event.target.value as typeof filter); setPicked(""); setExtra(null); }}><option value="all">{t("All changes and issues")}</option><option value="changed">{t("Changed cells")}</option><option value="review">{t("Needs review")}</option></select></label>
+      <label className="fp-filter"><span>{t("Show cells")}</span><select value={filter} onChange={event => { setFilter(event.target.value as typeof filter); setPicked(""); }}><option value="all">{t("All changes and issues")}</option><option value="changed">{t("Changed cells")}</option><option value="review">{t("Needs review")}</option></select></label>
       <span className="fp-legend"><i />{t("Changed")}<i data-warning />{t("Needs review")}</span>
     </div>
     {grid?.sheet === sheetName && grid.error && <div className="fp-message" role="alert">{t("Could not load the worksheet.")}<Button variant="secondary" size="sm" onClick={() => setRetry(value => value + 1)}>{t("Retry")}</Button></div>}
@@ -155,7 +160,7 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
       <header><h4>{selected.sheet} · {columnLetters(selected.col)}{selected.row}</h4><span className="fp-badge" data-warning={selected.needsReview || undefined}>{t(selected.needsReview ? "Needs review" : selected.before !== selected.after ? "Changed" : "Unchanged")}</span></header>
       <div className="fp-comparison"><div><label htmlFor="fp-original">{t("Original value")}</label><textarea id="fp-original" value={selected.before} readOnly spellCheck={false} /></div><div><label htmlFor="fp-edited">{t("Edited value")}</label><textarea id="fp-edited" value={draft} onChange={event => updateDraft(event.target.value)} disabled={locked} spellCheck={false} maxLength={32767} aria-describedby="fp-draft-hint" /></div></div>
       <div className="fp-edit-actions"><p id="fp-draft-hint">{t("Saving changes only updates this preview. The original workbook is preserved.")}</p><Button variant="ghost" size="sm" disabled={locked || draft === selected.before} onClick={() => updateDraft(selected.before)}><RotateCcw size={14} />{t("Restore original")}</Button><Button variant="secondary" size="sm" disabled={locked || drafts[selected.key] === undefined} onClick={() => clearDraft(selected.key)}>{t("Discard draft")}</Button><Button variant="primary" size="sm" disabled={locked || drafts[selected.key] === undefined} onClick={() => void save()}><Check size={14} />{t("Save cell")}</Button></div>
-      <SpeculativeRun key={`${selected.key}:${draft}`} predictions={predictions} picks={{}} text={draft} variant="preview" title="Before and after" />
+      <SpeculativeRun key={`${selected.key}:${selected.after}`} predictions={predictions} picks={{}} text={selected.after} variant="preview" title="Before and after" />
     </motion.section>}</AnimatePresence>
     {pending > 0 && <p className="fp-warning" role="status">{t("{0} cells still need review. Export includes their current values; it does not certify that they are correct.", [pending])}</p>}
     {dirty && <p className="fp-warning" role="status">{t("{0} unsaved cell drafts. Save or discard them before leaving or exporting.", [Object.keys(drafts).length])}</p>}
