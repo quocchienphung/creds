@@ -12,7 +12,8 @@ export function previewCells(issues: readonly Issue[], states: Record<string, Is
   const cells = new Map<string, PreviewCell>();
   for (const issue of issues) {
     const key = previewKey(issue), state = states[issue.id];
-    const needsReview = !state || state.status === "open" || state.status === "edited";
+    // An edit that left no ? is a change to look at, not a problem: only an open issue, or an edit that still holds a ?, needs a decision.
+    const needsReview = !state || state.status === "open" || state.status === "edited" && (state.correctedValue ?? issue.originalValue).includes("?");
     const previous = cells.get(key);
     if (previous) previous.needsReview ||= needsReview;
     else cells.set(key, { key, sheet: issue.sheet, row: issue.row, col: issue.col, before: issue.originalValue, after: state?.correctedValue ?? issue.originalValue, field: issue.field, needsReview });

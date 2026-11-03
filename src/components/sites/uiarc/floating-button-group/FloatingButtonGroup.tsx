@@ -240,6 +240,7 @@ export function FloatingButtonGroup({ items, label, variant = "muted", size = "m
       const { id, label: itemLabel, icon, onSelect, disabled = false, pressed, primary, shortcut, reserveLabels = [] } = item;
       const iconOnly = !!icon && (item.iconOnly ?? groupIconOnly);
       const button = <button
+        key={id}
         ref={node => { if (node) nodes.current.set(id, node); else nodes.current.delete(id); }}
         type="button"
         className={styles.item}

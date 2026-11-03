@@ -30,3 +30,10 @@ test("undo removes a patch from preview and accepted exceptions are not unresolv
   assert.equal(cells[0].needsReview, false);
   assert.deepEqual(previewCells([], {}, []), []);
 });
+
+test("an edit that leaves no ? is a change, not a problem; one that still holds a ? needs review", () => {
+  const done = previewCells([issue("a")], { a: { status: "edited", correctedValue: "can ho" } }, [patch("Sheet1", 2)]);
+  assert.equal(done[0].needsReview, false);
+  const half = previewCells([issue("a")], { a: { status: "edited", correctedValue: "can h?" } }, [patch("Sheet1", 2, "can h?", "can h?")]);
+  assert.equal(half[0].needsReview, true);
+});
