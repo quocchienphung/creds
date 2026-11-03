@@ -141,7 +141,7 @@ export function classifySegments(text: string, knowledge: GeoKnowledge, hints: C
   const segments: Segment[] = segmentsOf(text).map(part => ({ ...part, ...classifySegment(part.text, knowledge, hints) }));
   // In a list of address parts the parts without a type word of their own (a street name, a house number) belong to it too.
   if (segments.some(segment => isAddressClass(segment.class) && segment.score >= 3.5))
-    for (const segment of segments) if ((segment.class === "AMBIGUOUS" || segment.class === "GENERAL_VIETNAMESE_TEXT" || segment.class === "NON_ADDRESS_TEXT") && segment.text.split(/s+/).length <= 8) { segment.class = "ADMINISTRATIVE_ADDRESS"; segment.evidence.push("part of an address list in the same cell"); }
+    for (const segment of segments) if ((segment.class === "AMBIGUOUS" || segment.class === "GENERAL_VIETNAMESE_TEXT" || segment.class === "NON_ADDRESS_TEXT") && segment.text.split(/\s+/).length <= 8) { segment.class = "ADMINISTRATIVE_ADDRESS"; segment.evidence.push("part of an address list in the same cell"); }
   return segments;
 }
 export const isAddressClass = (cls: SpanClass): boolean => ADDRESS_CLASSES.includes(cls);

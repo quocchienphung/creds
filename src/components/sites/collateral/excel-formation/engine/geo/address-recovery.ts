@@ -173,7 +173,7 @@ function caseOfDamaged(word: string, cell: string): "upper" | "title" | "lower" 
   if (!word.startsWith("?")) return own ?? "lower";
   return crowdUpper ? "upper" : crowdTitle ? "title" : "lower";
 }
-const isPlaceholderOnly = (text: string) => /^\?+$/.test(text);
+const isPlaceholderOnly = (text: string) => text === "?";
 
 function repairSegment(segment: Segment, knowledge: GeoKnowledge, options: Required<Pick<RecoveryOptions, "policy">> & { calibration: GeoCalibration }, cellContext: Set<number>, cellText: string): SegmentRepair {
   const words = wordsOf(segment.text, knowledge);
