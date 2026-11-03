@@ -9,7 +9,7 @@
     "rejectedRows": 29,
     "currentProvinces": 34,
     "currentWards": 3321,
-    "osmNames": 0
+    "osmNames": 274135
   },
   "sources": [
     {
@@ -50,8 +50,8 @@
       "sha256": "1ec75880df5ae337f3aa903cbee8f450c0549710f5540b4e973babc0d1305292"
     },
     "osm.json": {
-      "bytes": 23,
-      "sha256": "42c634a11aa913a6747a1a39a6d123e434b9070cb3ca5c1a3ee953bc872b4375"
+      "bytes": 9400137,
+      "sha256": "ba3a35230522dd008cc2e02744c225688749073d1eea5aa387b5a7284fbea2d0"
     }
   },
   "notes": "Names only. 'recorded' is the administrative structure the address corpus was written under (provinces, districts, wards before the mergers); 'current' is the present official structure. Addresses are never rewritten from one to the other."
