@@ -14,8 +14,10 @@ export interface SheetData {
   loadSheetMeta?: (sheet?: string) => Promise<GridMeta | null>;
   issueCells: Map<number, Map<number, number>>;
   issueRows: { row: number; level: number }[];
+  /** Display-only marks for cells changed in the final preview. */
+  changes?: Map<number, Set<number>>;
   /** The same marks for every worksheet that holds issues, so any sheet the person opens shows its own problems, not only the sheet of the selected issue. */
-  bySheet?: Record<string, { issueCells: Map<number, Map<number, number>>; issueRows: { row: number; level: number }[]; open: number }>;
+  bySheet?: Record<string, { issueCells: Map<number, Map<number, number>>; issueRows: { row: number; level: number }[]; open: number; changes?: Map<number, Set<number>> }>;
   epoch: number;
 }
 type Mode = "overview" | "readable";
@@ -65,10 +67,10 @@ export function SheetViewer({ data, target, mode = "readable", onSelectCell, onE
   const [busy, setBusy] = useState(false), [failed, setFailed] = useState(false);
   const [wanted, setWanted] = useState(data.meta.sheet);
   const request = useRef(0);
-  const [seen, setSeen] = useState(target);
-  if (seen.row !== target.row || seen.col !== target.col) { setSeen(target); setOther(null); }
+  const [seen, setSeen] = useState({ row: target.row, col: target.col, sheet: data.meta.sheet });
+  if (seen.row !== target.row || seen.col !== target.col || seen.sheet !== data.meta.sheet) { setSeen({ row: target.row, col: target.col, sheet: data.meta.sheet }); setOther(null); }
   useEffect(() => () => { request.current++; }, []);
-  useEffect(() => { request.current++; setBusy(false); }, [target.row, target.col]);
+  useEffect(() => { request.current++; setBusy(false); }, [target.row, target.col, data.meta.sheet]);
   const changeSheet = async (name: string) => {
     const id = ++request.current;
     setFailed(false); setWanted(name);
@@ -80,7 +82,7 @@ export function SheetViewer({ data, target, mode = "readable", onSelectCell, onE
     } catch { if (id === request.current) setFailed(true); }
     finally { if (id === request.current) setBusy(false); }
   };
-  const active = useMemo<SheetData>(() => other ? { ...data, meta: other, issueCells: data.bySheet?.[other.sheet]?.issueCells ?? NO_CELLS, issueRows: data.bySheet?.[other.sheet]?.issueRows ?? [] } : data, [data, other]);
+  const active = useMemo<SheetData>(() => other ? { ...data, meta: other, issueCells: data.bySheet?.[other.sheet]?.issueCells ?? NO_CELLS, issueRows: data.bySheet?.[other.sheet]?.issueRows ?? [], changes: data.bySheet?.[other.sheet]?.changes } : data, [data, other]);
   // Another sheet opens on its first open problem, so it never looks unchecked; with none it opens on its first row.
   const firstMark = (name: string) => { const marks = data.bySheet?.[name]; if (!marks?.issueRows.length) return null; const row = Math.min(...marks.issueRows.map(item => item.row)); return { row, col: [...(marks.issueCells.get(row)?.keys() ?? [])][0] ?? 0, value: "" }; };
   const picked = other ? firstMark(other.sheet) ?? { row: 1, col: 0, value: "" } : target;

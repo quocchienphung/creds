@@ -6,7 +6,7 @@
   "independentReader": "python -I independent-xlsx-dump.py (zipfile + ElementTree, no code shared with the app)",
   "addressCells": 60,
   "exactlyRight": 50,
-  "withQuestionMarkLeft": 1,
+  "withQuestionMarkLeft": 0,
   "unchangedByDesign": [
     {
       "ref": "Tai san!B27",
@@ -17,8 +17,8 @@
     {
       "ref": "Tai san!B28",
       "before": "Ban co dong y khong?",
-      "after": "Ban co dong y khong",
-      "unchanged": false
+      "after": "Ban co dong y khong?",
+      "unchanged": true
     },
     {
       "ref": "Tai san!B29",
@@ -27,9 +27,7 @@
       "unchanged": true
     }
   ],
-  "changedOutsideAddresses": [
-    "Tai san!B28"
-  ],
+  "changedOutsideAddresses": [],
   "report": {
     "status": "REPAIRED_PARTIALLY",
     "geo": {
@@ -37,24 +35,23 @@
       "datasetVersion": "2026-11-03",
       "highMargin": 24,
       "contextMargin": 0,
-      "cellsRecovered": 61,
+      "cellsRecovered": 60,
       "byStatus": {
-        "contextual_auto": 82,
+        "contextual_auto": 83,
         "verified_official": 565,
         "high_confidence_auto": 35,
-        "forced_guess": 7,
-        "fallback_lossy": 1
+        "forced_guess": 7
       },
       "forcedGuesses": 7,
-      "lossyFallbacks": 1,
+      "lossyFallbacks": 0,
       "unresolvedInAddresses": 0,
-      "finalStatus": "ADDRESS_SPANS_COMPLETED_WITH_LOSSY_FALLBACKS"
+      "finalStatus": "ADDRESS_SPANS_COMPLETED_WITH_FORCED_GUESSES"
     },
     "sheets": [
       {
         "sheetId": "sheet-1",
         "status": "scanned",
-        "verifiedChanges": 26
+        "verifiedChanges": 25
       },
       {
         "sheetId": "sheet-2",
@@ -67,7 +64,7 @@
         "verifiedChanges": 10
       }
     ],
-    "outputCellsChanged": 61,
+    "outputCellsChanged": 60,
     "outputUnexpectedChanges": 0,
     "verificationAllOk": true
   },
@@ -83,10 +80,10 @@
     {
       "ref": "Tai san!B8",
       "before": "Ph?m Duy Trinh, Th? tr?n ??t ??, Huy?n ??t ??, T?nh B? R?a - V?ng T?u",
-      "after": "Ph?m Duy Trinh, Thi tran Dat Da, Huyen Dat Da, Tinh Ba Ria - Vung Tau",
+      "after": "Pham Duy Trinh, Thi tran Dat Da, Huyen Dat Da, Tinh Ba Ria - Vung Tau",
       "expected": "Pham Duy Trinh, Thi tran Dat Do, Huyen Dat Do, Tinh Ba Ria - Vung Tau",
       "exact": false,
-      "questionMarkLeft": true
+      "questionMarkLeft": false
     },
     {
       "ref": "Tai san!B17",

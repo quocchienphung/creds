@@ -1091,8 +1091,21 @@
     "sheet": "Tai san",
     "ref": "B8",
     "original": "Ph?m Duy Trinh, Th? tr?n ??t ??, Huy?n ??t ??, T?nh B? R?a - V?ng T?u",
-    "repaired": "Ph?m Duy Trinh, Thi tran Dat Da, Huyen Dat Da, Tinh Ba Ria - Vung Tau",
+    "repaired": "Pham Duy Trinh, Thi tran Dat Da, Huyen Dat Da, Tinh Ba Ria - Vung Tau",
     "words": [
+      {
+        "original": "Ph?m",
+        "accented": "phạm",
+        "ascii": "Pham",
+        "status": "contextual_auto",
+        "applied": true,
+        "margin": 20.09,
+        "runnerUp": "phóm",
+        "evidence": [
+          "name found in the geographic data",
+          "known syllable (-5.9)"
+        ]
+      },
       {
         "original": "Th?",
         "accented": "thị",
@@ -4405,25 +4418,6 @@
           "an official administrative unit",
           "under the administrative units found in the cell",
           "known syllable (-6.5)"
-        ]
-      }
-    ]
-  },
-  {
-    "sheet": "Tai san",
-    "ref": "B28",
-    "original": "Ban co dong y khong?",
-    "repaired": "Ban co dong y khong",
-    "words": [
-      {
-        "original": "khong?",
-        "accented": "khong",
-        "ascii": "khong",
-        "status": "fallback_lossy",
-        "applied": true,
-        "margin": 0,
-        "evidence": [
-          "no syllable of the data fits"
         ]
       }
     ]

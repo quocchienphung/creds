@@ -180,7 +180,8 @@ function caseOfDamaged(word: string, cell: string): "upper" | "title" | "lower" 
   const upper = known.filter(item => item === "upper").length, title = known.filter(item => item === "title").length, lower = known.length - upper - title;
   const crowdUpper = known.length > 1 && upper >= known.length * 0.6, crowdTitle = title > 0 && title >= lower;
   const own = /\p{L}/u.test(letters(word)) ? caseShape(letters(word)) : undefined;
-  if (own === "upper" && crowdUpper) return "upper";
+  const letterText = letters(word);
+  if (crowdUpper && letterText && letterText === letterText.toUpperCase() && letterText !== letterText.toLowerCase()) return "upper";
   if (!word.startsWith("?")) return own ?? "lower";
   return crowdUpper ? "upper" : crowdTitle ? "title" : "lower";
 }
@@ -203,6 +204,9 @@ function repairSegment(segment: Segment, knowledge: GeoKnowledge, options: Requi
     if (isPlaceholderOnly(word.piece.text) && i === words.length - 1 && segment.text[word.piece.start - 1] === " ") { result.tokens.push({ ...base, accented: word.piece.text, ascii: word.piece.text, status: "unchanged_legitimate_punctuation", applied: false, margin: Infinity, score: 0, evidence: ["a lone ? ending the text"], variableLength: false }); return; }
     const state = word.states[solved.path[i]];
     if (!word.states.length || !state) {
+      // A syllable of the data followed or preceded by a ? that no syllable fits is that syllable and a punctuation mark (a question), not a lost letter.
+      const core = word.piece.text.replace(/^\?+|\?+$/g, "");
+      if (core && core !== word.piece.text && !core.includes("?") && knowledge.knows(foldWord(core))) { result.tokens.push({ ...base, accented: word.piece.text, ascii: word.piece.text, status: "unchanged_legitimate_punctuation", applied: false, margin: Infinity, score: 0, evidence: ["a ? beside a whole syllable that no syllable extends"], variableLength: false }); return; }
       // Nothing in the data fits: the placeholder is dropped, nothing is invented.
       const lossy = word.piece.text.replace(/\?/g, "");
       result.tokens.push({ ...base, accented: lossy, ascii: lossy, status: policy === "FORCE_NO_QUESTION_MARK" ? "fallback_lossy" : "needs_review", applied: policy === "FORCE_NO_QUESTION_MARK", margin: 0, score: 0, evidence: ["no syllable of the data fits"], variableLength: false });

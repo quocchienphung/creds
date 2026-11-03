@@ -34,7 +34,7 @@ const REASON: Record<string, string> = {
 };
 
 /** Header action and a dialog: no changes to the measured suggestion layout. */
-export function AutoRepairAction({ engine }: { engine: CollateralEngine }) {
+export function AutoRepairAction({ engine, onPreview, disabled = false }: { engine: CollateralEngine; onPreview: () => void; disabled?: boolean }) {
   const [open, setOpen] = useState(false), [running, setRunning] = useState(false), [cancelling, setCancelling] = useState(false);
   const [result, setResult] = useState<Result | null>(null), [failed, setFailed] = useState(false), [policy, setPolicy] = useState<RepairPolicy>("FORCE_NO_QUESTION_MARK");
   const p = engine.repairProgress;
@@ -45,15 +45,14 @@ export function AutoRepairAction({ engine }: { engine: CollateralEngine }) {
     setRunning(false);
     if (!made) { setFailed(true); return; }
     setResult(made);
-    // A job that changed no cell never starts a download by itself: the person decides what to do with the untouched copy.
-    if (made.report.status === "REPAIRED_PARTIALLY" || made.report.status === "REPAIRED_VERIFIED") {
-      downloadBlob(made.fileName, made.blob);
-      const report = reportFile(made); downloadBlob(report.name, report.blob);
+    if (["REPAIRED_PARTIALLY", "REPAIRED_VERIFIED", "NO_REPAIR_APPLIED"].includes(made.report.status)) {
+      setOpen(false); onPreview();
     }
   }
   const close = () => { if (running) { setCancelling(true); engine.cancelRepair(); } else setOpen(false); };
   return <>
-    <Button variant="secondary" size="sm" className="cr-auto-trigger" loading={running} disabled={engine.busy && !running || engine.phase !== "ready" || !engine.result} onClick={() => { if (!running) { setResult(null); setFailed(false); } setOpen(true); }} title="Quét mọi trang tính, sửa ký tự ? bằng nguồn sạch cùng tài sản hoặc dự đoán đã hiệu chuẩn từ chính tệp. Không cần hồ sơ ánh xạ. Bản gốc không bị thay đổi."><Wand2 size={15} aria-hidden="true" />Tự động sửa Excel</Button>
+    <Button variant="secondary" size="sm" className="cr-auto-trigger" loading={running} disabled={disabled || engine.busy && !running || engine.phase !== "ready" || !engine.result} onClick={() => { if (!running) { setResult(null); setFailed(false); } setOpen(true); }} title="Quét mọi trang tính và chuẩn bị bản sửa để bạn xem trước, xác nhận rồi xuất. Bản gốc được giữ nguyên."><Wand2 size={15} aria-hidden="true" />Tự động sửa Excel</Button>
+    {result && <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>Kết quả lượt sửa</Button>}
     <WorkspaceDialog open={open} title="Tự động sửa Excel" onClose={close}>
       <div className="cr-auto-result" aria-busy={running}>
         <p>Xử lý tại thiết bị, không tải dữ liệu lên mạng. Bản gốc được giữ nguyên.</p>
@@ -104,8 +103,8 @@ export function AutoRepairAction({ engine }: { engine: CollateralEngine }) {
           {!result.report.geo && <p role="status">{result.geoUnavailable ? `Không nạp được dữ liệu địa lý (${result.geoUnavailable}); chỉ sửa theo bằng chứng trong tệp.` : "Dữ liệu địa lý không được dùng."}</p>}
           <p>Báo cáo chứa vị trí và lý do; không chứa nội dung ô hoặc mã định danh. Bản ghi kiểm tra địa chỉ (có nội dung ô) là tệp riêng, chỉ lưu trên máy này.</p>
           <p>Nhóm cùng tài sản có nội dung lỗi trùng trong tệp gốc: {result.report.duplicateGroups.withinAsset.groups.toLocaleString()} nhóm / {result.report.duplicateGroups.withinAsset.cells.toLocaleString()} ô. Duyệt một cách sửa trong Review and fix để áp dụng chung cho nhóm; các bản lỗi trùng nhau không tự chứng minh chữ cần điền.</p>
-          <div className="ui-sb-actions"><Button variant="primary" size="sm" onClick={() => downloadBlob(result.fileName, result.blob)}>{result.report.status === "NO_REPAIR_APPLIED" ? "Tải bản gốc (chưa sửa)" : "Tải lại Excel"}</Button><Button variant="secondary" size="sm" onClick={() => { const file = reportFile(result); downloadBlob(file.name, file.blob); }}>Tải báo cáo sửa</Button>{result.geoAudit.length > 0 && <Button variant="secondary" size="sm" onClick={() => downloadBlob(result.fileName.replace(/\.repaired\.xlsx$/i, ".address-audit.json"), new Blob([JSON.stringify(result.geoAudit, null, 2) + "\n"], { type: "application/json" }))}>Tải bản ghi kiểm tra địa chỉ</Button>}</div>
-          <p>Nếu trình duyệt chặn tải nhiều tệp, dùng hai nút trên. Undo trong Review and fix hoàn tác cả lượt sửa.</p>
+          <div className="ui-sb-actions"><Button variant="primary" size="sm" onClick={() => { setOpen(false); onPreview(); }}>Xem trước & xác nhận xuất</Button><Button variant="secondary" size="sm" onClick={() => { const file = reportFile(result); downloadBlob(file.name, file.blob); }}>Tải báo cáo lượt sửa</Button>{result.geoAudit.length > 0 && <Button variant="secondary" size="sm" onClick={() => downloadBlob(result.fileName.replace(/\.repaired\.xlsx$/i, ".address-audit.json"), new Blob([JSON.stringify(result.geoAudit, null, 2) + "\n"], { type: "application/json" }))}>Tải bản ghi kiểm tra địa chỉ</Button>}</div>
+          <p>Chưa tự động tải Excel. Xem trước, sửa thêm nếu cần, rồi xác nhận xuất. Báo cáo và bản ghi địa chỉ phản ánh lượt tự động sửa ban đầu. Undo trong Review and fix hoàn tác cả lượt sửa.</p>
         </>}
       </div>
     </WorkspaceDialog>
