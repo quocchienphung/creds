@@ -11,6 +11,7 @@ import { workbookGridMeta, workbookGridRows } from "../excel-formation/engine/wo
 import { acceptException, applyBulk, applyEdits, chooseForGroup, commit, groupRows, newHistory, planBulk, redo, rejectSuggestion, reopen, summarize, undo, type History } from "../excel-formation/engine/review.ts";
 import type { ReviewView, WorkerMessage, WorkerRequest } from "./protocol.ts";
 import { autoRepair } from "../excel-formation/engine/auto-repair.ts";
+import { loadGeo, type GeoEngine } from "../excel-formation/engine/geo/geo-load.ts";
 import { planDuplicateRepair, applyDuplicateRepair } from "../excel-formation/engine/duplicate-repairs.ts";
 
 /**
@@ -31,6 +32,9 @@ function languageOf(s: Session): VietnameseModel {
   for (const sheet of s.workbook.sheets) for (const row of sheet.rows) learner.add(sheet.name, row);
   return language = learner.finish().model;
 }
+/** The geographic knowledge is built once per worker (a second or two), from same-origin files; a failure is kept so the report can say why it was off. */
+let geoLoad: Promise<GeoEngine | { error: string }> | null = null;
+const geoEngine = () => geoLoad ??= loadGeo();
 /** The sheet a request is about: the one it names, else the profile's data sheet, else the first one. */
 const sheetNameOf = (s: Session, name?: string) => { const found = s.workbook.sheets.find(item => item.name === (name ?? s.wprofile.primary ?? s.workbook.sheets[0].name)); if (!found) throw new Error("That worksheet is not in this file."); return found.name; };
 
@@ -60,11 +64,12 @@ async function handle(id: number, request: WorkerRequest["request"]) {
     case "autoRepair": {
       const task = { cancelled: false }; repair = task;
       try {
-        const out = await autoRepair(need(), history.present, { cancelled: () => task.cancelled, onProgress: progress => post({ id, repairProgress: progress }) });
+        const loaded = await geoEngine(), geo = "error" in loaded ? undefined : loaded;
+        const out = await autoRepair(need(), history.present, { cancelled: () => task.cancelled, onProgress: progress => post({ id, repairProgress: progress }), ...(geo ? { geo } : {}), ...(request.policy ? { policy: request.policy } : {}) });
         history = commit(history, out.state);
         document = null;
         const bytes = out.bytes.buffer.slice(out.bytes.byteOffset, out.bytes.byteOffset + out.bytes.byteLength) as ArrayBuffer;
-        return { type: "repaired" as const, fileName: out.fileName, bytes, report: out.report, view: view() };
+        return { type: "repaired" as const, fileName: out.fileName, bytes, report: out.report, geoAudit: out.geoAudit, view: view(), ...("error" in loaded ? { geoUnavailable: loaded.error } : {}) };
       } finally { repair = null; }
     }
     case "open": {

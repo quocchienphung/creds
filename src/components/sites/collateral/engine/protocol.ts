@@ -10,7 +10,8 @@ import type { ProgressFile, RestoreError } from "../excel-formation/engine/progr
 import type { JsonPlan } from "../json-formation/engine/json-session.ts";
 import type { ReportMeta, ReportOptions } from "../json-formation/engine/json-report.ts";
 import type { JsonNodeInfo, SearchResult } from "../../json-viewer/json-model.ts";
-import type { RepairProgress, RepairReport } from "../excel-formation/engine/auto-repair.ts";
+import type { GeoAuditEntry, RepairProgress, RepairReport } from "../excel-formation/engine/auto-repair.ts";
+import type { RepairPolicy } from "../excel-formation/engine/geo/address-recovery.ts";
 import type { DuplicatePlan } from "../excel-formation/engine/duplicate-repairs.ts";
 
 /** What the page needs after a workbook is opened. Nothing here is sent anywhere: it crosses only the worker boundary of this browser tab. */
@@ -58,7 +59,7 @@ export interface GridRow { r: number; hidden: boolean; header: boolean; values: 
 export type Request =
   | { type: "duplicatePlan"; issueId: string; includeTwin: boolean }
   | { type: "duplicateApply"; issueId: string; value: string; includeTwin: boolean }
-  | { type: "autoRepair" }
+  | { type: "autoRepair"; policy?: RepairPolicy }
   | { type: "cancelRepair" }
   | { type: "window"; row: number; col: number }
   | { type: "gridMeta"; sheet?: string }
@@ -87,7 +88,7 @@ export type Request =
 export type Response =
   | { type: "duplicatePlan"; plan: DuplicatePlan | null }
   | { type: "duplicateApplied"; view: ReviewView; rows: number; changedCells: number }
-  | { type: "repaired"; fileName: string; bytes: ArrayBuffer; report: RepairReport; view: ReviewView }
+  | { type: "repaired"; fileName: string; bytes: ArrayBuffer; report: RepairReport; geoAudit: GeoAuditEntry[]; /** Why the geographic data could not be used, when it could not. */ geoUnavailable?: string; view: ReviewView }
   | { type: "repairCancelRequested" }
   | { type: "opened"; result: OpenResult; view: ReviewView }
   | { type: "view"; view: ReviewView }

@@ -16,7 +16,7 @@ import "./sheet-viewer.css";
 import "./workbook-viewer.css";
 import { WorkbookViewer as Viewer } from "./WorkbookViewer";
 
-export interface GalleryItem { issue: Issue; /** The text shown for the chosen variant (original, suggested or edited). */ text: string; tone: "red" | "amber" | "plain" | "plain-soft" }
+export interface GalleryItem { issue: Pick<Issue, "id" | "sheet" | "row" | "column" | "col" | "field" | "marks" | "originalValue">; /** The text shown for the chosen variant (original, suggested or edited). */ text: string; tone: "red" | "amber" | "plain" | "plain-soft" }
 
 /**
  * Issue gallery, after UIArc's Product gallery (public preview, docs/research/product-gallery/): a rail of thumbnails that glides, a stage, and a
@@ -82,7 +82,6 @@ export function IssueGallery({ items, index, onIndex, details, override, sheet, 
     if (event.target !== event.currentTarget) return;
     if (event.key === "ArrowRight") { event.preventDefault(); step(1); }
     else if (event.key === "ArrowLeft") { event.preventDefault(); step(-1); }
-    else if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openViewer(); }
   }
   const openViewer = useCallback(() => { const box = stageRef.current?.getBoundingClientRect(); if (box) setViewer({ x: box.x, y: box.y, width: box.width, height: box.height }); }, []);
   const lastRequest = useRef(viewerRequest);
@@ -97,7 +96,7 @@ export function IssueGallery({ items, index, onIndex, details, override, sheet, 
   if (!item) return <div className="cg-root" data-workbook>
     <p className="cg-empty" role="status">{uiText("No issue matches the filters.")}</p>
     {sheet && <div className="cg-layout"><div className="cg-media"><header className="cg-media__top"><span className="cg-media__title"><FileSpreadsheet size={16} />{sheet.meta.fileName}</span><button type="button" className="cg-expand" aria-haspopup="dialog" aria-expanded={!!viewer} onClick={openViewer}>{uiText("Open fullscreen")}</button></header><div ref={stageRef} className="cg-stage" data-open={!!viewer || undefined} role="group" tabIndex={0} onKeyDown={stageKeys}><div ref={mountSheetSlot} className="cg-sheet-slot" /></div></div></div>}
-    {sheet && sheetHost && createPortal(<SheetViewer data={sheet} target={{ row: 1, col: 0, value: "" }} mode={sheetMode} onExpand={viewer ? undefined : openViewer} />, sheetHost)}
+    {sheet && sheetHost && createPortal(<SheetViewer data={sheet} target={{ row: 1, col: 0, value: "" }} mode={sheetMode} onSelectCell={onSelectCell} onExpand={viewer ? undefined : openViewer} />, sheetHost)}
     {viewer && <Viewer items={[]} index={0} onIndex={onIndex} sheet={sheet} sheetHost={sheetHost} readable={sheetMode === "readable"} onReadable={value => setSheetMode(value ? "readable" : "overview")} source={stageRef} from={viewer} onClose={closeViewer} />}
   </div>;
   const windowed = railWindow(index, items.length, 6);

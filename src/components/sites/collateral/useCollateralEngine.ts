@@ -4,12 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { EngineClient, EngineError } from "./engine/engine-client";
 import type { GridMeta, GridRow, OpenResult, ReviewView, RowContext, SheetWindow } from "./engine/protocol";
 import type { FixKind } from "./excel-formation/engine/types";
-import type { BulkItem } from "./excel-formation/engine/review";
+import type { BulkItem, Patch } from "./excel-formation/engine/review";
 import { LIMITS } from "./excel-formation/engine/limits";
 import type { RestoreError } from "./excel-formation/engine/progress";
 import type { JsonPlan } from "./json-formation/engine/json-session";
 import type { ReportMeta, ReportOptions } from "./json-formation/engine/report-options";
-import type { RepairProgress, RepairReport } from "./excel-formation/engine/auto-repair";
+import type { GeoAuditEntry, RepairProgress, RepairReport } from "./excel-formation/engine/auto-repair";
+import type { RepairPolicy } from "./excel-formation/engine/geo/address-recovery";
 
 const stateKey = (c: { patched: number; exceptions: number; edited: number; verified: number }) => `${c.patched}:${c.exceptions}:${c.edited}:${c.verified}`;
 export type Phase = "idle" | "scanning" | "ready" | "failed";
@@ -84,15 +85,15 @@ export function useCollateralEngine() {
     setBusy(true);
     try { return await run(); } catch (error) { setFailure({ message: error instanceof Error ? error.message : String(error) }); return undefined; } finally { setBusy(false); }
   }, []);
-  const autoRepair = useCallback(async (): Promise<{ fileName: string; blob: Blob; report: RepairReport } | null> => {
+  const autoRepair = useCallback(async (policy?: RepairPolicy): Promise<{ fileName: string; blob: Blob; report: RepairReport; geoAudit: GeoAuditEntry[]; geoUnavailable?: string } | null> => {
     if (repairing.current || busy) return null;
     repairing.current = true; setBusy(true); setFailure(null);
     const run = opening.current;
     try {
-      const response = await engine().call({ type: "autoRepair" }, { repairProgress: p => { if (run === opening.current) setRepairProgress(p); } });
+      const response = await engine().call({ type: "autoRepair", ...(policy ? { policy } : {}) }, { repairProgress: p => { if (run === opening.current) setRepairProgress(p); } });
       if (run !== opening.current || response.type !== "repaired") return null;
       setView(response.view);
-      return { fileName: response.fileName, blob: new Blob([response.bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), report: response.report };
+      return { fileName: response.fileName, blob: new Blob([response.bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), report: response.report, geoAudit: response.geoAudit, ...(response.geoUnavailable ? { geoUnavailable: response.geoUnavailable } : {}) };
     } catch (error) {
       if (run === opening.current) setFailure({ message: error instanceof Error ? error.message : "Automatic repair failed." });
       return null;
@@ -128,6 +129,12 @@ export function useCollateralEngine() {
   const gridMeta = useCallback(async (sheet?: string): Promise<GridMeta | null> => { const r = await engine().call({ type: "gridMeta", sheet }); return r.type === "gridMeta" ? r.meta : null; }, []);
   const gridRows = useCallback(async (from: number, count: number, sheet?: string): Promise<GridRow[]> => { const r = await engine().call({ type: "grid", from, count, sheet }); return r.type === "grid" ? r.rows : []; }, []);
   const predict = useCallback(async (row: number, col: number, sheet?: string) => { const r = await engine().call({ type: "predict", row, col, sheet }); return r.type === "predict" ? { text: r.text, predictions: r.predictions, modelWords: r.modelWords } : null; }, []);
+  // Read the existing patch snapshot without marking unsaved work as downloaded.
+  const previewChanges = useCallback(async (): Promise<Patch[]> => {
+    const r = await engine().call({ type: "progressSave" });
+    if (r.type !== "progress") throw new Error("Could not read the workbook changes.");
+    return r.file.patches;
+  }, []);
   const groupRows = useCallback(async (issueId: string): Promise<number[]> => { const r = await engine().call({ type: "groupRows", issueId }); return r.type === "groupRows" ? r.rows : []; }, []);
   const exportXlsx = useCallback(async (): Promise<ExportedFile | null> => {
     const r = await act(() => engine().call({ type: "exportXlsx" }));
@@ -177,6 +184,6 @@ export function useCollateralEngine() {
   const docSearch = useCallback(async (query: string, max: number) => { const r = await engine().call({ type: "docSearch", query, max }); return r.type === "docSearch" ? r : null; }, []);
   const docText = useCallback(async (keys: string[]) => { const r = await engine().call({ type: "docText", keys }); return r.type === "docText" ? r : null; }, []);
 
-  return { duplicatePlan, duplicateApply, autoRepair, cancelRepair, repairProgress, openMs, docRoot, docChildren, docSearch, docText, unsaved, saveProgress, loadProgress, jsonPlan, phase, progress, failure, result, view, busy, fileName, fileSize, diacriticPolicy, open, close, retry, rescan, edit, reject, reopen, accept, chooseGroup, undo, redo, bulkPlan, bulkApply, rowContext, sheetWindow, gridMeta, gridRows, predict, groupRows, exportXlsx, clearFailure: () => setFailure(null) };
+  return { duplicatePlan, duplicateApply, autoRepair, cancelRepair, repairProgress, openMs, docRoot, docChildren, docSearch, docText, unsaved, saveProgress, loadProgress, jsonPlan, phase, progress, failure, result, view, busy, fileName, fileSize, diacriticPolicy, open, close, retry, rescan, edit, reject, reopen, accept, chooseGroup, undo, redo, bulkPlan, bulkApply, rowContext, sheetWindow, gridMeta, gridRows, predict, previewChanges, groupRows, exportXlsx, clearFailure: () => setFailure(null) };
 }
 export type CollateralEngine = ReturnType<typeof useCollateralEngine>;

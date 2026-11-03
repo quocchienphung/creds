@@ -1,6 +1,6 @@
 import { classifySegments, foldWord, isAddressClass, typeIndexOf, type ClassifyHints, type Segment } from "./address-classifier.ts";
 import { LM_NUMBER, type GeoKnowledge, type Gaz } from "./geo-knowledge.ts";
-import { caseShape, foldKey, nfc, pieces, toAscii, withCase } from "./vn-text.ts";
+import { caseShape, nfc, pieces, toAscii, withCase } from "./vn-text.ts";
 
 /**
  * Recovers the letters a legacy export replaced by `?` in the address and location parts of a text.
@@ -33,7 +33,7 @@ export interface CellRecovery {
 export interface RecoveryOptions { policy: RepairPolicy; calibration?: GeoCalibration; hints?: ClassifyHints; /** Also repair segments that are only ambiguous (default: address-like segments only). */ includeAmbiguous?: boolean }
 
 // Weights of the decoder. Fixed and documented; the margins that decide trust are calibrated on held-out data, not these.
-const W = { unigram: 1, bigram: 1.2, gazetteer: 2.2, exact: 1.5, context: 2.5, plainAtPlaceholder: 5, unmarkedClean: 0.3, otherMarkClean: 0.1 };
+const W = { unigram: 1, bigram: 1.2, gazetteer: 2.2, exact: 1.5, context: 2.5, plainAtPlaceholder: 5, many: 0.25, unmarkedClean: 0.3, otherMarkClean: 0.1 };
 const GROUP_WEIGHT: Record<Gaz["group"], number> = { province: 3, district: 3, ward: 3, street: 1.5, place: 1.2, admin_osm: 2, address_part: 1, feature: 0.7 };
 const MAX_STATES = 24, MAX_ACCENTS = 4;
 
@@ -104,7 +104,7 @@ function applyGazetteer(words: Word[], knowledge: GeoKnowledge, context: Set<num
     if (!matches.length) continue;
     window.forEach((word, position) => {
       if (word.kind !== "corrupt") return;
-      const support = new Map<string, { weight: number; official: boolean; contextual: boolean }>();
+      const support = new Map<string, { weight: number; best: number; official: boolean; contextual: boolean }>();
       for (const { name, offset } of matches) {
         // The type of an administrative unit (Thành phố, Thị xã) is not evidence for its name: hundreds of units share it.
         const unit = name.unit >= 0 ? knowledge.units[name.unit] : undefined;
@@ -122,12 +122,12 @@ function applyGazetteer(words: Word[], knowledge: GeoKnowledge, context: Set<num
         const chain = name.unit >= 0 ? [name.unit, ...ancestry(knowledge, name.parent)] : ancestry(knowledge, name.parent);
         if (context.size && chain.some(id => context.has(id))) { weight *= W.context; contextual = true; }
         if (offset === 0 && size === name.toks.length) weight *= W.exact;
-        const have = support.get(accented) ?? { weight: 0, official: false, contextual: false };
-        have.weight += weight; have.official ||= name.unit >= 0; have.contextual ||= contextual;
+        const have = support.get(accented) ?? { weight: 0, best: 0, official: false, contextual: false };
+        have.weight += weight; have.best = Math.max(have.best, weight); have.official ||= name.unit >= 0; have.contextual ||= contextual;
         support.set(accented, have);
       }
       for (const state of word.states) {
-        const found = support.get(state.accented), bonus = found ? W.gazetteer * Math.log(1 + found.weight) : 0;
+        const found = support.get(state.accented), bonus = found ? W.gazetteer * (Math.log(1 + found.best) + W.many * Math.log(1 + found.weight)) : 0;
         if (bonus > state.bonus) { state.bonus = bonus; state.official = found!.official; state.contextual = found!.contextual; }
       }
     });
@@ -248,7 +248,7 @@ export function recoverAddressText(text: string, knowledge: GeoKnowledge, option
   let value = text;
   const applied = repairs.flatMap(repair => repair.tokens).filter(token => token.applied).sort((a, b) => b.start - a.start);
   for (const token of applied) {
-    let replacement = token.ascii;
+    const replacement = token.ascii;
     // A dropped placeholder that leaves nothing takes its separator with it.
     if (!replacement) { value = value.slice(0, token.start).replace(/ +$/, "") + value.slice(token.end).replace(/^ +(?=[,;.])/, ""); continue; }
     value = value.slice(0, token.start) + replacement + value.slice(token.end);

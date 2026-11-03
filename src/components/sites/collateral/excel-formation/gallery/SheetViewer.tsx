@@ -59,7 +59,7 @@ function useRows(data: SheetData, top: number, visible: number, selectedRow: num
 }
 
 /** All worksheets remain in the worker. Read only the current sheet's metadata and visible rows. */
-export function SheetViewer({ data, target, mode = "readable", onSelectCell, onExpand }: { data: SheetData; target: SheetTarget; mode?: Mode; onSelectCell?: (row: number, col: number) => void; onExpand?: () => void }) {
+export function SheetViewer({ data, target, mode = "readable", onSelectCell, onExpand }: { data: SheetData; target: SheetTarget; mode?: Mode; onSelectCell?: (row: number, col: number, sheet?: string) => void; onExpand?: () => void }) {
   const { t } = useViewerText();
   const [other, setOther] = useState<GridMeta | null>(null);
   const [busy, setBusy] = useState(false), [failed, setFailed] = useState(false);
@@ -157,7 +157,7 @@ function SheetSurface({ data, target, mode, sheetPicker, busy, failed, onRetrySh
   }
   function select(row: number, col: number) {
     setSelection({ row, col });
-    if (data.issueCells.get(row)?.has(col)) onSelectCell?.(row, col, data.meta.sheet);
+    onSelectCell?.(row, col, data.meta.sheet);
   }
   function go() {
     const match = address.trim().match(/^\$?([A-Z]{1,3})\$?([1-9]\d*)$/i);
@@ -204,7 +204,7 @@ function SheetSurface({ data, target, mode, sheetPicker, busy, failed, onRetrySh
     <div className="sv-body" ref={body}>
       <div className="sv-scroll" ref={scroller} role="grid" tabIndex={0} aria-label={`${meta.fileName} · ${meta.sheet}`} aria-rowcount={meta.lastRow} aria-colcount={meta.columns.length} onKeyDown={keys}
         onScroll={event => { const node = event.currentTarget; setScroll({ x: node.scrollLeft, y: node.scrollTop }); }}
-        onClick={event => { const hit = locate(event); if (hit) { select(hit.row, hit.col); event.currentTarget.focus({ preventScroll: true }); onExpand?.(); } }}>
+        onClick={event => { const hit = locate(event); if (hit) { select(hit.row, hit.col); event.currentTarget.focus({ preventScroll: true }); } }}>
         <div className="sv-grid" style={{ width: GUTTER + totalW, height: HEAD + (meta.lastRow - meta.firstRow + 1) * ROW }}>
           <div className="sv-head" role="row" style={{ width: GUTTER + totalW, height: HEAD }}><span className="sv-corner" style={{ width: GUTTER }} />{columns.map(col => <span key={col.col} role="columnheader" className="sv-letter" data-target={col.col === selection.col || undefined} style={{ left: GUTTER + lefts[col.col], width: widths[col.col] }} title={col.header || col.letter}>{col.letter}<small>{col.header}</small></span>)}</div>
           {shownRows.map(r => { const row = rows.get(r); return <div key={r} role="row" aria-rowindex={r} className="sv-row" data-loaded={!!row || undefined} data-target={r === selection.row || undefined} data-hidden={row?.hidden || undefined} data-header={row?.header || undefined} style={{ top: HEAD + (r - meta.firstRow) * ROW, height: ROW, width: GUTTER + totalW }}>

@@ -136,11 +136,17 @@ export class GeoKnowledge {
   /** Names that hold the window of syllables (patterns without marks, `?` for a damaged letter) as consecutive syllables, best known first. */
   matchWindow(window: string[], limit = 200): { name: Gaz; offset: number }[] {
     const clean = window.map((token, at) => ({ token, at })).filter(item => !item.token.includes("?"));
-    if (!clean.length) return [];
     let best: number[] | undefined;
     for (const item of clean) { const list = this.postings.get(item.token); if (!list) return []; if (!best || list.length < best.length) best = list; }
+    // Every syllable damaged: start from the damaged syllable with the fewest possible spellings.
+    if (!clean.length) for (const token of window) {
+      const spellings = this.syllableCandidates(token, 1); if (spellings.length > 60) continue;
+      const ids = new Set<number>(); for (const spelling of spellings) for (const id of this.postings.get(spelling.fold) ?? []) ids.add(id);
+      if (!best || ids.size < best.length) best = [...ids];
+    }
+    if (!best) return [];
     const out: { name: Gaz; offset: number }[] = [];
-    for (const id of best!) {
+    for (const id of best) {
       const name = this.names[id];
       for (let offset = 0; offset + window.length <= name.fold.length; offset++) {
         if (window.every((token, at) => { const have = name.fold[offset + at]; return have.length === token.length && [...token].every((ch, i) => ch === "?" || ch === have[i]); })) { out.push({ name, offset }); break; }
