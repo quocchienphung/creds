@@ -1,34 +1,36 @@
 # Final workbook preview
 
-Source: https://uiarc.dev/components/floating-button-group
-Destination: `/personalize?section=excel-formation`, step 4 **Preview & export**.
+Destination: `/personalize?section=excel-formation`, step 4 **Preview & export**. Workflow: `web clone engine/.agents/skills/clone-website/SKILL.md`.
 
-Uses the workflow in `web clone engine/.agents/skills/clone-website/SKILL.md`.
+## What was cloned, and what was not
 
-## Existing UI reused
+Source of truth is the open-source (MIT) registry JSON that uiarc.dev serves for free items (`https://uiarc.dev/r/<name>.json`), not a rendering:
 
-- `gallery/IssueGallery.tsx`, `SheetViewer.tsx`, `WorkbookViewer.tsx`: real worker-backed worksheets, virtual rows, worksheet picker, cell selection and explicit fullscreen controls. Cell clicks and Enter on the gallery stage no longer open a dialog.
-- `SpeculativeRun.tsx`: presentation-only before/after word animation. The new `preview` variant says it is awaiting approval; it does not imply engine verification or approval.
-- `uiarc/motion-tokens.ts`: local motion presets; no additional package.
+| ported | files |
+|---|---|
+| Floating button group (`/r/floating-button-group.json`) | `uiarc/floating-button-group/FloatingButtonGroup.tsx`, `.module.css` — measured shared highlight on motion values (spring `morph`), `.94` entry scale, `.965` press, labels reserved by invisible ghosts so a label change never resizes the tray, roving keyboard focus, `variant="floating"` raised tray. Tooltip dependency (`@radix-ui/react-tooltip`) dropped: icon-only items use `title`. Added a `primary` action. |
+| Segmented control (`/r/segmented-control.json`) | `uiarc/segmented-control/SegmentedControl.tsx`, `.module.css` — gliding selection (`layoutId`), fading scroll edges, tab-list keys. |
 
-## Floating actions
+Not cloned: **Selection toolbar, AI side panel, Prompt studio, AI feature launch are Arc Pro** (token-gated, paid; `llms.txt` says never to reconstruct a Pro item without access). Their registry URLs return 404 without a Pro token. The preview's contextual surface (docked inspector, tray, Next-to-review) is our own design built from the free parts above, not a copy of those blocks. Expanding button group and Icon morph are free and were fetched (`/r/expanding-button-group.json`, `/r/icon-morph.json`) but are not used yet.
 
-`uiarc/floating-button-group/` implements the public documentation's shared highlight, hover/focus movement, initial highlight scale .94, pressed highlight scale .965, fade on leaving the tray, roving keyboard focus and reduced motion. Buttons and tray stay still. Existing morph token is a .42s, zero-bounce spring. Labels crossfade with a small rise and blur. Secondary actions use icons on narrow screens.
+## Layout
 
-The source URL's direct web fetch failed and the browser connection was unavailable. The behavior and scale values came from public indexed documentation; timing uses existing local tokens and has not been fitted to a new browser recording. No gated source was downloaded. No pixel-accuracy claim.
+Header → three stat tiles (values crossfade with rise + blur) → `Original file | Edited preview` and `All | Changed | Needs review` segmented controls with counts → **sheet + inspector side by side** → approval card → sticky floating tray.
 
-## Approval and data flow
+- The sheet is the real worker-backed `SheetViewer` (virtual rows, worksheet picker). Green = changed, red = needs review. `Original file` shows the pre-repair values of the same cells.
+- The inspector (right, sticky; stacked under the sheet below 1020px) follows the selected cell: original with removed words struck, an editable edited value with added words marked, Restore original / Discard draft / Save cell, prev/next with a crossfading `n / total`, and an optional replay (`SpeculativeRun`, preview variant) that opens with a spring height.
+- Blocks enter with a stagger (`opacity 0, y 14, blur 4` → rest, `.52s` enter ease); the tray rises after them on the `smooth` spring. Reduced motion: opacity only.
+- Tray: Undo, Redo | Next to review, Review remaining issues, **Approve and export**. Approve is enabled only after the approval box is ticked for the exact revision shown.
 
-Auto-repair keeps its current policy selection and engine behavior, but its UI stops automatic Excel downloads and opens the final preview. The report/address audit remain accessible and are labeled as the original auto-repair run.
+## Data and safety (unchanged)
 
-The UI adapter reads existing `progressSave` snapshots without marking work as downloaded. All patch originals and values, including patch-only cells and every worksheet, feed the preview. The original/edited toggle changes display only. Changed cells are green; unresolved cells retain warning tint.
+All values come from `previewChanges` / `progressSave` snapshots; manual edits use the existing `edit` request; export always calls `exportXlsx`, checks its round trip and downloads only after approval. A cell counts as **needs review** only while its issue is open or its edited value still holds a `?`; an edit that left no `?` is a change (green).
 
-Manual corrections use the existing `edit` request and its formula safeguards. Drafts survive changing selection and filters, block export/step changes until saved or discarded, and warn before unloading. Undo/Redo use the existing history. Approval is tied to the exact review-view revision and resets after edits or history changes. The export action always calls the current `exportXlsx`, checks its round-trip result and downloads only after explicit approval; no cached auto-repair blob is downloaded.
+## Also fixed
 
-No recovery, geographic, ranking, patching, worker protocol or export engine implementation was changed.
+- Auto-repair dialog: the policy radios overlapped their labels and the button (unstyled fieldset). Now two cards with one selection ring that glides between them.
+- `arc-tokens.css`: dark values were declared with `:where(...)`, which has zero specificity and lost to the light `:root` values, so UIArc parts never went dark. Now `[data-theme="dark"], .dark`.
 
 ## Checks
 
-Persistent tests: `preview-model.test.mjs` covers duplicate issues, original/edited values, patch-only cells, multiple sheets, introduced issues, exceptions and undo. Existing gallery, word-comparison and translation tests are run alongside it. TypeScript, ESLint and production build are checked separately.
-
-Rendered desktop/mobile comparison and real-browser interaction tests remain unverified while the browser host is unavailable.
+TypeScript, ESLint, `npm run test:app` (343/345; the 2 failures need `docs/research/uiarc-*` fixtures that are not in the repo and failed before this work), `word-diff.test.mjs`, `preview-model.test.mjs`. Rendered in Edge at 1440×900 light and dark and 390×844, driving the real flow (open file → auto repair → preview → filter → next → edit → save → original toggle → replay → approve). The real export was downloaded from this UI after a manual cell edit and read back with the independent Python reader: the manual edit and the auto repairs are in the file, no address cell holds a `?`, a real question stays. Not verified: other browsers, and timing against a recording of uiarc.dev (values come from the source files, not from measuring their page).
