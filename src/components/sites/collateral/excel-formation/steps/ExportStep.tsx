@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "motion/react";
-import { Check, ChevronDown, ChevronUp, Download, ListChecks, Play, Redo2, RotateCcw, Undo2 } from "lucide-react";
+import { AlertTriangle, Check, ChevronDown, ChevronUp, Download, ListChecks, Play, Redo2, RotateCcw, Undo2 } from "lucide-react";
 import { useWorkspaceI18n } from "@/components/sites/i18n/WorkspaceI18n";
 import { Button } from "../../../uiarc/button/Button";
 import { FloatingButtonGroup } from "../../../uiarc/floating-button-group/FloatingButtonGroup";
@@ -151,6 +151,7 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
   const group: Variants = { hidden: {}, show: { transition: { staggerChildren: reduce ? 0 : .07, delayChildren: .04 } } };
   const block: Variants = reduce ? { hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: .12 } } }
     : { hidden: { opacity: 0, y: 14, filter: "blur(4px)" }, show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: .52, ease } } };
+  const nextProblem = () => { const from = Math.max(0, all.findIndex(cell => cell.key === selected?.key)); const next = [...all.slice(from + 1), ...all.slice(0, from + 1)].find(cell => cell.needsReview && cell.key !== selected?.key); if (next) setPicked(next.key); };
   const status = selected ? t(selected.needsReview ? "Needs review" : selected.before !== selected.after ? "Changed" : "Unchanged") : "";
 
   return <motion.div className="fp" aria-busy={!current || exporting} variants={group} initial="hidden" animate="show">
@@ -220,6 +221,7 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
         { id: "undo", label: t("Undo"), icon: <Undo2 />, iconOnly: true, disabled: locked || dirty || !view.canUndo, onSelect: () => { void engine.undo(); } },
         { id: "redo", label: t("Redo"), icon: <Redo2 />, iconOnly: true, disabled: locked || dirty || !view.canRedo, onSelect: () => { void engine.redo(); } },
         { type: "separator" },
+        { id: "next", label: t("Next to review"), icon: <AlertTriangle />, iconOnly: true, disabled: locked || dirty || !all.some(cell => cell.needsReview && cell.key !== selected?.key), onSelect: nextProblem },
         { id: "review", label: t("Review remaining issues"), icon: <ListChecks />, disabled: locked || dirty, onSelect: onReview },
         { id: "export", label: t(exporting ? "Verifying export…" : "Approve and export"), reserveLabels: [t("Approve and export"), t("Verifying export…")], icon: <Download />, primary: true, disabled: locked || dirty || approvedView !== view || !meta, onSelect: () => { void approveExport(); } },
       ]} />

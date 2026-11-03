@@ -58,7 +58,9 @@
 .fp-field__text mark[data-tone="added"] { background: color-mix(in oklab, var(--fp-green) 20%, transparent); }
 .fp-field textarea { box-sizing: border-box; width: 100%; min-width: 0; min-height: 96px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); font: inherit; font-size: 12.5px; line-height: 1.7; resize: vertical; overflow-wrap: anywhere; transition: border-color .16s, box-shadow .16s; }
 .fp-field textarea:focus { border-color: var(--fp-green); outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--fp-green) 16%, transparent); }
-.fp-edit-actions { display: flex; flex-wrap: wrap; justify-content: end; gap: 6px; }
+.fp-edit-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.fp-edit-actions > * { justify-content: center; }
+.fp-edit-actions > :last-child { grid-column: 1 / -1; }
 .fp-hint { margin: -4px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
 .fp-replay-toggle { display: inline-flex; align-items: center; gap: 6px; justify-self: start; padding: 5px 9px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: 11.5px; cursor: pointer; transition: background-color .16s, color .16s; }
 .fp-replay-toggle:hover { background: var(--tray); color: var(--ink); }

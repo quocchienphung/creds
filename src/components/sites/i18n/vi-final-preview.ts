@@ -54,4 +54,5 @@ Pick a cell on the sheet to compare it here.	Chọn một ô trên trang tính �
 Loading worksheet…	Đang tải trang tính…
 Downloaded	Đã tải xuống
 Needs review	Cần rà soát
+Next to review	Ô cần rà soát tiếp theo
 `);
