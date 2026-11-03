@@ -13,28 +13,28 @@
     "note": "an accented letter becomes ? or its plain letter; plain letters are never touched"
   },
   "results": {
-    "exactAddressAscii": 0.7055,
-    "exactAddressAsciiUnseenStreetName": 0.707,
+    "exactAddressAscii": 0.853,
+    "exactAddressAsciiUnseenStreetName": 0.8538,
     "unseenStreetNameAddresses": 1942,
-    "wordAccuracy": 0.9509,
+    "wordAccuracy": 0.9782,
     "wordsCoveredByAddressSegments": 1,
     "remainingQuestionMarks": 2,
     "byStatus": {
       "high_confidence_auto": {
         "tokens": 3165,
-        "precision": 0.9649289099526066
+        "precision": 0.9804107424960505
       },
       "verified_official": {
         "tokens": 13405,
-        "precision": 0.9628496829541215
+        "precision": 0.9925400969787392
       },
       "contextual_auto": {
         "tokens": 165,
-        "precision": 0.7151515151515152
+        "precision": 0.7636363636363637
       },
       "forced_guess": {
         "tokens": 356,
-        "precision": 0.49157303370786515
+        "precision": 0.5252808988764045
       },
       "fallback_lossy": {
         "tokens": 1,
@@ -51,13 +51,13 @@
     }
   },
   "calibration": {
-    "highMargin": 24,
-    "precisionAtHigh": 0.9957378795950985,
-    "tokensAtHigh": 5631,
+    "highMargin": 6,
+    "precisionAtHigh": 0.9923987004229755,
+    "tokensAtHigh": 16313,
     "contextMargin": 0,
-    "precisionAtContext": 0.9521726278451079,
+    "precisionAtContext": 0.9797812592373633,
     "tokensAtContext": 16915
   },
-  "seconds": 85.5,
-  "msPerAddress": 42.7
+  "seconds": 110.5,
+  "msPerAddress": 55.2
 }

@@ -1,11 +1,12 @@
 {
-  "workbook": "mau-khong-phai-mau9.xlsx (synthetic, 3 sheets, 1 hidden-style sheet \"An\")",
+  "workbook": "mau-khong-phai-mau9.xlsx (synthetic, 3 sheets with unrelated headers)",
   "policy": "FORCE_NO_QUESTION_MARK",
   "datasetVersion": "2026-11-03",
   "knowledge": "held-out wards removed: no street or ward of this sample was in the knowledge the engine used",
   "independentReader": "python -I independent-xlsx-dump.py (zipfile + ElementTree, no code shared with the app)",
   "addressCells": 60,
   "exactlyRight": 50,
+  "exactIgnoringCase": 53,
   "withQuestionMarkLeft": 0,
   "unchangedByDesign": [
     {
@@ -33,16 +34,16 @@
     "geo": {
       "policy": "FORCE_NO_QUESTION_MARK",
       "datasetVersion": "2026-11-03",
-      "highMargin": 24,
+      "highMargin": 6,
       "contextMargin": 0,
       "cellsRecovered": 60,
       "byStatus": {
-        "contextual_auto": 83,
+        "high_confidence_auto": 118,
         "verified_official": 565,
-        "high_confidence_auto": 35,
-        "forced_guess": 7
+        "contextual_auto": 5,
+        "forced_guess": 2
       },
-      "forcedGuesses": 7,
+      "forcedGuesses": 2,
       "lossyFallbacks": 0,
       "unresolvedInAddresses": 0,
       "finalStatus": "ADDRESS_SPANS_COMPLETED_WITH_FORCED_GUESSES"
@@ -75,6 +76,7 @@
       "after": "Duong Ta Phin Ho, Xa Nam Ty, Huyen Hoang Su Phi, Tinh Ha Giang",
       "expected": "duong Ta Phin Ho, Xa Nam Ty, Huyen Hoang Su Phi, Tinh Ha Giang",
       "exact": false,
+      "exactIgnoringCase": true,
       "questionMarkLeft": false
     },
     {
@@ -83,6 +85,7 @@
       "after": "Pham Duy Trinh, Thi tran Dat Da, Huyen Dat Da, Tinh Ba Ria - Vung Tau",
       "expected": "Pham Duy Trinh, Thi tran Dat Do, Huyen Dat Do, Tinh Ba Ria - Vung Tau",
       "exact": false,
+      "exactIgnoringCase": false,
       "questionMarkLeft": false
     },
     {
@@ -91,6 +94,7 @@
       "after": "Duong Dx 113, Phuong Tan An, Thanh pho Thu Dau Mot, Tinh Binh Duong",
       "expected": "Duong DX 113, Phuong Tan An, Thanh pho Thu Dau Mot, Tinh Binh Duong",
       "exact": false,
+      "exactIgnoringCase": true,
       "questionMarkLeft": false
     },
     {
@@ -99,6 +103,7 @@
       "after": "Pho Truong Van Loc, Phuong Hung Vuong, Quan Hong Bang, Thanh pho Hai Phong",
       "expected": "Pho Truong Van Luc, Phuong Hung Vuong, Quan Hong Bang, Thanh pho Hai Phong",
       "exact": false,
+      "exactIgnoringCase": false,
       "questionMarkLeft": false
     },
     {
@@ -107,6 +112,7 @@
       "after": "Duong 05 Thon Dinh Sen - Nam Hoc, Xa Hoang Phong, Huyen Hoang Hoa, Tinh Thanh Hoa",
       "expected": "Duong 05 Thon Dinh Sen - Nam Hac, Xa Hoang Phong, Huyen Hoang Hoa, Tinh Thanh Hoa",
       "exact": false,
+      "exactIgnoringCase": false,
       "questionMarkLeft": false
     },
     {
@@ -115,6 +121,7 @@
       "after": "Dang Minh, Phuong Dong Hoa, Thi xa Di An, Tinh Binh Duong",
       "expected": "Dong Minh, Phuong Dong Hoa, Thi xa Di An, Tinh Binh Duong",
       "exact": false,
+      "exactIgnoringCase": false,
       "questionMarkLeft": false
     },
     {
@@ -123,6 +130,7 @@
       "after": "Duong Nam Son, Phuong Khac Niem, Thanh pho Bac Ninh, Tinh Bac Ninh",
       "expected": "Duong Nem Son, Phuong Khac Niem, Thanh pho Bac Ninh, Tinh Bac Ninh",
       "exact": false,
+      "exactIgnoringCase": false,
       "questionMarkLeft": false
     },
     {
@@ -131,6 +139,7 @@
       "after": "Di Cao Ba, Xa Khanh Hoa, Huyen Yen Khanh, Tinh Ninh Binh",
       "expected": "Di Cao Bo, Xa Khanh Hoa, Huyen Yen Khanh, Tinh Ninh Binh",
       "exact": false,
+      "exactIgnoringCase": false,
       "questionMarkLeft": false
     },
     {
@@ -139,6 +148,7 @@
       "after": "Duong so 31 Trinh Phong Dong, Xa Truong Hoa, Huyen Hoa Thanh, Tinh Tay Ninh",
       "expected": "Duong so 31 Trinh Phong Dang, Xa Truong Hoa, Huyen Hoa Thanh, Tinh Tay Ninh",
       "exact": false,
+      "exactIgnoringCase": false,
       "questionMarkLeft": false
     },
     {
@@ -147,6 +157,7 @@
       "after": "Hem 606/154 Duong 3/2, Phuong 14, Quan 10, Thanh pho Ho Chi Minh",
       "expected": "Hem 606/154 duong 3/2, Phuong 14, Quan 10, Thanh pho Ho Chi Minh",
       "exact": false,
+      "exactIgnoringCase": true,
       "questionMarkLeft": false
     }
   ]

@@ -1,6 +1,6 @@
 // Builds a real before/after workbook pair and the evidence for it. Run:  node --experimental-strip-types scripts/geo/make-sample.mjs
 //
-// The workbook is synthetic and has nothing to do with MAU9: three sheets (one hidden), unrelated headers, shared and inline strings, a formula, a number
+// The workbook is synthetic and has nothing to do with MAU9: three sheets, unrelated headers, shared and inline strings, a formula, a number
 // anchor with a ? inside, a real question and a code. The addresses are streets of WARDS HELD OUT of the knowledge the engine is given (same split as
 // evaluate-geo.mjs), written as "street, ward, district, province" and damaged the way the legacy export damages text, so the result is a fair sample
 // and not the engine reading back what it was taught. The exported file is read back by the independent Python reader.
@@ -51,14 +51,14 @@ function dump(bytes) {
 }
 if (!python) throw new Error("python is needed for the independent read-back");
 const b = dump(before), a = dump(out.bytes);
-const cells = [...truth].map(([ref, want]) => ({ ref, before: b[ref], after: a[ref], expected: want, exact: a[ref] === want, questionMarkLeft: a[ref].includes("?") }));
+const cells = [...truth].map(([ref, want]) => ({ ref, before: b[ref], after: a[ref], expected: want, exact: a[ref] === want, exactIgnoringCase: a[ref].toLowerCase() === want.toLowerCase(), questionMarkLeft: a[ref].includes("?") }));
 const untouched = ["Tai san!B27", "Tai san!B28", "Tai san!B29"].map(ref => ({ ref, before: b[ref], after: a[ref], unchanged: b[ref] === a[ref] }));
 const everyOther = Object.keys(b).filter(ref => !truth.has(ref) && b[ref] !== a[ref]);
 const evidence = {
-  workbook: "mau-khong-phai-mau9.xlsx (synthetic, 3 sheets, 1 hidden-style sheet \"An\")", policy: "FORCE_NO_QUESTION_MARK", datasetVersion: geo.datasetVersion,
+  workbook: "mau-khong-phai-mau9.xlsx (synthetic, 3 sheets with unrelated headers)", policy: "FORCE_NO_QUESTION_MARK", datasetVersion: geo.datasetVersion,
   knowledge: "held-out wards removed: no street or ward of this sample was in the knowledge the engine used",
   independentReader: "python -I independent-xlsx-dump.py (zipfile + ElementTree, no code shared with the app)",
-  addressCells: cells.length, exactlyRight: cells.filter(cell => cell.exact).length, withQuestionMarkLeft: cells.filter(cell => cell.questionMarkLeft).length,
+  addressCells: cells.length, exactlyRight: cells.filter(cell => cell.exact).length, exactIgnoringCase: cells.filter(cell => cell.exactIgnoringCase).length, withQuestionMarkLeft: cells.filter(cell => cell.questionMarkLeft).length,
   unchangedByDesign: untouched, changedOutsideAddresses: everyOther,
   report: { status: out.report.status, geo: out.report.geo, sheets: out.report.sheets.map(sheet => ({ sheetId: sheet.sheetId, status: sheet.status, verifiedChanges: sheet.verifiedChanges })), outputCellsChanged: out.report.metrics.outputCellsChanged, outputUnexpectedChanges: out.report.metrics.outputUnexpectedChanges, verificationAllOk: out.report.verification.every(item => item.ok && item.changed) },
   wrong: cells.filter(cell => !cell.exact),
