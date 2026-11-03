@@ -17,8 +17,8 @@ export interface ClassifyHints {
   columnShare?: number;
 }
 
-/** Groups whose types name a place in the administrative or street hierarchy; the other groups (shops, schools, ...) are weaker evidence. */
-const STRONG: readonly NameGroup[] = ["province", "district", "ward", "street"];
+/** Groups whose types name a place (administrative units, streets, areas, villages); the other groups (shops, schools, ...) are weaker evidence. */
+const STRONG: readonly NameGroup[] = ["province", "district", "ward", "street", "place"];
 interface TypeInfo { phrase: string; groups: Set<NameGroup>; strong: boolean }
 /** Types and their abbreviations, derived from the knowledge once. */
 export class TypeIndex {
