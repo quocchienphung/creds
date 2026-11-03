@@ -155,27 +155,28 @@ export class GeoKnowledge {
 }
 
 /**
- * The words (or pairs of words) that start names of a group, derived from how the names begin: a leading word or pair counts as a type when it starts at
- * least `share` of the group's names. (Phường, Xã, Thị trấn for wards; Hẻm, Đường, Ngõ for streets; whatever else the data shows.)
+ * The words (or pairs of words) that introduce names of a group, derived from how the names are written: a leading word is a type when it starts a
+ * good share of the group's names AND it starts them far more often than it appears elsewhere in a name (Hẻm, Phường, Chung cư start names;
+ * a surname such as Nguyễn also appears inside names, after the type, so it is not one). A pair is a type of its own when it accounts for most of what its
+ * first word starts (Thành phố, Thị trấn, Quốc lộ).
  */
 export function leadingTypes(names: Gaz[], share = 0.004): Map<string, number> {
-  const one = new Map<string, number>(), two = new Map<string, number>();
+  const one = new Map<string, number>(), two = new Map<string, number>(), anywhere = new Map<string, number>();
   for (const name of names) {
-    const first = name.toks[0]?.toLowerCase(); if (!first || isNumeric(first)) continue;
-    one.set(first, (one.get(first) ?? 0) + 1);
-    if (name.toks.length > 2) { const pair = first + " " + name.toks[1].toLowerCase(); if (!isNumeric(name.toks[1])) two.set(pair, (two.get(pair) ?? 0) + 1); }
+    name.toks.forEach((token, at) => { if (!isNumeric(token)) { const word = token.toLowerCase(); anywhere.set(word, (anywhere.get(word) ?? 0) + 1); if (at === 0) one.set(word, (one.get(word) ?? 0) + 1); } });
+    if (name.toks.length > 2 && !isNumeric(name.toks[0]) && !isNumeric(name.toks[1])) { const pair = name.toks[0].toLowerCase() + " " + name.toks[1].toLowerCase(); two.set(pair, (two.get(pair) ?? 0) + 1); }
   }
   const floor = Math.max(3, Math.ceil(names.length * share)), out = new Map<string, number>();
-  for (const [word, count] of one) if (count >= floor) out.set(word, count);
-  // A pair is a type of its own only when it accounts for most of what its first word starts (Thành phố, Thị trấn, Quốc lộ), not a name that happens to repeat.
+  for (const [word, count] of one) {
+    const first = count / (anywhere.get(word) ?? count);
+    if (count >= floor && (first >= 0.5 || (count >= names.length * 0.02 && first >= 0.3))) out.set(word, count);
+  }
   for (const [pair, count] of two) if (count >= floor && count >= 0.6 * (one.get(pair.split(" ")[0]) ?? Infinity)) out.set(pair, count);
   return out;
 }
 
-/** Abbreviations a type can be written as: its initials, and its first letter when it is one word. Generated, not listed. */
+/** Abbreviations a type can be written as: the initials of a multi-word type (Thị trấn: TT), the first letter of a one-word type (Phường: P). Generated, not listed. */
 export function abbreviationsOf(type: string): string[] {
   const parts = foldKey(type).split(" ");
-  const out = new Set<string>([parts.map(part => part[0]).join("")]);
-  if (parts.length === 1) out.add(parts[0].slice(0, 2));
-  return [...out];
+  return [parts.map(part => part[0]).join("")];
 }
