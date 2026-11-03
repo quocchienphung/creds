@@ -83,7 +83,7 @@ export function classifySegment(segment: string, knowledge: GeoKnowledge, hints:
     }
     if (!picked && !words[at].includes("?")) {
       const abbreviated = index.abbreviations.get(folds[at]);
-      const dotted = /^.[p{L}d?]/u.test(segment.slice(wordPieces[at].end, wordPieces[at].end + 2)) || NUMBER.test(folds[at + 1]);
+      const dotted = /^\.[\p{L}\d?]/u.test(segment.slice(wordPieces[at].end, wordPieces[at].end + 2)) || NUMBER.test(folds[at + 1]);
       if (abbreviated && (folds[at].length >= 2 || dotted)) { picked = abbreviated.find(option => introduces(option, folds[at + 1])); size = 1; }
     }
     if (picked) { typeHits++; typeScore += picked.strong ? 3 : 1.5; for (const group of picked.groups) typeGroups.add(group); at += size - 1; }

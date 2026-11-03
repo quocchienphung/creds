@@ -33,7 +33,7 @@ export interface CellRecovery {
 export interface RecoveryOptions { policy: RepairPolicy; calibration?: GeoCalibration; hints?: ClassifyHints; /** Also repair segments that are only ambiguous (default: address-like segments only). */ includeAmbiguous?: boolean }
 
 // Weights of the decoder. Fixed and documented; the margins that decide trust are calibrated on held-out data, not these.
-const W = { unigram: 1, bigram: 1.2, gazetteer: 2.2, exact: 1.5, context: 2.5 };
+const W = { unigram: 1, bigram: 1.2, gazetteer: 2.2, exact: 1.5, context: 2.5, plainAtPlaceholder: 5 };
 const GROUP_WEIGHT: Record<Gaz["group"], number> = { province: 3, district: 3, ward: 3, street: 1.5, place: 1.2, admin_osm: 2, address_part: 1, feature: 0.7 };
 const MAX_STATES = 24, MAX_ACCENTS = 4;
 
@@ -81,7 +81,16 @@ function wordsOf(segment: string, knowledge: GeoKnowledge): Word[] {
     let found = knowledge.syllableCandidates(fold, 1), variable = false;
     if (!found.length) { found = knowledge.syllableCandidates(fold, 3).filter(candidate => candidate.fold.length !== fold.length); variable = found.length > 0; }
     const states: State[] = [];
-    for (const candidate of found) { for (const variant of candidate.variants.slice(0, MAX_ACCENTS)) states.push({ accented: variant.text, ascii: candidate.fold, local: Math.log(knowledge.p(variant.text)), bonus: 0, variable, unknown: false }); if (states.length >= MAX_STATES) break; }
+    // The export loses the letters outside its character set, which are the letters that carry a mark: a placeholder over a plain letter is unlikely.
+    const placeholders = [...fold].map((ch, at) => ch === "?" ? at : -1).filter(at => at >= 0);
+    for (const candidate of found) {
+      for (const variant of candidate.variants.slice(0, MAX_ACCENTS)) {
+        const plain = variable ? 0 : placeholders.filter(at => toAscii(variant.text[at] ?? "") === variant.text[at]).length;
+        states.push({ accented: variant.text, ascii: candidate.fold, local: Math.log(knowledge.p(variant.text)) - W.plainAtPlaceholder * plain, bonus: 0, variable, unknown: false });
+      }
+      if (states.length >= MAX_STATES * 2) break;
+    }
+    states.sort((a, b) => b.local - a.local); states.length = Math.min(states.length, MAX_STATES);
     return { piece, fold, kind: "corrupt" as const, states };
   });
 }
@@ -149,9 +158,24 @@ function decode(words: Word[], knowledge: GeoKnowledge): Solution {
   return { path, margins, runnerUps, score: Math.max(...totals) };
 }
 
+/**
+ * The case shape of a damaged word. Its first letter may be the one that was lost, so the shape is read from the text of the whole cell: a word with
+ * letters of its own keeps their shape; one whose first letter is lost follows the style of the words whose first letter is known (capitals throughout,
+ * or each word capitalised).
+ */
+function caseOfDamaged(word: string, cell: string): "upper" | "title" | "lower" {
+  const letters = (text: string) => text.replace(/\?/g, "");
+  const known = (cell.match(/[\p{L}\p{M}\d?]+/gu) ?? []).filter(text => !text.startsWith("?") && /\p{L}/u.test(letters(text))).map(text => caseShape(letters(text)));
+  const upper = known.filter(item => item === "upper").length, title = known.filter(item => item === "title").length, lower = known.length - upper - title;
+  const crowdUpper = known.length > 1 && upper >= known.length * 0.6, crowdTitle = title > 0 && title >= lower;
+  const own = /\p{L}/u.test(letters(word)) ? caseShape(letters(word)) : undefined;
+  if (own === "upper" && crowdUpper) return "upper";
+  if (!word.startsWith("?")) return own ?? "lower";
+  return crowdUpper ? "upper" : crowdTitle ? "title" : "lower";
+}
 const isPlaceholderOnly = (text: string) => /^\?+$/.test(text);
 
-function repairSegment(segment: Segment, knowledge: GeoKnowledge, options: Required<Pick<RecoveryOptions, "policy">> & { calibration: GeoCalibration }, cellContext: Set<number>): SegmentRepair {
+function repairSegment(segment: Segment, knowledge: GeoKnowledge, options: Required<Pick<RecoveryOptions, "policy">> & { calibration: GeoCalibration }, cellContext: Set<number>, cellText: string): SegmentRepair {
   const words = wordsOf(segment.text, knowledge);
   const result: SegmentRepair = { segment, tokens: [] };
   if (!words.some(word => word.kind === "corrupt" || word.kind === "anchor_conflict")) return result;
@@ -180,9 +204,7 @@ function repairSegment(segment: Segment, knowledge: GeoKnowledge, options: Requi
     if (state.contextual) evidence.push("under the administrative units found in the cell");
     evidence.push(`${state.unknown ? "unseen" : "known"} syllable (${state.local.toFixed(1)})`);
     if (state.variable) evidence.push("one ? stands for several letters");
-    // A word with no letter of its own (a lone ?) takes the case of the words beside it.
-    const own = caseShape(word.piece.text), shape = /\p{L}/u.test(word.piece.text) ? own : caseShape((words[i - 1] ?? words[i + 1])?.piece.text ?? "");
-    const ascii = withCase(state.ascii, shape);
+    const ascii = withCase(state.ascii, caseOfDamaged(word.piece.text, cellText));
     let status: GeoStatus;
     if (state.official && margin >= calibration.contextMargin) status = "verified_official";
     else if (margin >= calibration.highMargin) status = "high_confidence_auto";
@@ -205,7 +227,7 @@ export function recoverAddressText(text: string, knowledge: GeoKnowledge, option
   const repairs: SegmentRepair[] = [];
   for (const segment of segments) {
     const eligible = isAddressClass(segment.class) || options.includeAmbiguous && segment.class === "AMBIGUOUS";
-    repairs.push(eligible ? repairSegment(segment, knowledge, { policy, calibration }, cellContext) : { segment, tokens: [] });
+    repairs.push(eligible ? repairSegment(segment, knowledge, { policy, calibration }, cellContext, text) : { segment, tokens: [] });
   }
   let value = text;
   const applied = repairs.flatMap(repair => repair.tokens).filter(token => token.applied).sort((a, b) => b.start - a.start);
