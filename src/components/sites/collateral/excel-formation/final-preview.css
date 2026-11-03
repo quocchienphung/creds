@@ -35,7 +35,7 @@
 .fp-skeleton i:nth-child(2) { width: 82%; } .fp-skeleton i:nth-child(3) { width: 64%; } .fp-skeleton i:nth-child(4) { width: 74%; }
 @keyframes fp-shimmer { to { background-position: -120% 0; } }
 
-.fp-inspector { position: sticky; top: 14px; display: grid; align-content: start; gap: 14px; min-width: 0; max-height: calc(100vh - 28px); overflow: auto; padding: 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: 0 1px 2px #0000000a, 0 12px 32px -18px #00000024; }
+.fp-inspector { position: sticky; top: 14px; display: grid; align-content: start; gap: 14px; min-width: 0; max-height: calc(100vh - 112px); overflow: auto; padding: 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: 0 1px 2px #0000000a, 0 12px 32px -18px #00000024; }
 .fp-inspector__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .fp-inspector__label { color: var(--muted); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
 .fp-nav { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border: 1px solid var(--line); border-radius: 10px; background: var(--tray); }

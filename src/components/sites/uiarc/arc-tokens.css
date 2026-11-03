@@ -17,7 +17,7 @@
   --arc-duration-instant: 0.12s; --arc-duration-fast: 0.16s; --arc-duration-standard: 0.24s; --arc-duration-considered: 0.48s;
   --arc-ease-standard: cubic-bezier(0.22, 1, 0.36, 1); --arc-ease-enter: cubic-bezier(0.16, 1, 0.3, 1); --arc-ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
 }
-:where([data-theme="dark"], .dark) {
+[data-theme="dark"], .dark {
   --arc-background: oklch(19% 0 0); --arc-surface: oklch(21.5% 0 0); --arc-surface-muted: oklch(25.5% 0 0); --arc-foreground: oklch(96% 0 0);
   --arc-text-secondary: oklch(72% 0 0); --arc-text-muted: oklch(58% 0 0);
   --arc-border: oklch(29% 0 0); --arc-border-subtle: oklch(25% 0 0); --arc-border-strong: oklch(38% 0 0);

@@ -142,6 +142,8 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
   const predictions = useMemo(() => selected ? wordsOfChange(selected.before, selected.after) : [], [selected]);
   const locked = engine.busy || exporting || !ready;
 
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => { const query = window.matchMedia("(max-width: 640px)"), sync = () => setNarrow(query.matches); sync(); query.addEventListener("change", sync); return () => query.removeEventListener("change", sync); }, []);
   const [replay, setReplay] = useState(false);
   useEffect(() => { setReplay(false); }, [selected?.key]);
   const changedCount = all.filter(cell => cell.before !== cell.after).length;
@@ -222,8 +224,8 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
         { id: "redo", label: t("Redo"), icon: <Redo2 />, iconOnly: true, disabled: locked || dirty || !view.canRedo, onSelect: () => { void engine.redo(); } },
         { type: "separator" },
         { id: "next", label: t("Next to review"), icon: <AlertTriangle />, iconOnly: true, disabled: locked || dirty || !all.some(cell => cell.needsReview && cell.key !== selected?.key), onSelect: nextProblem },
-        { id: "review", label: t("Review remaining issues"), icon: <ListChecks />, disabled: locked || dirty, onSelect: onReview },
-        { id: "export", label: t(exporting ? "Verifying export…" : "Approve and export"), reserveLabels: [t("Approve and export"), t("Verifying export…")], icon: <Download />, primary: true, disabled: locked || dirty || approvedView !== view || !meta, onSelect: () => { void approveExport(); } },
+        { id: "review", label: t("Review remaining issues"), icon: <ListChecks />, iconOnly: narrow, disabled: locked || dirty, onSelect: onReview },
+        { id: "export", label: t(exporting ? "Verifying export…" : "Approve and export"), reserveLabels: [t("Approve and export"), t("Verifying export…")], icon: <Download />, iconOnly: false, primary: true, disabled: locked || dirty || approvedView !== view || !meta, onSelect: () => { void approveExport(); } },
       ]} />
     </motion.div>
   </motion.div>;
