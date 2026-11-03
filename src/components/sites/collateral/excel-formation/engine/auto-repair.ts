@@ -6,9 +6,10 @@ import { generateCandidates } from "./candidate-generator.ts";
 import { rankCandidates } from "./context-ranker.ts";
 import { decideRepair, MODEL_VERSION, POLICY_VERSION, type RepairDecision, type RepairStatus } from "./repair-decision.ts";
 import { corruptionSpans } from "./corruption-span.ts";
-import { patchWorkbookBytes, verifyRoundTrip, verifyPackageIntegrity, comparePackageParts, type PackageVerdict } from "./xlsx-patcher.ts";
+import { patchWorkbookBytes, verifyRoundTrip, verifyPackageIntegrity, verifyPatches, comparePackageParts, type PackageVerdict } from "./xlsx-patcher.ts";
 import { calibrate, planModelRepair, CALIBRATION_VERSION, type Calibration } from "./model-repair.ts";
-import { addMetrics, classifyOutcome, emptyMetrics, metricViolations, type ReasonCode, type RepairMetrics, type RepairOutcome } from "./repair-metrics.ts";
+import { addMetrics, classifyOutcome, emptyMetrics, metricViolations, zeroPatchOf, type ReasonCode, type RepairMetrics, type RepairOutcome, type ZeroPatch } from "./repair-metrics.ts";
+import { columnLetters } from "./text.ts";
 import { wordsOf } from "./predict.ts";
 import { IDENTIFIER_FIELD, planPacked, repairPackedLine } from "./packed-csv.ts";
 import { patchesOf } from "./session.ts";
@@ -25,7 +26,15 @@ export interface RepairReport {
   byRole: Record<string, { cells: number; applied: number; unresolved: number }>;
   byReason: Record<string, number>;
   /** Per worksheet, in file order. `verifiedChanges` are cells the re-read output measured to differ from the input. */
-  sheets: { sheetId: string; cells: number; flagged: number; metrics: RepairMetrics; verifiedChanges: number }[];
+  sheets: { sheetId: string; /** `failed`: this sheet alone could not be read; it was left untouched. */ status: "scanned" | "failed"; cells: number; flagged: number; metrics: RepairMetrics; verifiedChanges: number }[];
+  /** The workbook as the scan saw it. */
+  workbook: { sheetsDiscovered: number; sheetsScanned: number; sheetsFailed: number; hiddenSheets: number; cellsVisited: number };
+  /** Null when cells changed; otherwise whether and where the count first became zero. */
+  zeroPatch: ZeroPatch | null;
+  /** Candidates a protection rule refused (identifier, name, formula, rich text, an existing review). */
+  rejected: number;
+  /** One re-read check per written patch: where it is, how the cell was stored, and whether the exported cell holds exactly the approved value. No values. */
+  verification: { sheetId: string; ref: string; part: string; rid: string; storage: string; ok: boolean; changed: boolean }[];
   locations: { sheetId: string; row: number; col: number; role: string; status: RepairStatus; reasonCode: string; reason: ReasonCode | null; evidence: RepairDecision["evidence"] }[];
   timings: Record<string, number>; validation: { roundTrip: boolean; packageIntegrity: boolean; desktopExcel: "not_tested" }; jsonReadiness: "separate_gates_required";
 }
@@ -63,7 +72,7 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   timings.calibration = performance.now() - calibrationStart;
   await progress("candidate_generation");
   const decisions: { sheet: string; decision: RepairDecision }[] = [];
-  const sheetCounts = new Map<string, { sheetId: string; cells: number; flagged: number; metrics: RepairMetrics; verifiedChanges: number }>();
+  const sheetCounts = new Map<string, { sheetId: string; status: "scanned" | "failed"; cells: number; flagged: number; metrics: RepairMetrics; verifiedChanges: number }>();
   let cells = 0, questionMarks = 0, unchanged = 0;
   const byRole: RepairReport["byRole"] = {}, byReason: Record<string, number> = {}, byReasonCode: Partial<Record<ReasonCode, number>> = {};
   const total = emptyMetrics();
@@ -83,11 +92,12 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   };
   for (const sheet of session.workbook.sheets) {
     const blankCells = sheet.emptyCells ?? 0;
-    const info = index.sheets.get(sheet.name)!, metrics = emptyMetrics(), count = { sheetId: info.sheetId, cells: blankCells, flagged: 0, metrics, verifiedChanges: 0 };
-    metrics.sheetsScanned = 1; metrics.rowsScanned = sheet.rows.length + sheet.emptyRows;
+    const info = index.sheets.get(sheet.name)!, metrics = emptyMetrics(), count = { sheetId: info.sheetId, status: sheet.error ? "failed" as const : "scanned" as const, cells: blankCells, flagged: 0, metrics, verifiedChanges: 0 };
+    metrics.sheetsScanned = sheet.error ? 0 : 1; metrics.rowsScanned = sheet.rows.length + sheet.emptyRows;
     cells += blankCells; unchanged += blankCells;
     if (blankCells) { byRole.unmapped ??= { cells: 0, applied: 0, unresolved: 0 }; byRole.unmapped.cells += blankCells; }
     sheetCounts.set(sheet.name, count);
+    if (sheet.error) continue;
     const byCol = new Map(info.columns.map(c => [c.col, c.spec]));
     const packed = session.wprofile.sheets.find(p => p.name === sheet.name)?.role === "csv-packed" ? planPacked(sheet, session.profile) : null;
     for (const row of sheet.rows) {
@@ -150,6 +160,8 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   const verifyStart = performance.now(), roundTrip = verifyRoundTrip(session.workbook, patched.bytes, patches);
   const packageIntegrity = verifyPackageIntegrity(session.bytes, patched.bytes, session.workbook, patches);
   if (!roundTrip.ok || !packageIntegrity) throw new RepairValidationError("Repaired workbook failed validation; nothing was committed or downloaded.");
+  const checks = verifyPatches(session.workbook, patched.bytes, patches);
+  if (checks.some(check => !check.ok || !check.changed)) throw new RepairValidationError("A repaired cell does not hold its approved value in the exported file; nothing was committed or downloaded.");
   const parts = comparePackageParts(session.bytes, patched.bytes);
   timings.verify = performance.now() - verifyStart;
   // Metrics of the whole job. Earlier human edits travel with the output, so they count as proposals/targets/commits too.
@@ -176,6 +188,9 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
     cellsAccounted: cells, rowsAccounted: totalRows, applied: byStatus.source_verified, modelAccepted: byStatus.model_auto_accepted, unresolved, protected: byStatus.blocked, unchanged, questionMarksAccounted: questionMarks,
     hiddenRowsIncluded: session.workbook.sheets.reduce((n, s) => n + s.hiddenRows, 0), hiddenRowsExcluded: 0, byStatus, byRole, byReason, sheets: [...sheetCounts.values()],
     locations: decisions.map(({ decision: d }) => ({ sheetId: d.sheetId, row: d.row, col: d.col, role: d.role, status: d.status, reasonCode: d.reasonCode, reason: d.reason, evidence: d.evidence })),
+    workbook: { sheetsDiscovered: session.workbook.sheets.length, sheetsScanned: session.workbook.sheets.filter(sheet => !sheet.error).length, sheetsFailed: session.workbook.sheets.filter(sheet => sheet.error).length, hiddenSheets: session.workbook.sheets.filter(sheet => sheet.state && sheet.state !== "visible").length, cellsVisited: session.workbook.sheets.reduce((n, sheet) => n + (sheet.cellsVisited ?? 0), 0) },
+    zeroPatch: zeroPatchOf(total, byReasonCode), rejected: byStatus.blocked,
+    verification: checks.map(check => { const sheet = session.workbook.sheets.find(item => item.name === check.sheet)!, cell = sheet.rows.find(row => row.r === check.row)?.cells[check.col]; return { sheetId: sheetCounts.get(check.sheet)!.sheetId, ref: columnLetters(check.col) + check.row, part: sheet.part, rid: sheet.rid ?? "", storage: cell?.t ?? "none", ok: check.ok, changed: check.changed }; }),
     timings, validation: { roundTrip: true, packageIntegrity: true, desktopExcel: "not_tested" }, jsonReadiness: "separate_gates_required",
   };
   // Nothing changed: hand back the untouched input under a name that says so, never a re-compressed copy dressed as a repair.

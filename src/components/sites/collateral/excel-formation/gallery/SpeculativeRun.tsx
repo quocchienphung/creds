@@ -28,37 +28,41 @@ function fly(token: HTMLElement, dx: number, dy: number, delay: number) {
  * real draft and target of the cell's words; it does not measure whether a word is right, only where the two agree. The table below still
  * decides: nothing here changes the value.
  */
-export function SpeculativeRun({ predictions, picks, text }: { predictions: WordPrediction[]; picks: Record<number, string>; text: string }) {
+/** `confirmed`: the card replays a correction a person has just approved (what the file had, what was written) instead of guessing one; it has no draft-length or compare controls. */
+export type RunVariant = "suggest" | "confirmed";
+export function SpeculativeRun({ predictions, picks, text, variant = "suggest", title, onClose: onDismiss }: { predictions: WordPrediction[]; picks: Record<number, string>; text: string; variant?: RunVariant; title?: string; onClose?: () => void }) {
+  const confirmed = variant === "confirmed";
   const { t } = useWorkspaceI18n();
   const sliderId = useId();
   const [open, setOpen] = useState(true);
-  const [draftLength, setDraftLength] = useState(DEFAULT_DRAFT);
+  const [draftLength, setDraftLength] = useState(confirmed ? MAX_DRAFT : DEFAULT_DRAFT);
   const [compare, setCompare] = useState(false);
   const [epoch, setEpoch] = useState(0);
   const id = useId();
   const restart = () => setEpoch(value => value + 1);
-  if (!open) return <section className="sdr" data-closed="" aria-label={t("Guess and check")}><div className="sdr-header"><button type="button" className="sdr-title" aria-expanded="false" aria-controls={id} onClick={() => setOpen(true)}><ChevronDown size={14} aria-hidden="true" />{t("Guess and check")}</button></div></section>;
-  return <section className="sdr" id={id} aria-label={t("Guess and check")}>
+  if (!open) return <section className="sdr" data-closed="" aria-label={t(title ?? "Guess and check")}><div className="sdr-header"><button type="button" className="sdr-title" aria-expanded="false" aria-controls={id} onClick={() => setOpen(true)}><ChevronDown size={14} aria-hidden="true" />{t(title ?? "Guess and check")}</button></div></section>;
+  return <section className="sdr" id={id} data-variant={variant} aria-label={t(title ?? "Guess and check")}>
     <Replay key={`${text}\u0001${draftLength}\u0001${compare}\u0001${epoch}`} predictions={predictions} picks={picks} draftLength={draftLength} compare={compare}
-      onRestart={restart} onClose={() => setOpen(false)} />
-    <div className="sdr-controls">
+      variant={variant} title={title} onRestart={restart} onClose={() => { if (onDismiss) onDismiss(); else setOpen(false); }} />
+    {!confirmed && <div className="sdr-controls">
       <div className="sdr-sliderSlot">
         <div className="sdr-sliderHead"><label htmlFor={sliderId}>{t("Draft length")}</label><output htmlFor={sliderId}>{plural(t, draftLength, "{0} word", "{0} words")}</output></div>
         <input id={sliderId} className="sdr-slider" type="range" min={MIN_DRAFT} max={MAX_DRAFT} step={1} value={draftLength} aria-valuetext={plural(t, draftLength, "{0} word", "{0} words")} onChange={event => setDraftLength(Number(event.target.value))} />
       </div>
       <label className="sdr-switch"><button type="button" role="switch" aria-checked={compare} aria-label={t("Compare with one word at a time")} onClick={() => setCompare(value => !value)} /><span>{t("Compare with one word at a time")}</span></label>
-    </div>
+    </div>}
   </section>;
 }
 
 type T = ReturnType<typeof useWorkspaceI18n>["t"];
 const plural = (t: T, n: number, one: string, many: string, rest: (string | number)[] = []) => t(n === 1 ? one : many, [n, ...rest]);
 
-function Replay({ predictions, picks, draftLength, compare, onRestart, onClose }: {
-  predictions: WordPrediction[]; picks: Record<number, string>; draftLength: number; compare: boolean;
+function Replay({ predictions, picks, draftLength, compare, variant, title, onRestart, onClose }: {
+  predictions: WordPrediction[]; picks: Record<number, string>; draftLength: number; compare: boolean; variant: RunVariant; title?: string;
   onRestart: () => void; onClose: () => void;
 }) {
   const { t, locale } = useWorkspaceI18n();
+  const confirmed = variant === "confirmed";
   const reduce = useReducedMotion() ?? false;
   const run = useMemo(() => simulate(predictions, draftLength), [predictions, draftLength]);
   const timeline = useMemo(() => timelineOf(run), [run]);
@@ -153,6 +157,15 @@ function Replay({ predictions, picks, draftLength, compare, onRestart, onClose }
   const pass = run.passes[Math.min(snap.pass, Math.max(0, run.passes.length - 1))];
   const statusText = (status: StatusKind): string => {
     const columns = pass?.columns.length ?? 0;
+    if (confirmed) {
+      const fixed = predictions.filter(word => word.broken).length;
+      if (status === "done") return plural(t, fixed, "Applied: {0} word fixed", "Applied: {0} words fixed", [predictions.length - fixed]);
+      if (status === "draft") return plural(t, columns, "The file has {0} word here", "The file has {0} words here");
+      if (status === "verify") return t("Checking each word against your fix");
+      if (status === "rejected") return t("A word changed: your fix is written in its place");
+      if (status === "accepted") return t("Every word already matched");
+      return t("Getting ready…");
+    }
     if (status === "done") return plural(t, run.stats.passes, "Done in {0} pass", "Done in {0} passes");
     if (status === "draft") return plural(t, columns, "Draft proposes {0} word", "Draft proposes {0} words");
     if (status === "verify") return t("Target checks all {0} in one pass", [columns]);
@@ -187,7 +200,7 @@ function Replay({ predictions, picks, draftLength, compare, onRestart, onClose }
   return <>
     <div className="sdr-header">
       <div className="sdr-heading">
-        <button type="button" className="sdr-title" aria-expanded="true" onClick={onClose}><ChevronDown size={14} aria-hidden="true" />{t("Guess and check")}</button>
+        <button type="button" className="sdr-title" aria-expanded="true" onClick={onClose}><ChevronDown size={14} aria-hidden="true" />{t(title ?? "Guess and check")}</button>
         <p className="sdr-status" role="status"><span className="sdr-swap"><AnimatePresence initial={false}>
           <motion.span key={status} initial={reduce ? false : { opacity: 0, y: 2 }} animate={{ opacity: 1, y: 0 }} exit={reduce ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, transition: { duration: 0.1, ease: "easeOut" } }} transition={{ duration: reduce ? 0 : 0.16, ease: EASE_ENTER }}>
             {snap.status === "done" && <Check size={14} className="sdr-statusCheck" aria-hidden="true" />}{status}
@@ -204,12 +217,12 @@ function Replay({ predictions, picks, draftLength, compare, onRestart, onClose }
 
     <div className="sdr-lanes">
       <div className="sdr-laneLabels" aria-hidden="true">
-        <div className="sdr-laneLabel" data-lane="draft"><span className="sdr-laneDot" /><span className="sdr-laneText"><span className="sdr-laneName">{t("Draft")}</span><span className="sdr-laneDetail">{t("Frequency, fast")}</span></span></div>
-        <div className="sdr-laneLabel" data-lane="target"><span className="sdr-laneDot" /><span className="sdr-laneText"><span className="sdr-laneName">{t("Target")}</span><span className="sdr-laneDetail">{t("Context, careful")}</span></span></div>
+        <div className="sdr-laneLabel" data-lane="draft"><span className="sdr-laneDot" /><span className="sdr-laneText"><span className="sdr-laneName">{t(confirmed ? "In the file" : "Draft")}</span><span className="sdr-laneDetail">{t(confirmed ? "Before your fix" : "Frequency, fast")}</span></span></div>
+        <div className="sdr-laneLabel" data-lane="target"><span className="sdr-laneDot" /><span className="sdr-laneText"><span className="sdr-laneName">{t(confirmed ? "Confirmed" : "Target")}</span><span className="sdr-laneDetail">{t(confirmed ? "What you approved" : "Context, careful")}</span></span></div>
       </div>
       <div className="sdr-track">
         {snap.phase === "done"
-          ? <div className="sdr-summary" key="summary"><span className="sdr-summaryRow">{t("{0} words drafted, {1} agreed", [run.passes.reduce((sum, item) => sum + item.columns.length, 0), run.stats.accepted])}</span><span className="sdr-summaryRow">{plural(t, run.stats.passes, "{0} check for {1} words", "{0} checks for {1} words", [run.stats.words])}</span></div>
+          ? <div className="sdr-summary" key="summary"><span className="sdr-summaryRow">{confirmed ? t("{0} of {1} words stayed as they were", [predictions.filter(word => !word.broken).length, predictions.length]) : t("{0} words drafted, {1} agreed", [run.passes.reduce((sum, item) => sum + item.columns.length, 0), run.stats.accepted])}</span><span className="sdr-summaryRow">{confirmed ? plural(t, predictions.filter(word => word.broken).length, "{0} word replaced by your fix", "{0} words replaced by your fix") : plural(t, run.stats.passes, "{0} check for {1} words", "{0} checks for {1} words", [run.stats.words])}</span></div>
           : <div className="sdr-columns" key="columns" ref={columnsRef} data-phase={snap.phase} aria-hidden="true" style={{ "--sweep": snap.sweep } as React.CSSProperties}>
             {pass?.columns.slice(0, snap.visible).map((column, j) => {
               const state = snap.states[j] ?? null;
@@ -224,7 +237,7 @@ function Replay({ predictions, picks, draftLength, compare, onRestart, onClose }
 
     <div className="sdr-outputs">
       <div className="sdr-line">
-        <div className="sdr-lineLabel"><span className="sdr-lineName">{t("Output")}</span><span className="sdr-lineMeta">{snap.phase === "done" && <Check size={12} className="sdr-metaCheck" aria-hidden="true" />}{plural(t, snap.passesDone, "{0} pass", "{0} passes")}</span></div>
+        <div className="sdr-lineLabel"><span className="sdr-lineName">{t(confirmed ? "Result" : "Output")}</span><span className="sdr-lineMeta">{snap.phase === "done" && <Check size={12} className="sdr-metaCheck" aria-hidden="true" />}{plural(t, snap.passesDone, "{0} pass", "{0} passes")}</span></div>
         <p className="sdr-lineText" aria-live="polite">
           {predictions.map(word => {
             const token = tokenOf(word), on = landedAt(word.index);
@@ -248,11 +261,11 @@ function Replay({ predictions, picks, draftLength, compare, onRestart, onClose }
 
     <div className="sdr-footer">
       <dl className="sdr-stats">
-        <div className="sdr-stat"><dt className="sdr-statLabel">{t("Checks made")}</dt><dd className="sdr-statValue"><RollingNumber value={snap.passesDone ? snap.passesDone : null} intDigits={2} label={plural(t, snap.passesDone, "{0} check", "{0} checks")} /></dd></div>
-        <div className="sdr-stat"><dt className="sdr-statLabel">{t("Drafts accepted")}</dt><dd className="sdr-statValue"><RollingNumber value={acceptedPercent} intDigits={3} suffix="%" label={t("{0} percent", [acceptedPercent ?? 0])} /></dd></div>
+        <div className="sdr-stat"><dt className="sdr-statLabel">{t(confirmed ? "Checks" : "Checks made")}</dt><dd className="sdr-statValue"><RollingNumber value={snap.passesDone ? snap.passesDone : null} intDigits={2} label={plural(t, snap.passesDone, "{0} check", "{0} checks")} /></dd></div>
+        <div className="sdr-stat"><dt className="sdr-statLabel">{t(confirmed ? "Words kept" : "Drafts accepted")}</dt><dd className="sdr-statValue"><RollingNumber value={acceptedPercent} intDigits={3} suffix="%" label={t("{0} percent", [acceptedPercent ?? 0])} /></dd></div>
         <div className="sdr-stat"><dt className="sdr-statLabel">{t("Words per check")}</dt><dd className="sdr-statValue"><RollingNumber value={perCheck} decimals={1} intDigits={2} label={number(perCheck ?? 0)} /></dd></div>
       </dl>
-      <p className="sdr-note">{t("These numbers describe the replay: how often the quick guess matched the careful check. They do not say whether a word is right; the table and your approval do.")}</p>
+      <p className="sdr-note">{confirmed ? t("This replays the change you approved: words the file already had right stay, the others are replaced by your fix. You can undo it.") : t("These numbers describe the replay: how often the quick guess matched the careful check. They do not say whether a word is right; the table and your approval do.")}</p>
     </div>
   </>;
 }

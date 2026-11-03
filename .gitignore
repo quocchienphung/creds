@@ -44,3 +44,8 @@ reporting-output.json
 validation-audit.json
 validation-report.csv
 public/storage/pdf.worker.min.mjs
+
+# Vietnam geographic knowledge: raw downloads and staging are rebuilt by scripts/geo (see docs/workspace-app/vn-geo/README.md); only the built, licensed index in public/data/vn-geo is kept
+data/vn-geo/raw/*.pbf
+data/vn-geo/raw/*.csv
+data/vn-geo/staging/

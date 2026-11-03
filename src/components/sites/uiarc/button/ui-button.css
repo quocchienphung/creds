@@ -1,0 +1,47 @@
+/*
+ * The workspace's `.ui-button`, restated with the geometry, colours and states of UIArc's Button (https://uiarc.dev/components/button, source:
+ * docs/workspace-app/research/uiarc/button/source/button.module.css). It restores the base that every plain <button class="ui-button"> relies on
+ * and replaces the previous look with UIArc's: one 1px border, 18px radius, 8px gap, 500 weight, hover only on fine pointers, a colour answer on
+ * press (the React <Button> next to this file adds the 0.97 press scale, the loading spinner and the morphing label).
+ * Sizes: sm 36px, md 44px, lg 50px, exactly UIArc's. `data-icon-only` makes a square.
+ */
+.ui-button {
+  position: relative; display: inline-flex; box-sizing: border-box; min-height: var(--arc-control-height-md); align-items: center; justify-content: center; gap: var(--arc-space-2);
+  margin: 0; padding: 0 var(--arc-space-4); border: 1px solid transparent; border-radius: var(--arc-radius-control);
+  font-family: inherit; font-size: var(--arc-text-sm); font-weight: 500; line-height: var(--arc-leading-body); letter-spacing: -0.01em; white-space: nowrap; text-decoration: none;
+  cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+  transition: color var(--arc-duration-fast) var(--arc-ease-standard), background var(--arc-duration-fast) var(--arc-ease-standard), border-color var(--arc-duration-fast) var(--arc-ease-standard), opacity var(--arc-duration-fast) var(--arc-ease-standard), box-shadow var(--arc-duration-fast) var(--arc-ease-standard);
+}
+.ui-button[data-size="sm"] { min-height: var(--arc-control-height-sm); padding-inline: var(--arc-space-3); }
+.ui-button[data-size="lg"] { min-height: var(--arc-control-height-lg); padding-inline: var(--arc-space-5); }
+.ui-button[data-icon-only], .ui-button:has(> .ui-button__icon:only-child) { width: var(--arc-control-height-md); padding: 0; }
+.ui-button[data-size="sm"][data-icon-only], .ui-button[data-size="sm"]:has(> .ui-button__icon:only-child) { width: var(--arc-control-height-sm); }
+.ui-button__icon { display: grid; flex: none; place-items: center; }
+.ui-button__icon svg, .ui-button svg { display: block; flex: none; }
+.ui-button__label { display: inline-flex; align-items: center; }
+
+.ui-button[data-variant="primary"] { color: var(--arc-background); background: var(--arc-foreground); border-color: var(--arc-foreground); }
+.ui-button[data-variant="secondary"] { color: var(--arc-foreground); background: var(--arc-surface); border-color: var(--arc-border); }
+.ui-button[data-variant="ghost"] { color: var(--arc-text-secondary); background: transparent; border-color: transparent; }
+.ui-button[data-variant="danger"], .ui-button[data-variant="destructive"] { color: var(--arc-danger); background: var(--arc-surface); border-color: var(--arc-border); }
+.ui-button:not([data-variant]) { color: var(--arc-foreground); background: var(--arc-surface); border-color: var(--arc-border); }
+
+.ui-button:disabled { cursor: not-allowed; opacity: 0.52; }
+/* A disabled outlined button keeps its shape and fades only its label, so it still reads as a button that is off. */
+.ui-button[data-variant="secondary"]:disabled, .ui-button[data-variant="danger"]:disabled, .ui-button[data-variant="destructive"]:disabled, .ui-button:not([data-variant]):disabled { opacity: 1; color: var(--arc-text-muted); background: var(--arc-surface-muted); border-color: var(--arc-border); }
+.ui-button[data-variant="danger"]:disabled, .ui-button[data-variant="destructive"]:disabled { color: color-mix(in oklab, var(--arc-danger) 55%, var(--arc-surface-muted)); }
+.ui-button[data-variant="ghost"]:disabled { opacity: 1; color: var(--arc-text-muted); }
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-button[data-variant="primary"]:hover:not(:disabled) { opacity: 0.91; box-shadow: var(--arc-shadow-resting); }
+  .ui-button[data-variant="secondary"]:hover:not(:disabled), .ui-button:not([data-variant]):hover:not(:disabled) { background: var(--arc-surface-muted); box-shadow: var(--arc-shadow-resting); }
+  .ui-button[data-variant="ghost"]:hover:not(:disabled) { color: var(--arc-foreground); background: var(--arc-surface-muted); }
+  .ui-button[data-variant="danger"]:hover:not(:disabled), .ui-button[data-variant="destructive"]:hover:not(:disabled) { border-color: var(--arc-danger); background: var(--arc-surface-muted); }
+}
+/* Colour feedback on press, so touch and menu triggers (which never scale) still answer the finger. */
+.ui-button[data-variant="primary"]:active:not(:disabled) { opacity: 0.84; }
+.ui-button[data-variant="secondary"]:active:not(:disabled), .ui-button[data-variant="ghost"]:active:not(:disabled), .ui-button:not([data-variant]):active:not(:disabled) { color: var(--arc-foreground); background: var(--arc-surface-muted); }
+.ui-button[data-variant="danger"]:active:not(:disabled), .ui-button[data-variant="destructive"]:active:not(:disabled) { border-color: var(--arc-danger); background: var(--arc-surface-muted); }
+.ui-button[aria-busy="true"] { cursor: progress; }
+.ui-button:focus-visible { outline: 2px solid var(--arc-focus); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .ui-button { transition: none; } }

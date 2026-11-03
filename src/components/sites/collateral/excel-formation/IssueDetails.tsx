@@ -32,7 +32,7 @@ export function composeFromPicks(value: string, tokens: NonNullable<Issue["token
  */
 export function IssueDetails({ issue, status, state, current, variant, onVariant, draft, onDraft, twin, engine, notify, onApproved, onSkip }: {
   issue: Issue; status: IssueStatus; state?: IssueState; current: string; variant: Variant; onVariant: (variant: Variant) => void; draft: string; onDraft: (value: string) => void;
-  twin?: Twin; engine: CollateralEngine; notify: (message: string) => void; onApproved: () => void; onSkip?: () => void;
+  twin?: Twin; engine: CollateralEngine; notify: (message: string) => void; /** `change` is what was written, for the replay card; it carries no decision. */ onApproved: (change?: { before: string; after: string; sheet: string; cell: string }) => void; onSkip?: () => void;
 }) {
   const { t: uiText } = useWorkspaceI18n();
   const id = useId();
@@ -85,7 +85,7 @@ export function IssueDetails({ issue, status, state, current, variant, onVariant
     if (response?.type !== "view") return false;
     notify(uiText("Value approved for {0}", [cellRef(issue)]));
     setDuplicate(null);
-    onApproved();
+    onApproved({ before: issue.originalValue, after: value, sheet: issue.sheet, cell: cellRef(issue) });
     return true;
   }
   async function approve(value = draft, source: "typed" | "suggestion" | "fix" = "typed") {
@@ -198,7 +198,7 @@ export function IssueDetails({ issue, status, state, current, variant, onVariant
         const result = await engine.duplicateApply(issue.id, duplicate.value, duplicate.includeTwin);
         if (!result) return false;
         notify(`Đã sửa chung ${result.rows} dòng / ${result.changedCells} ô cùng tài sản.`);
-        setDuplicate(null); onApproved(); return true;
+        setDuplicate(null); onApproved({ before: issue.originalValue, after: duplicate.value, sheet: issue.sheet, cell: cellRef(issue) }); return true;
       }} />}
   </div>;
 }

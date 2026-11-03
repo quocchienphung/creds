@@ -11,6 +11,11 @@ export const SCAN_VERSION = "question-mark-scan-1";
 export type SheetScanStatus = "clean" | "issues" | "error";
 export interface SheetScan {
   name: string;
+  /** The relationship id that points at the sheet from workbook.xml, and whether it is hidden. */
+  rid: string;
+  state: "visible" | "hidden" | "veryHidden";
+  /** Every cell read, of any type. */
+  cellsVisited: number;
   /** The worksheet part inside the zip (the relationship target), the stable identity next to the name. */
   part: string;
   status: SheetScanStatus;
@@ -55,7 +60,8 @@ export const specRoleOf = (value: string): "freeText" | "name" | "code" => { con
 
 export function scanSheet(sheet: Sheet): SheetScan {
   const started = performance.now();
-  const base: SheetScan = { name: sheet.name, part: sheet.part, status: "clean", rowsSeen: sheet.rows.length + sheet.emptyRows, hiddenRows: sheet.hiddenRows, hiddenColumns: sheet.hiddenColumns, textCellsSeen: 0, formulaCells: 0, protectedCells: 0, questionMarkCells: 0, confirmedCells: 0, possibleCells: 0, mojibakeCells: 0, unrepairableQuestionMarks: 0, ms: 0 };
+  const base: SheetScan = { name: sheet.name, rid: sheet.rid ?? "", state: sheet.state ?? "visible", cellsVisited: sheet.cellsVisited ?? 0, part: sheet.part, status: "clean", rowsSeen: sheet.rows.length + sheet.emptyRows, hiddenRows: sheet.hiddenRows, hiddenColumns: sheet.hiddenColumns, textCellsSeen: 0, formulaCells: 0, protectedCells: 0, questionMarkCells: 0, confirmedCells: 0, possibleCells: 0, mojibakeCells: 0, unrepairableQuestionMarks: 0, ms: 0 };
+  if (sheet.error) { base.status = "error"; base.error = sheet.error; return base; }
   try {
     // A damaged worksheet NAME cannot be written back by a cell patch: it makes the sheet "issues", never "clean".
     if (QUESTION.test(sheet.name)) base.unrepairableQuestionMarks++;

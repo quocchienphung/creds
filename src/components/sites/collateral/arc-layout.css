@@ -1,0 +1,48 @@
+/*
+ * Layout rhythm of the Collateral pages, set on the scale UIArc uses (4 / 8 / 12 / 16 / 20 / 24 px) and its control sizes
+ * (https://uiarc.dev/components/button: sm 36px, md 44px, radius 18px). Presentation only: no markup other than the grouping of the review
+ * toolbar changed, and nothing here touches a value or a rule. Evidence: docs/workspace-app/research/uiarc/button/brief.md.
+ *
+ * What it fixes (measured on the before-screenshots): controls of five different heights (26-36px) in one toolbar, the toolbar tools floating on a
+ * row of their own, the status line 24px away from what it describes, a 28px file chip next to a 36px action, 6px between the page title and the
+ * breadcrumbs row.
+ */
+.collateral { --cl-control: var(--arc-control-height-sm); --cl-gap: var(--arc-space-2); --cl-gap-lg: var(--arc-space-3); }
+
+/* Header: crumbs, the repair action and the file chip share one 36px row; the title sits 12px below it */
+.collateral.collateral .cl-header { gap: var(--arc-space-3); }
+.collateral.collateral .cl-topbar { min-height: var(--cl-control); gap: var(--cl-gap) var(--cl-gap-lg); }
+.collateral.collateral .cl-file { height: var(--cl-control); padding: 0 var(--arc-space-2) 0 var(--arc-space-4); gap: var(--arc-space-2); border-radius: var(--arc-radius-control); background: var(--arc-surface-muted); font-size: 13px; }
+.collateral.collateral .cl-file small { font-size: 12px; }
+.collateral.collateral .cl-file__close { width: 24px; height: 24px; }
+.collateral.collateral .cr-auto-trigger { flex: none; }
+
+/* Review toolbar: row one is "what", with the tools at its right edge; row two is "where"; the status line closes the group */
+.collateral.collateral .cr-toolbar { display: grid; gap: var(--cl-gap-lg); }
+.collateral.collateral .cr-toolbar__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cl-gap) var(--cl-gap-lg); min-width: 0; }
+.collateral.collateral .cr-chips { display: flex; flex-wrap: wrap; gap: var(--cl-gap); }
+.collateral.collateral .cd-chip { height: var(--cl-control); padding: 0 var(--arc-space-4); gap: var(--arc-space-2); font-size: 13px; font-weight: 500; }
+.collateral.collateral .cr-toolbar .ui-seg { --ui-seg-h: var(--cl-control); --ui-seg-px: 14px; --ui-seg-fs: 13px; --ui-seg-r: 15px; --ui-seg-pad: 3px; }
+.collateral.collateral .cr-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--arc-space-1); margin-left: auto; }
+.collateral.collateral .cr-tools .ui-button[data-variant="ghost"] { width: var(--cl-control); padding: 0; }
+.collateral.collateral .cr-tools .ui-button[data-variant="secondary"] { margin-left: var(--cl-gap); }
+.collateral.collateral .cr-filter { width: 184px; }
+.collateral.collateral .cr-filter .cbx[data-size="sm"] .cbx__field { height: var(--cl-control); border-radius: var(--arc-radius-control); }
+.collateral.collateral .cr-filter .cbx[data-size="sm"] .cbx__field .cbx__input { font-size: 13px; }
+.collateral.collateral .cr-toolbar .cr-search { flex: 1 1 220px; width: auto; min-width: 200px; max-width: 360px; height: var(--cl-control); padding-inline: var(--arc-space-4); border-radius: var(--arc-radius-control); font-size: 13px; }
+.collateral.collateral .cr-toolbar .cr-status { margin: 0; color: var(--arc-text-secondary); font-size: 13px; line-height: 1.4; }
+.collateral.collateral .cr-review { gap: var(--arc-space-5); padding-top: var(--arc-space-2); }
+
+/* Overview: a note about the JSON conversion is information, not an error */
+.collateral.collateral .cr-note { margin-bottom: var(--arc-space-4); padding: var(--arc-space-3) var(--arc-space-4); color: var(--text); font-size: 13px; line-height: 1.5; }
+.collateral.collateral .cr-note p { margin: var(--arc-space-1) 0 0; color: var(--arc-text-secondary); }
+.collateral.collateral .cr-blockers { margin-bottom: var(--arc-space-4); }
+
+/* Steps that end in actions: the row of buttons sits 16px under its content, 8px between buttons, wrapping cleanly */
+.collateral.collateral .ui-sb-actions, .collateral.collateral .cd-actions, .collateral.collateral .cr-downloads { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cl-gap); margin-top: var(--arc-space-4); }
+.collateral.collateral .cd-actions { margin-top: 0; }
+
+@container ui-as (max-width: 600px) {
+  .collateral.collateral .cr-filter, .collateral.collateral .cr-toolbar .cr-search { flex: 1 1 100%; width: 100%; max-width: none; }
+  .collateral.collateral .cr-tools { margin-left: 0; }
+}

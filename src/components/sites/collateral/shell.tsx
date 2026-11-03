@@ -4,6 +4,7 @@ import { useWorkspaceI18n } from "@/components/sites/i18n/WorkspaceI18n";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
+import "./arc-layout.css";
 
 /**
  * The frame the two Collateral sections share. Breadcrumbs, the step tabs and the file chip are independent rebuilds of the topbar and the

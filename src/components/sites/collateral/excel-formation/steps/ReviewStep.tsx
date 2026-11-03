@@ -2,6 +2,7 @@
 
 import { useWorkspaceI18n } from "@/components/sites/i18n/WorkspaceI18n";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence } from "motion/react";
 import { Copy, Download, Maximize2, Redo2, RotateCcw, Undo2, Upload, Wand2 } from "lucide-react";
 import { OrbitMenu } from "../../../orbit-menu/OrbitMenu";
 import type { OrbitBoundary, OrbitPoint } from "../../../orbit-menu/orbit-geometry";
@@ -11,6 +12,7 @@ import type { Issue, IssueCategory, IssueStatus, FixKind, Severity } from "../en
 import type { BulkItem } from "../engine/review";
 import { MAU9_PROFILE } from "../engine/mapping-profiles";
 import { IssueGallery, type GalleryItem } from "../gallery/IssueGallery";
+import { AppliedChange, type AppliedInfo } from "../gallery/AppliedChange";
 import type { GridMeta } from "../../engine/protocol";
 import type { SheetData } from "../gallery/SheetViewer";
 import { IssueDetails, type Twin, type Variant } from "../IssueDetails";
@@ -47,6 +49,8 @@ export function ReviewStep({ engine, filters, onFilters, notify }: { engine: Col
   const [epoch, setEpoch] = useState(0);
   if (seenView !== view) { setSeenView(view); setEpoch(current => current + 1); }
   const [viewerRequest, setViewerRequest] = useState(0);
+  // The last approved fix, replayed above the next issue until it is dismissed or the next fix replaces it.
+  const [applied, setApplied] = useState<AppliedInfo | null>(null);
   const [orbit, setOrbit] = useState<{ at: OrbitPoint; boundary: OrbitBoundary; theme?: string; motionOff: boolean; open: boolean } | null>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
 
@@ -172,11 +176,9 @@ export function ReviewStep({ engine, filters, onFilters, notify }: { engine: Col
   const blocking = view.summary.blocking;
   return <div className="cr-review">
     <div className="cr-toolbar" role="toolbar" aria-label={uiText("Filters")}>
+      <div className="cr-toolbar__row">
       <div className="cr-chips" role="group" aria-label={uiText("Severity")}>{SEVERITIES.map(severity => <button type="button" key={severity} className="cd-chip" aria-pressed={filters.severities.includes(severity)} onClick={() => toggleSeverity(severity)}>{uiText(SEVERITY_LABEL[severity])}<small>{all.filter(issue => issue.severity === severity).length}</small></button>)}</div>
       <div className="ui-seg" data-size="sm"><div className="ui-seg__scroller"><div className="ui-seg__track" role="radiogroup" aria-label={uiText("Show")}>{(["todo", "done", "all"] as const).map(value => <button type="button" key={value} className="ui-seg__opt" role="radio" aria-checked={filters.status === value} data-active={filters.status === value || undefined} tabIndex={filters.status === value ? 0 : -1} onClick={() => onFilters({ ...filters, status: value })}><span className="ui-seg__content"><span className="ui-seg__label"><span className="ui-seg__text">{uiText(value === "todo" ? "To review" : value === "done" ? "Done" : "All")}</span><span className="ui-seg__text ui-seg__text-bold" aria-hidden="true">{uiText(value === "todo" ? "To review" : value === "done" ? "Done" : "All")}</span></span></span></button>)}</div></div></div>
-      <div className="cr-filter"><Combobox size="sm" aria-label={uiText("Problem")} options={categoryOptions} value={filters.category} onChange={value => onFilters({ ...filters, category: value as IssueCategory | "" })} searchable={false} /></div>
-      <div className="cr-filter"><Combobox size="sm" aria-label={uiText("Column")} options={fieldOptions} value={filters.field} onChange={value => onFilters({ ...filters, field: value })} /></div>
-      <input className="ui-sb-input cr-search" type="search" aria-label={uiText("Search by row, cell or text")} placeholder={uiText("Row, cell (AK45) or text")} value={filters.query} onChange={event => onFilters({ ...filters, query: event.target.value })} />
       <div className="cr-tools">
         <button type="button" className="ui-button" data-variant="ghost" data-size="sm" disabled={!view.canUndo || engine.busy} onClick={() => void engine.undo()} aria-label={uiText("Undo")} title={uiText("Undo (Ctrl+Z)")}><Undo2 size={15} /></button>
         <button type="button" className="ui-button" data-variant="ghost" data-size="sm" disabled={!view.canRedo || engine.busy} onClick={() => void engine.redo()} aria-label={uiText("Redo")} title={uiText("Redo (Ctrl+Shift+Z)")}><Redo2 size={15} /></button>
@@ -185,13 +187,20 @@ export function ReviewStep({ engine, filters, onFilters, notify }: { engine: Col
         <input ref={resumeInput} type="file" accept=".json,application/json" hidden aria-label={uiText("Progress file")} onChange={event => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void resumeProgress(file); }} />
         <button type="button" className="ui-button" data-variant="secondary" data-size="sm" onClick={() => void openBulk()}><span className="ui-button__icon"><Wand2 size={15} /></span><span className="ui-button__label">{uiText("Bulk fixes")}</span></button>
       </div>
-    </div>
+      </div>
+      <div className="cr-toolbar__row">
+      <div className="cr-filter"><Combobox size="sm" aria-label={uiText("Problem")} options={categoryOptions} value={filters.category} onChange={value => onFilters({ ...filters, category: value as IssueCategory | "" })} searchable={false} /></div>
+      <div className="cr-filter"><Combobox size="sm" aria-label={uiText("Column")} options={fieldOptions} value={filters.field} onChange={value => onFilters({ ...filters, field: value })} /></div>
+      <input className="ui-sb-input cr-search" type="search" aria-label={uiText("Search by row, cell or text")} placeholder={uiText("Row, cell (AK45) or text")} value={filters.query} onChange={event => onFilters({ ...filters, query: event.target.value })} />
+      </div>
     <p className="cr-status" role="status">{blocking > 0 ? uiText("{0} serious open", [blocking]) : uiText("No serious issue open")}</p>
+    </div>
+    <AnimatePresence initial={false}>{applied && <AppliedChange key="applied" info={applied} busy={engine.busy} onUndo={() => { void engine.undo(); setApplied(null); }} onDismiss={() => setApplied(null)} />}</AnimatePresence>
 
     {selected ? <div ref={detailsRef}><IssueGallery items={items} index={index} onIndex={select} override={shown} sheet={sheet} onSelectCell={selectCell} viewerRequest={viewerRequest}
       details={<IssueDetails key={selected.issue.id} issue={selected.issue} status={selected.status} state={stateOf(selected.issue)} current={selected.current} variant={variant} onVariant={setVariant}
         onSkip={rows.length > 1 ? () => select((index + 1) % rows.length) : undefined} draft={draft} onDraft={value => setDrafts(current => ({ ...current, [selected.issue.id]: value }))} twin={twin} engine={engine} notify={notify}
-        onApproved={() => { setVariant("original"); setDrafts(current => { const { [selected.issue.id]: removed, ...rest } = current; void removed; return rest; }); }} />} /></div>
+        onApproved={change => { if (change && change.before !== change.after) setApplied(current => ({ key: (current?.key ?? 0) + 1, ...change })); setVariant("original"); setDrafts(current => { const { [selected.issue.id]: removed, ...rest } = current; void removed; return rest; }); }} />} /></div>
       : <IssueGallery items={[]} index={0} onIndex={() => {}} sheet={sheet} />}
 
     <IssueTable onMenu={(at, point, element) => { select(at); setOrbit({ at: point, boundary: { left: 8, top: 8, right: window.innerWidth - 8, bottom: window.innerHeight - 8 }, theme: element.closest("[data-theme]")?.getAttribute("data-theme") ?? undefined, motionOff: element.closest('[data-ui-motion="off"]') !== null, open: false });

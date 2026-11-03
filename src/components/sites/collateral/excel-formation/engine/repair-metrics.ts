@@ -57,3 +57,25 @@ export function metricViolations(m: RepairMetrics, hadBlockers = false): string[
   if (m.cellsContainingQuestionMark > 0 && m.outputCellsChanged === 0 && classifyOutcome(m) !== "NO_REPAIR_APPLIED") bad.push("zero changes reported as repaired");
   return bad;
 }
+
+/**
+ * Why an export changed nothing, and where the count first became zero. `ZERO_PATCH_APPLIED`: something suspicious was found and still no cell was
+ * written. `NOTHING_TO_REPAIR`: nothing suspicious was found, so no change was justified (this is not a failed repair). `null`: cells were changed.
+ * Stages, in pipeline order: detect, candidates, accept, patch, export.
+ */
+export interface ZeroPatch { code: "ZERO_PATCH_APPLIED" | "NOTHING_TO_REPAIR"; stage: "detect" | "candidates" | "accept" | "patch" | "export"; reason: string }
+export function zeroPatchOf(total: RepairMetrics, byReasonCode: Partial<Record<ReasonCode, number>>): ZeroPatch | null {
+  if (total.outputCellsChanged > 0) return null;
+  const suspicious = total.cellsContainingQuestionMark + total.suspectedCorruptions + total.legitimatePunctuation;
+  if (suspicious === 0) return { code: "NOTHING_TO_REPAIR", stage: "detect", reason: "No suspicious text was found on any scanned worksheet." };
+  const approved = total.sourceVerified + total.modelAutoAccepted;
+  if (approved === 0) {
+    const n = (code: ReasonCode) => byReasonCode[code] ?? 0;
+    if (n("CALIBRATION_UNAVAILABLE") > 0 && n("CALIBRATION_UNAVAILABLE") >= n("NO_CANDIDATE")) return { code: "ZERO_PATCH_APPLIED", stage: "accept", reason: "Candidates may exist, but the file holds too little clean text to measure how safe an automatic repair is." };
+    const protectedCount = n("PROTECTED_ROLE") + n("FORMULA") + n("UNSUPPORTED_STRUCTURE") + n("EXISTING_REVIEW") + n("PUNCTUATION");
+    if (protectedCount > 0 && protectedCount >= n("NO_CANDIDATE") + n("LOW_CONFIDENCE") + n("AMBIGUOUS")) return { code: "ZERO_PATCH_APPLIED", stage: "accept", reason: "Every suspicious cell is protected (identifier, name, formula, rich text) or may be real punctuation." };
+    return { code: "ZERO_PATCH_APPLIED", stage: "candidates", reason: "No candidate fitted the visible letters with enough evidence, or several fitted equally." };
+  }
+  if (total.patchesCommitted === 0) return { code: "ZERO_PATCH_APPLIED", stage: "patch", reason: "Repairs were accepted but no patch was built from them." };
+  return { code: "ZERO_PATCH_APPLIED", stage: "export", reason: "Patches were written but the re-read output did not differ from the input." };
+}

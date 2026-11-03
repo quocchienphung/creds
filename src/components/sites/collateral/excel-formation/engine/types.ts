@@ -28,6 +28,13 @@ export interface Sheet {
   name: string;
   /** Path of the worksheet part inside the zip. */
   part: string;
+  /** The relationship id that points at the part from workbook.xml, and whether the sheet is hidden. */
+  rid?: string;
+  state?: "visible" | "hidden" | "veryHidden";
+  /** Every cell of the sheet that was read, whatever its type. */
+  cellsVisited?: number;
+  /** Set when this sheet alone could not be read (the other sheets are unaffected): its rows are empty and nothing is ever patched in it. */
+  error?: string;
   dimension: string | null;
   rows: Row[];
   hiddenRows: number;

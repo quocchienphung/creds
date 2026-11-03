@@ -1,0 +1,58 @@
+{
+  "datasetVersion": "2026-11-03",
+  "schema": 1,
+  "counts": {
+    "recordedProvinces": 63,
+    "recordedDistricts": 692,
+    "recordedWards": 5720,
+    "streets": 79902,
+    "rejectedRows": 29,
+    "currentProvinces": 34,
+    "currentWards": 3321,
+    "osmNames": 0
+  },
+  "sources": [
+    {
+      "id": "provinces",
+      "name": "vietnamese-provinces-database (administrative seeds)",
+      "url": "https://github.com/thanglequoc/vietnamese-provinces-database",
+      "license": "MIT (see seeds/LICENSE)",
+      "retrieved": "2026-11-03",
+      "files": 35,
+      "sha256": "9f266498a531ce198b6a41320b40dee74ad52e8acba159a7b695c38d07c8b056",
+      "version": "master at retrieval"
+    },
+    {
+      "id": "addresses",
+      "name": "trucmtnguyen/vietnam-address-collection",
+      "url": "https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection",
+      "license": "Apache-2.0",
+      "retrieved": "2026-11-03",
+      "sha256": "b371f8316d8beb72331ed19509a793dba3c3b65c6fd6ab9544f21f8677aff656",
+      "bytes": 14966388
+    },
+    {
+      "id": "osm",
+      "name": "OpenStreetMap Vietnam extract (Geofabrik)",
+      "url": "https://download.geofabrik.de/asia/vietnam.html",
+      "license": "ODbL 1.0, (c) OpenStreetMap contributors: https://www.openstreetmap.org/copyright",
+      "bytes": 332080639,
+      "note": "names extracted by scripts/geo/osm_extract.py"
+    }
+  ],
+  "files": {
+    "admin.json": {
+      "bytes": 283552,
+      "sha256": "b8b92abdfb217c0bd699824828e6d653f171762a170644350daa52c7ede3fdd8"
+    },
+    "streets.json": {
+      "bytes": 2784363,
+      "sha256": "1ec75880df5ae337f3aa903cbee8f450c0549710f5540b4e973babc0d1305292"
+    },
+    "osm.json": {
+      "bytes": 23,
+      "sha256": "42c634a11aa913a6747a1a39a6d123e434b9070cb3ca5c1a3ee953bc872b4375"
+    }
+  },
+  "notes": "Names only. 'recorded' is the administrative structure the address corpus was written under (provinces, districts, wards before the mergers); 'current' is the present official structure. Addresses are never rewritten from one to the other."
+}

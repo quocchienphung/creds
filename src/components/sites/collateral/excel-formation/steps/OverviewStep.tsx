@@ -32,7 +32,10 @@ export function OverviewStep({ engine, onReview }: { engine: CollateralEngine; o
   const stateText = issues.length === 0 ? (notScanned ? uiText("Some worksheets were not scanned, so nothing can be said about them yet.") : uiText("No issue found. Nothing needs review.")) : allDone ? uiText("Every issue has been verified or accepted.") : uiText("{0} issues need review, {1} of them serious.", [n(summary.byStatus.open + summary.byStatus.edited), n(summary.blocking)]);
   return <div className="cr-overview">
     <p className="cr-status" role="status">{stateText}</p>
-    {result.blockers.length > 0 && <div className="ui-sb-card cr-blockers" role="alert"><b>{uiText("Fix these first")}</b><ul>{result.blockers.map(text => <li key={text}>{uiText(text)}</li>)}</ul></div>}
+    {result.blockers.length > 0 && (result.profile.primary
+      ? <div className="ui-sb-card cr-blockers" role="alert"><b>{uiText("Fix these first")}</b><ul>{result.blockers.map(text => <li key={text}>{uiText(text)}</li>)}</ul></div>
+      // No profile matched: that only closes the JSON conversion, the text repair is not affected, so it is a note and not an alarm.
+      : <div className="ui-sb-card cr-note" role="note"><b>{uiText("About the JSON conversion")}</b>{result.blockers.map(text => <p key={text}>{uiText(text)}</p>)}</div>)}
     <div className="cr-stats">
       {SEVERITIES.map(severity => <button type="button" key={severity} className="ui-sb-card cr-stat" disabled={bySeverity[severity] === 0} onClick={() => onReview({ severities: [severity], status: "all", category: "", field: "", query: "" })}>
         <span className="ui-sb-pill" data-tone={severityTone(severity)}>{uiText(SEVERITY_LABEL[severity])}</span><strong>{n(bySeverity[severity])}</strong><small>{uiText("issues")}</small></button>)}

@@ -15,6 +15,8 @@ import { CollateralProvider, useCollateralBadges } from "../collateral/Collatera
 import { useWorkspaceRoute, workspaceSections, type WorkspaceSection } from "./workspace-state";
 import { WorkspaceDialog } from "./WorkspaceDialog";
 import { WorkspaceEditors, type EditorKind } from "./WorkspaceEditors";
+import "../uiarc/arc-tokens.css";
+import "../uiarc/button/ui-button.css";
 import "./reference.css";
 import "./crm-overrides.css";
 import "./workspace-interactions.css";

@@ -128,6 +128,7 @@ export function patchWorkbookBytes(original: Uint8Array, workbook: Workbook, pat
   for (const patch of patches) {
     const sheet = workbook.sheets.find(item => item.name === patch.sheet);
     if (!sheet) throw new PatchError("Sheet was not found in the workbook.");
+    if (sheet.error) throw new PatchError("This worksheet could not be read, so nothing can be written into it.");
     const key = `${patch.sheet}\u0001${patch.row}\u0001${patch.col}`;
     if (seen.has(key)) throw new PatchError("Duplicate patch target.");
     seen.add(key);
@@ -239,4 +240,16 @@ export function comparePackageParts(before: Uint8Array, after: Uint8Array): { ve
   for (const name of names) { const x = a[name], y = b[name]; if (!x || !y || x.length !== y.length || !x.every((v, i) => v === y[i])) changed++; }
   const identicalBytes = before.length === after.length && before.every((v, i) => v === after[i]);
   return { verdict: changed ? "CONTENT_CHANGED" : identicalBytes ? "BYTE_IDENTICAL" : "RECOMPRESSED_ONLY", parts: names.size, changedParts: changed };
+}
+
+/** The re-read value of every patched cell: `ok` when the exported cell holds exactly the approved value, `changed` when it differs from the original. */
+export interface PatchCheck { sheet: string; row: number; col: number; ok: boolean; changed: boolean }
+export function verifyPatches(before: Workbook, exported: Uint8Array, patches: CellPatch[]): PatchCheck[] {
+  const after = readWorkbook(exported, { fileName: before.fileName, fileHash: before.fileHash });
+  return patches.map(patch => {
+    const was = before.sheets.find(sheet => sheet.name === patch.sheet)?.rows.find(row => row.r === patch.row)?.cells[patch.col]?.v ?? "";
+    const now = after.sheets.find(sheet => sheet.name === patch.sheet)?.rows.find(row => row.r === patch.row)?.cells[patch.col]?.v ?? "";
+    const want = patch.asNumber ? patch.value.trim() : patch.value;
+    return { sheet: patch.sheet, row: patch.row, col: patch.col, ok: now === want, changed: now !== was };
+  });
 }

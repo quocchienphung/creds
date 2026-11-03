@@ -1,4 +1,4 @@
-.collateral .cr-auto-trigger { flex: none; height: 28px; }
+.collateral .cr-auto-trigger { flex: none; }
 .cr-auto-result { display: grid; gap: 12px; padding: 16px 20px 20px; font-size: 13px; line-height: 1.55; }
 .cr-auto-result p { margin: 0; }
 .cr-auto-result progress { display: block; width: 100%; margin: 12px 0; }

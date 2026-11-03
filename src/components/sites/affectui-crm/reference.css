@@ -121,17 +121,7 @@
 .ui-as :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .ui-as textarea:focus-visible, .ui-as input:focus-visible { outline: none; }
 
-/* Primary buttons: one flat dark gray, with the soft light edge on top and faint one below from the Figma button 590:4159 */
-.ui-as-app .ui-button[data-variant="primary"] {
-  border-color: transparent;
-  background: var(--button);
-  color: var(--on-ink);
-  box-shadow:
-    inset 0 1px 0.5px rgba(255, 255, 255, 0.16),
-    inset 0 -1px 0.5px rgba(19, 20, 27, 0.1),
-    0 1px 2px rgba(19, 20, 27, 0.1);
-}
-.ui-as-app .ui-button[data-variant="primary"]:hover:not(:disabled) { background: var(--button-hover); }
+/* .ui-button is styled in uiarc/button/ui-button.css (UIArc Button). */
 
 /* App frame shared by all screens: sidebar on the gray page, main area as a rounded white panel */
 

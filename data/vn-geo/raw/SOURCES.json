@@ -1,0 +1,19 @@
+{
+  "provinces": {
+    "name": "vietnamese-provinces-database (administrative seeds)",
+    "url": "https://github.com/thanglequoc/vietnamese-provinces-database",
+    "license": "MIT (see seeds/LICENSE)",
+    "retrieved": "2026-11-03",
+    "files": 35,
+    "sha256": "9f266498a531ce198b6a41320b40dee74ad52e8acba159a7b695c38d07c8b056",
+    "version": "master at retrieval"
+  },
+  "addresses": {
+    "name": "trucmtnguyen/vietnam-address-collection",
+    "url": "https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection",
+    "license": "Apache-2.0",
+    "retrieved": "2026-11-03",
+    "sha256": "b371f8316d8beb72331ed19509a793dba3c3b65c6fd6ab9544f21f8677aff656",
+    "bytes": 14966388
+  }
+}

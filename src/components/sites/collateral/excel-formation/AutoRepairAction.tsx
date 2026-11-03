@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Wand2 } from "lucide-react";
 import { WorkspaceDialog } from "../../affectui-crm/WorkspaceDialog";
+import { Button } from "../../uiarc/button/Button";
 import type { CollateralEngine } from "../useCollateralEngine";
 import { downloadBlob } from "../download";
 import type { RepairProgress, RepairReport } from "./engine/auto-repair";
@@ -43,14 +44,14 @@ export function AutoRepairAction({ engine }: { engine: CollateralEngine }) {
   }
   const close = () => { if (running) { setCancelling(true); engine.cancelRepair(); } else setOpen(false); };
   return <>
-    <button type="button" className="ui-button cr-auto-trigger" data-variant="secondary" data-size="sm" disabled={engine.busy || engine.phase !== "ready" || !engine.result} onClick={() => void run()} title="Quét mọi trang tính, sửa ký tự ? bằng nguồn sạch cùng tài sản hoặc dự đoán đã hiệu chuẩn từ chính tệp. Không cần hồ sơ ánh xạ. Bản gốc không bị thay đổi."><Wand2 size={14} /><span className="ui-button__label">Tự động sửa Excel</span></button>
+    <Button variant="secondary" size="sm" className="cr-auto-trigger" loading={running} disabled={engine.busy && !running || engine.phase !== "ready" || !engine.result} onClick={() => void run()} title="Quét mọi trang tính, sửa ký tự ? bằng nguồn sạch cùng tài sản hoặc dự đoán đã hiệu chuẩn từ chính tệp. Không cần hồ sơ ánh xạ. Bản gốc không bị thay đổi."><Wand2 size={15} aria-hidden="true" />Tự động sửa Excel</Button>
     <WorkspaceDialog open={open} title="Tự động sửa Excel" onClose={close}>
       <div className="cr-auto-result" aria-busy={running}>
         <p>Xử lý tại thiết bị, không tải dữ liệu lên mạng. Bản gốc được giữ nguyên.</p>
         {running && <div role="status" aria-live="polite">
           <p>{p ? STAGE[p.stage] : "Bắt đầu xử lý"}</p>
           {p && <><progress max={Math.max(1, p.totalRows)} value={p.processedRows} aria-label="Số dòng đã xử lý trong giai đoạn hiện tại" /><p>{p.processedRows.toLocaleString()} / {p.totalRows.toLocaleString()} dòng · {p.applied.toLocaleString()} đủ bằng chứng · {p.unresolved.toLocaleString()} cần xem lại · {(p.elapsedMs / 1000).toFixed(1)} s</p></>}
-          <button type="button" className="ui-button" data-size="sm" disabled={cancelling} onClick={close}><span className="ui-button__label">{cancelling ? "Đang hủy ở điểm kiểm tra tiếp theo…" : "Hủy"}</span></button>
+          <Button variant="secondary" size="sm" disabled={cancelling} onClick={close}>{cancelling ? "Đang hủy ở điểm kiểm tra tiếp theo…" : "Hủy"}</Button>
         </div>}
         {failed && <p role="alert">{engine.failure?.message ?? "Không tạo tệp. Bản gốc và lịch sử rà soát được giữ nguyên."}</p>}
         {result && <>
@@ -78,7 +79,7 @@ export function AutoRepairAction({ engine }: { engine: CollateralEngine }) {
           <p>Còn {result.report.reviewBlocking.toLocaleString()} vấn đề nghiêm trọng trong rà soát. Cấu trúc XLSX và các ô đã được đối chiếu. Chưa kiểm tra tệp này bằng Excel desktop. JSON vẫn phải qua các điều kiện xuất riêng.</p>
           <p>Báo cáo chứa vị trí và lý do; không chứa nội dung ô hoặc mã định danh.</p>
           <p>Nhóm cùng tài sản có nội dung lỗi trùng trong tệp gốc: {result.report.duplicateGroups.withinAsset.groups.toLocaleString()} nhóm / {result.report.duplicateGroups.withinAsset.cells.toLocaleString()} ô. Duyệt một cách sửa trong Review and fix để áp dụng chung cho nhóm; các bản lỗi trùng nhau không tự chứng minh chữ cần điền.</p>
-          <div className="ui-sb-actions"><button type="button" className="ui-button" data-size="sm" onClick={() => downloadBlob(result.fileName, result.blob)}><span className="ui-button__label">{result.report.status === "NO_REPAIR_APPLIED" ? "Tải bản gốc (chưa sửa)" : "Tải lại Excel"}</span></button><button type="button" className="ui-button" data-variant="secondary" data-size="sm" onClick={() => { const file = reportFile(result); downloadBlob(file.name, file.blob); }}><span className="ui-button__label">Tải báo cáo sửa</span></button></div>
+          <div className="ui-sb-actions"><Button variant="primary" size="sm" onClick={() => downloadBlob(result.fileName, result.blob)}>{result.report.status === "NO_REPAIR_APPLIED" ? "Tải bản gốc (chưa sửa)" : "Tải lại Excel"}</Button><Button variant="secondary" size="sm" onClick={() => { const file = reportFile(result); downloadBlob(file.name, file.blob); }}>Tải báo cáo sửa</Button></div>
           <p>Nếu trình duyệt chặn tải nhiều tệp, dùng hai nút trên. Undo trong Review and fix hoàn tác cả lượt sửa.</p>
         </>}
       </div>

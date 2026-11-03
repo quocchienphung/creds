@@ -55,7 +55,7 @@ function styleKinds(xml: string): StyleKind[] {
 }
 
 function scanSheet(name: string, part: string, xml: string, strings: { value: string; rich: boolean }[], progress?: ProgressFn, budget = { cells: 0 }): Sheet {
-  const sheet: Sheet = { name, part, dimension: null, rows: [], hiddenRows: 0, hiddenColumns: 0, mergeCount: 0, autoFilter: false, formulaCount: 0, emptyRows: 0, maxCol: 0 };
+  const sheet: Sheet = { name, part, cellsVisited: 0, dimension: null, rows: [], hiddenRows: 0, hiddenColumns: 0, mergeCount: 0, autoFilter: false, formulaCount: 0, emptyRows: 0, maxCol: 0 };
   let row: Row | null = null, cell: Cell | null = null, col = -1, previousRow = 0, value = "", capture = "", phonetic = 0, nextReport = 0;
   const ranges: { r1: number; r2: number; c1: number; c2: number }[] = [];
   const protectRange = (ref: string) => {
@@ -72,6 +72,7 @@ function scanSheet(name: string, part: string, xml: string, strings: { value: st
       if (strings[Number(value)].rich) cell.protectedText = true;
     } else cell.v = cell.t === "n" || cell.t === "b" || cell.t === "e" || cell.t === "d" ? value : readXmlText(value);
     if (cell.f) sheet.formulaCount++;
+    sheet.cellsVisited!++;
     if (++budget.cells > 3_000_000 || cell.v.length > 32767) throw new CreditImportError("too-large", "Workbook cell or text budget exceeded.");
     // Keep empty, styled cells too: they participate in accounting and preservation.
     row.cells[col] = cell; sheet.maxCol = Math.max(sheet.maxCol, col + 1); cell = null; capture = "";
@@ -143,15 +144,16 @@ export function readWorkbook(bytes: Uint8Array, { fileName, fileHash, onProgress
       if (target.includes("..") || target.includes(":")) throw new Error("Unsafe worksheet target.");
       rels.set(token.attrs.Id, target.startsWith("/") ? target.slice(1) : `xl/${target.replace(/^\.\//, "")}`);
     }
-    const targets: { name: string; part: string }[] = [];
+    const targets: { name: string; part: string; rid: string; state: NonNullable<Sheet["state"]> }[] = [];
     for (const token of scanXml(workbookXml)) if (token.kind === "start") {
       if (token.name === "sheet") {
         const id = Object.entries(token.attrs).find(([key]) => key.endsWith(":id"))?.[1], part = id ? rels.get(id) : undefined;
         if (!part || !files[part]) throw new Error("Worksheet relationship or part is missing.");
         const name = readXmlText(token.attrs.name ?? "");
         if (!name || targets.some(t => t.name === name || t.part === part)) throw new Error("Duplicate worksheet identity.");
-        targets.push({ name, part });
-        if (token.attrs.state === "hidden" || token.attrs.state === "veryHidden") notes.push("The workbook has hidden sheets.");
+        const state = token.attrs.state === "hidden" || token.attrs.state === "veryHidden" ? token.attrs.state : "visible";
+        targets.push({ name, part, rid: id!, state });
+        if (state !== "visible") notes.push("The workbook has hidden sheets.");
       }
       if (token.name === "calcPr" && token.attrs.fullCalcOnLoad === "1") notes.push("The workbook recalculates on load.");
       if (token.name === "definedName") notes.push("The workbook has defined names.");
@@ -162,7 +164,20 @@ export function readWorkbook(bytes: Uint8Array, { fileName, fileHash, onProgress
     onProgress?.({ phase: "styles", fraction: 0 });
     const styles = files["xl/styles.xml"] ? styleKinds(decode("xl/styles.xml")) : [];
     const budget = { cells: 0 };
-    const sheets = targets.map(target => { const sheet = scanSheet(target.name, target.part, decode(target.part), strings, onProgress, budget); delete files[target.part]; return sheet; });
+    // One sheet that cannot be read does not take the others with it: it is kept as an empty sheet that says why, is never patched and is never shown as clean.
+    // Limits (size, budgets) still stop the whole file: they protect the machine, not one sheet.
+    const sheets = targets.map(target => {
+      try { const sheet = scanSheet(target.name, target.part, decode(target.part), strings, onProgress, budget); sheet.rid = target.rid; sheet.state = target.state; delete files[target.part]; return sheet; }
+      catch (error) {
+        if (error instanceof CreditImportError && error.code !== "corrupt") throw error;
+        delete files[target.part];
+        const reason = error instanceof CreditImportError ? error.message : "The worksheet XML is malformed or is not valid UTF-8.";
+        return { name: target.name, part: target.part, rid: target.rid, state: target.state, cellsVisited: 0, dimension: null, rows: [], hiddenRows: 0, hiddenColumns: 0, mergeCount: 0, autoFilter: false, formulaCount: 0, emptyRows: 0, maxCol: 0, error: reason } satisfies Sheet;
+      }
+    });
+    // When no sheet at all can be read there is nothing to scan: the file is refused with the reason of the first one.
+    if (sheets.every(sheet => sheet.error)) throw new CreditImportError("corrupt", sheets[0].error!);
+    for (const sheet of sheets) if (sheet.error) notes.push("A worksheet could not be read and is left untouched.");
     if (names.some(name => /vbaProject\.bin$/.test(name))) notes.push("The workbook contains a macro project. It is never executed and is kept untouched.");
     if (names.some(name => /^xl\/(?:comments|threadedComments|drawings\/|charts\/|tables\/)/.test(name))) notes.push("Comments, text boxes, charts and tables are not scanned: only the text of cells is.");
     names = [];
