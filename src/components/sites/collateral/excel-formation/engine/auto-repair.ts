@@ -16,6 +16,8 @@ import { patchesOf } from "./session.ts";
 import { analyzeValue } from "./detect.ts";
 import { otherCellBlockers } from "./workbook-coverage.ts";
 import { duplicateSummary, type DuplicateSummary } from "./duplicate-repairs.ts";
+import { recoverAddressText, type CellRecovery, type GeoStatus, type RepairPolicy } from "./geo/address-recovery.ts";
+import type { GeoEngine } from "./geo/geo-load.ts";
 export interface RepairProgress { stage: "evidence_index" | "candidate_generation" | "validation" | "patch" | "package_verification" | "download"; processedRows: number; totalRows: number; applied: number; unresolved: number; elapsedMs: number }
 export interface RepairReport {
   version: 2; mode: "Source-verified + calibrated model"; status: RepairOutcome; metrics: RepairMetrics; byReasonCode: Partial<Record<ReasonCode, number>>; calibration: Calibration; packageVerdict: PackageVerdict; modelVersion: string; policyVersion: string;
@@ -31,6 +33,8 @@ export interface RepairReport {
   workbook: { sheetsDiscovered: number; sheetsScanned: number; sheetsFailed: number; hiddenSheets: number; cellsVisited: number };
   /** Null when cells changed; otherwise whether and where the count first became zero. */
   zeroPatch: ZeroPatch | null;
+  /** The geographic address recovery; null when its data was not available to this run. */
+  geo: GeoReport | null;
   /** Candidates a protection rule refused (identifier, name, formula, rich text, an existing review). */
   rejected: number;
   /** One re-read check per written patch: where it is, how the cell was stored, and whether the exported cell holds exactly the approved value. No values. */
@@ -38,12 +42,25 @@ export interface RepairReport {
   locations: { sheetId: string; row: number; col: number; role: string; status: RepairStatus; reasonCode: string; reason: ReasonCode | null; evidence: RepairDecision["evidence"] }[];
   timings: Record<string, number>; validation: { roundTrip: boolean; packageIntegrity: boolean; desktopExcel: "not_tested" }; jsonReadiness: "separate_gates_required";
 }
-export interface AutoRepairOutput { bytes: Uint8Array; report: RepairReport; state: ReviewState; fileName: string }
+/** What the geographic recovery did, in counts only (no cell values): the report is safe to share. */
+export interface GeoReport {
+  policy: RepairPolicy; datasetVersion: string; highMargin: number; contextMargin: number;
+  /** Cells holding at least one address segment that was repaired, and the words repaired in them, by status. */
+  cellsRecovered: number; byStatus: Partial<Record<GeoStatus, number>>; forcedGuesses: number; lossyFallbacks: number; unresolvedInAddresses: number;
+  /** Never a claim of full verification while a guess or a lossy fallback was written. */
+  finalStatus: "ADDRESS_SPANS_COMPLETED" | "ADDRESS_SPANS_COMPLETED_WITH_FORCED_GUESSES" | "ADDRESS_SPANS_COMPLETED_WITH_LOSSY_FALLBACKS" | "ADDRESS_SPANS_PARTIAL" | "NO_ADDRESS_SPAN_REPAIRED";
+}
+/** The local audit of the geographic recovery: values included, so it is a separate download from the report. */
+export interface GeoAuditEntry { sheet: string; ref: string; original: string; repaired: string; words: { original: string; accented: string; ascii: string; status: GeoStatus; applied: boolean; margin: number | null; runnerUp?: string; evidence: string[] }[] }
+export interface AutoRepairOutput { bytes: Uint8Array; report: RepairReport; state: ReviewState; fileName: string; geoAudit: GeoAuditEntry[] }
+export interface AutoRepairOptions { cancelled?: () => boolean; onProgress?: (p: RepairProgress) => void; geo?: GeoEngine; policy?: RepairPolicy }
 export class RepairValidationError extends Error { constructor(message: string) { super(message); this.name = "RepairValidationError"; } }
 const pause = () => new Promise<void>(resolve => setTimeout(resolve, 0));
 
 /** One atomic transaction. Exceptions/cancellation/failed validation never commit partial state or offer a download. */
-export async function autoRepair(session: Session, state: ReviewState, options: { cancelled?: () => boolean; onProgress?: (p: RepairProgress) => void } = {}): Promise<AutoRepairOutput> {
+export async function autoRepair(session: Session, state: ReviewState, options: AutoRepairOptions = {}): Promise<AutoRepairOutput> {
+  const policy: RepairPolicy = options.policy ?? "FORCE_NO_QUESTION_MARK", geo = options.geo;
+  const recoveries = new Map<string, { sheet: string; ref: string; recovery: CellRecovery }>();
   // No profile, no header and no mapping is needed: the repair reads every sheet and every text cell of whatever workbook it is given.
   const start = performance.now(), totalRows = session.workbook.sheets.reduce((n, s) => n + s.rows.length + s.emptyRows, 0);
   let processed = 0, applied = 0, unresolved = 0;
@@ -136,8 +153,18 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
         const generated = generateCandidates(index, scope, entity, value);
         metrics.candidatesGenerated += generated.candidates.length;
         const ranked = rankCandidates(generated.candidates, index.model); metrics.candidatesRanked += ranked.length;
-        const decision = decideRepair({ sheetId: info.sheetId, row: row.r, col, role }, { ...cell, v: value }, ranked, generated.conflict, { calibrationEnabled: calibration.enabled, plan: () => planModelRepair(index.model, value, calibration) });
+        let decision = decideRepair({ sheetId: info.sheetId, row: row.r, col, role }, { ...cell, v: value }, ranked, generated.conflict, { calibrationEnabled: calibration.enabled, plan: () => planModelRepair(index.model, value, calibration) });
         if (decision.status === "unchanged" && findings.length) { decision.status = "needs_review"; decision.reasonCode = findings[0].category.toLowerCase(); decision.reason = "LOW_CONFIDENCE"; }
+        // Address and location parts are recovered from geographic knowledge, whatever the sheet; a clean same-asset record in this file still wins.
+        if (geo && !current && !cell.f && value.includes("?") && decision.status !== "source_verified" && (role === "freeText" || role === "name")) {
+          const recovery = recoverAddressText(value, geo.knowledge, { policy, calibration: geo.calibration, ...(spec ? { hints: { header: spec.header } } : {}) });
+          if (recovery.changed) {
+            recoveries.set(cellKey(sheet.name, row.r, col), { sheet: sheet.name, ref: columnLetters(col) + row.r, recovery });
+            const rest = corruptionSpans(recovery.value).some(span => span.kind !== "suspected_punctuation");
+            decision = { ...decision, proposed: recovery.value, status: "model_auto_accepted", evidence: [{ kind: "geo_recovery", sourceId: `vn-geo:${geo.datasetVersion}` }], reasonCode: "geo_address_recovery", reason: rest || recovery.remainingPlaceholders ? "PARTIAL_WORDS" : null };
+            delete decision.words;
+          }
+        }
         if (current) { decision.status = "blocked"; decision.reasonCode = "existing_review_patch"; decision.reason = "EXISTING_REVIEW"; delete decision.proposed; delete decision.words; }
         if (session.ctx.issuesAt(sheet.name, row.r, col).some(issue => state.states[issue.id]?.status === "accepted_exception")) { decision.status = "blocked"; decision.reasonCode = "reviewed_exception_preserved"; decision.reason = "EXISTING_REVIEW"; delete decision.proposed; delete decision.words; }
         record(sheet.name, decision, role, metrics);
@@ -179,6 +206,20 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   for (const { decision: d } of decisions) byStatus[d.status]++;
   byStatus.unchanged += unchanged;
   const reviewBlocking = summarize(next, session.ctx).blocking + otherCellBlockers(session, next);
+  // Only the recoveries that were really written count.
+  const geoAudit: GeoAuditEntry[] = [], geoCounts: Partial<Record<GeoStatus, number>> = {};
+  for (const { sheet, decision: d } of approved) {
+    const found = recoveries.get(cellKey(sheet, d.row, d.col)); if (!found) continue;
+    const tokens = found.recovery.segments.flatMap(segment => segment.tokens);
+    for (const token of tokens) geoCounts[token.status] = (geoCounts[token.status] ?? 0) + 1;
+    geoAudit.push({ sheet, ref: found.ref, original: d.original, repaired: d.proposed!, words: tokens.map(token => ({ original: token.original, accented: token.accented, ascii: token.ascii, status: token.status, applied: token.applied, margin: Number.isFinite(token.margin) ? +token.margin.toFixed(2) : null, ...(token.runnerUp ? { runnerUp: token.runnerUp } : {}), evidence: token.evidence })) });
+  }
+  const forced = geoCounts.forced_guess ?? 0, lossy = geoCounts.fallback_lossy ?? 0, left = (geoCounts.needs_review ?? 0) + (geoCounts.rejected_numeric_anchor_conflict ?? 0);
+  const geoReport: GeoReport | null = geo ? {
+    policy, datasetVersion: geo.datasetVersion, highMargin: geo.calibration.highMargin, contextMargin: geo.calibration.contextMargin,
+    cellsRecovered: geoAudit.length, byStatus: geoCounts, forcedGuesses: forced, lossyFallbacks: lossy, unresolvedInAddresses: left,
+    finalStatus: !geoAudit.length ? "NO_ADDRESS_SPAN_REPAIRED" : left ? "ADDRESS_SPANS_PARTIAL" : lossy ? "ADDRESS_SPANS_COMPLETED_WITH_LOSSY_FALLBACKS" : forced ? "ADDRESS_SPANS_COMPLETED_WITH_FORCED_GUESSES" : "ADDRESS_SPANS_COMPLETED",
+  } : null;
   timings.total = performance.now() - start;
   const base = session.workbook.fileName.replace(/\.xlsx$/i, "");
   const report: RepairReport = {
@@ -189,12 +230,12 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
     hiddenRowsIncluded: session.workbook.sheets.reduce((n, s) => n + s.hiddenRows, 0), hiddenRowsExcluded: 0, byStatus, byRole, byReason, sheets: [...sheetCounts.values()],
     locations: decisions.map(({ decision: d }) => ({ sheetId: d.sheetId, row: d.row, col: d.col, role: d.role, status: d.status, reasonCode: d.reasonCode, reason: d.reason, evidence: d.evidence })),
     workbook: { sheetsDiscovered: session.workbook.sheets.length, sheetsScanned: session.workbook.sheets.filter(sheet => !sheet.error).length, sheetsFailed: session.workbook.sheets.filter(sheet => sheet.error).length, hiddenSheets: session.workbook.sheets.filter(sheet => sheet.state && sheet.state !== "visible").length, cellsVisited: session.workbook.sheets.reduce((n, sheet) => n + (sheet.cellsVisited ?? 0), 0) },
-    zeroPatch: zeroPatchOf(total, byReasonCode), rejected: byStatus.blocked,
+    zeroPatch: zeroPatchOf(total, byReasonCode), geo: geoReport, rejected: byStatus.blocked,
     verification: checks.map(check => { const sheet = session.workbook.sheets.find(item => item.name === check.sheet)!, cell = sheet.rows.find(row => row.r === check.row)?.cells[check.col]; return { sheetId: sheetCounts.get(check.sheet)!.sheetId, ref: columnLetters(check.col) + check.row, part: sheet.part, rid: sheet.rid ?? "", storage: cell?.t ?? "none", ok: check.ok, changed: check.changed }; }),
     timings, validation: { roundTrip: true, packageIntegrity: true, desktopExcel: "not_tested" }, jsonReadiness: "separate_gates_required",
   };
   // Nothing changed: hand back the untouched input under a name that says so, never a re-compressed copy dressed as a repair.
   return noChange
-    ? { bytes: session.bytes.slice(), report, state, fileName: base + ".not-repaired.xlsx" }
-    : { bytes: patched.bytes, report, state: next, fileName: base + ".repaired.xlsx" };
+    ? { bytes: session.bytes.slice(), report, state, fileName: base + ".not-repaired.xlsx", geoAudit: [] }
+    : { bytes: patched.bytes, report, state: next, fileName: base + ".repaired.xlsx", geoAudit };
 }

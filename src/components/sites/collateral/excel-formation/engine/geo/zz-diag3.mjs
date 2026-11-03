@@ -1,0 +1,16 @@
+import { recoverAddressText } from "./address-recovery.ts";
+import { contextUnits } from "./address-recovery.ts";
+import { knowledge } from "./geo-fixture.mjs";
+const k = knowledge();
+const text = "X? Thanh Ph?, Th? x? B?nh Long, T?nh B?nh Ph??c";
+const r = recoverAddressText(text, k, { policy: "FORCE_NO_QUESTION_MARK" });
+for (const s of r.segments) for (const t of s.tokens) console.log(t.original, "->", t.accented, t.status, t.margin.toFixed(1), "runner", t.runnerUp, "|", t.evidence.join("; "));
+const ctx = contextUnits("Xã Thanh Phố, Thị xã Bình Long, Tỉnh Bình Phước", k);
+console.log([...ctx].map(id => k.units[id].type + " " + k.units[id].core + " p" + k.units[id].parent + " era" + k.units[id].era));
+const m = k.matchWindow(["thanh", "ph?"], 400);
+console.log(m.filter(x => x.name.text.includes("Thanh Phú")).map(x => x.name.text + "|" + x.name.group + "|unit" + x.name.unit + "|par" + x.name.parent + "|" + x.offset));
+console.log(k.names.filter(n => n.unit >= 0 && n.text.includes("Thanh Phú")).map(n => n.text + " unit " + n.unit + " parent " + n.parent));
+console.log("ctx ids", [...ctx].map(id => id + ":" + k.units[id].core));
+console.log("unit 90", k.units[90].type, k.units[90].core, "parent", k.units[90].parent, k.units[k.units[90].parent]?.core);
+const u = k.unitsByCore.get("binh long").map(x => x.id + ":" + x.type + ":p" + x.parent + ":" + x.era);
+console.log(u);

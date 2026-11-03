@@ -1,0 +1,8 @@
+{
+  "highMargin": 32,
+  "contextMargin": 0,
+  "heldOut": 17094,
+  "precisionAtHigh": 0.9961,
+  "precisionAtContext": 0.9584,
+  "method": "held-out wards (every 10th), 2000 damaged addresses, 17094 damaged words; smallest margin with precision >= 0.99 (high) and >= 0.95 among words backed by a name in the data (context)"
+}

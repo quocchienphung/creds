@@ -33,7 +33,7 @@ export interface CellRecovery {
 export interface RecoveryOptions { policy: RepairPolicy; calibration?: GeoCalibration; hints?: ClassifyHints; /** Also repair segments that are only ambiguous (default: address-like segments only). */ includeAmbiguous?: boolean }
 
 // Weights of the decoder. Fixed and documented; the margins that decide trust are calibrated on held-out data, not these.
-const W = { unigram: 1, bigram: 1.2, gazetteer: 2.2, exact: 1.5, context: 2.5, plainAtPlaceholder: 5 };
+const W = { unigram: 1, bigram: 1.2, gazetteer: 2.2, exact: 1.5, context: 2.5, plainAtPlaceholder: 5, unmarkedClean: 0.3, otherMarkClean: 0.1 };
 const GROUP_WEIGHT: Record<Gaz["group"], number> = { province: 3, district: 3, ward: 3, street: 1.5, place: 1.2, admin_osm: 2, address_part: 1, feature: 0.7 };
 const MAX_STATES = 24, MAX_ACCENTS = 4;
 
@@ -106,8 +106,19 @@ function applyGazetteer(words: Word[], knowledge: GeoKnowledge, context: Set<num
       if (word.kind !== "corrupt") return;
       const support = new Map<string, { weight: number; official: boolean; contextual: boolean }>();
       for (const { name, offset } of matches) {
+        // The type of an administrative unit (Thành phố, Thị xã) is not evidence for its name: hundreds of units share it.
+        const unit = name.unit >= 0 ? knowledge.units[name.unit] : undefined;
+        const typeLength = unit?.type ? unit.type.split(" ").length : 0;
+        if (offset + size <= typeLength) continue;
         const accented = name.toks[offset + position].toLowerCase();
-        let weight = GROUP_WEIGHT[name.group], contextual = false;
+        // A window that is only a small part of a long name says less about it than a window that is most of the name.
+        let weight = GROUP_WEIGHT[name.group] * Math.min(1, size / Math.max(1, name.toks.length - typeLength)), contextual = false;
+        // A clean word of the text that is not spelt like the name's syllable (no marks where the name has them, or other marks) is weaker evidence for that name.
+        window.forEach((other, q) => {
+          if (other.kind !== "clean") return;
+          const spelt = nfc(other.piece.text).toLowerCase(), have = name.toks[offset + q].toLowerCase();
+          if (spelt !== have) weight *= spelt === toAscii(spelt) ? W.unmarkedClean : W.otherMarkClean;
+        });
         const chain = name.unit >= 0 ? [name.unit, ...ancestry(knowledge, name.parent)] : ancestry(knowledge, name.parent);
         if (context.size && chain.some(id => context.has(id))) { weight *= W.context; contextual = true; }
         if (offset === 0 && size === name.toks.length) weight *= W.exact;
@@ -223,11 +234,16 @@ function repairSegment(segment: Segment, knowledge: GeoKnowledge, options: Requi
 export function recoverAddressText(text: string, knowledge: GeoKnowledge, options: RecoveryOptions): CellRecovery {
   const policy = options.policy, calibration = options.calibration ?? UNCALIBRATED;
   const segments = classifySegments(text, knowledge, options.hints);
-  const cellContext = contextUnits(text, knowledge);
-  const repairs: SegmentRepair[] = [];
-  for (const segment of segments) {
-    const eligible = isAddressClass(segment.class) || options.includeAmbiguous && segment.class === "AMBIGUOUS";
-    repairs.push(eligible ? repairSegment(segment, knowledge, { policy, calibration }, cellContext, text) : { segment, tokens: [] });
+  const eligible = (segment: Segment) => isAddressClass(segment.class) || options.includeAmbiguous && segment.class === "AMBIGUOUS";
+  const run = (cellContext: Set<number>) => segments.map(segment => eligible(segment) ? repairSegment(segment, knowledge, { policy, calibration }, cellContext, text) : { segment, tokens: [] });
+  let cellContext = contextUnits(text, knowledge), repairs = run(cellContext);
+  // A cell whose units are damaged too (ward, district and province all with ?) has no clean context. Read the units from the best phrase of the first
+  // pass and decode again with them: the names then have to agree with the units the whole phrase points to.
+  if (repairs.some(repair => repair.tokens.some(token => token.applied && token.margin < calibration.highMargin))) {
+    let guess = text;
+    for (const token of repairs.flatMap(repair => repair.tokens).filter(token => token.applied && token.accented).sort((a, b) => b.start - a.start)) guess = guess.slice(0, token.start) + token.accented + guess.slice(token.end);
+    const wider = contextUnits(guess, knowledge);
+    if ([...wider].some(id => !cellContext.has(id))) { cellContext = new Set([...cellContext, ...wider]); repairs = run(cellContext); }
   }
   let value = text;
   const applied = repairs.flatMap(repair => repair.tokens).filter(token => token.applied).sort((a, b) => b.start - a.start);

@@ -1,0 +1,63 @@
+{
+  "data": {
+    "heldOutWards": 572,
+    "trainStreets": 71427,
+    "heldOutStreets": 8475,
+    "addresses": 2000,
+    "damagedWords": 17094,
+    "wordsProcessed": 17094
+  },
+  "corruption": {
+    "placeholderShare": 0.7,
+    "upperCaseShare": 0.25,
+    "note": "an accented letter becomes ? or its plain letter; plain letters are never touched"
+  },
+  "results": {
+    "exactAddressAscii": 0.698,
+    "exactAddressAsciiUnseenStreetName": 0.6988,
+    "unseenStreetNameAddresses": 1942,
+    "wordAccuracy": 0.9495,
+    "wordsCoveredByAddressSegments": 1,
+    "remainingQuestionMarks": 2,
+    "byStatus": {
+      "high_confidence_auto": {
+        "tokens": 6997,
+        "precision": 0.9646991567814778
+      },
+      "verified_official": {
+        "tokens": 9320,
+        "precision": 0.9663090128755365
+      },
+      "forced_guess": {
+        "tokens": 693,
+        "precision": 0.6132756132756133
+      },
+      "contextual_auto": {
+        "tokens": 81,
+        "precision": 0.6172839506172839
+      },
+      "fallback_lossy": {
+        "tokens": 1,
+        "precision": 0
+      },
+      "unchanged_legitimate_punctuation": {
+        "tokens": 1,
+        "precision": 0
+      },
+      "rejected_numeric_anchor_conflict": {
+        "tokens": 1,
+        "precision": 0
+      }
+    }
+  },
+  "calibration": {
+    "highMargin": 32,
+    "precisionAtHigh": 0.9961489088575096,
+    "tokensAtHigh": 3895,
+    "contextMargin": 0,
+    "precisionAtContext": 0.9584458077709611,
+    "tokensAtContext": 12225
+  },
+  "seconds": 36.7,
+  "msPerAddress": 18.3
+}
