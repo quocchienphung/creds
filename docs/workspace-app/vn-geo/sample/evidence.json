@@ -1,0 +1,156 @@
+{
+  "workbook": "mau-khong-phai-mau9.xlsx (synthetic, 3 sheets, 1 hidden-style sheet \"An\")",
+  "policy": "FORCE_NO_QUESTION_MARK",
+  "datasetVersion": "2026-11-03",
+  "knowledge": "held-out wards removed: no street or ward of this sample was in the knowledge the engine used",
+  "independentReader": "python -I independent-xlsx-dump.py (zipfile + ElementTree, no code shared with the app)",
+  "addressCells": 60,
+  "exactlyRight": 50,
+  "withQuestionMarkLeft": 1,
+  "unchangedByDesign": [
+    {
+      "ref": "Tai san!B27",
+      "before": "Thua 12?3, to ban do so 4",
+      "after": "Thua 12?3, to ban do so 4",
+      "unchanged": true
+    },
+    {
+      "ref": "Tai san!B28",
+      "before": "Ban co dong y khong?",
+      "after": "Ban co dong y khong",
+      "unchanged": false
+    },
+    {
+      "ref": "Tai san!B29",
+      "before": "MA?2024",
+      "after": "MA?2024",
+      "unchanged": true
+    }
+  ],
+  "changedOutsideAddresses": [
+    "Tai san!B28"
+  ],
+  "report": {
+    "status": "REPAIRED_PARTIALLY",
+    "geo": {
+      "policy": "FORCE_NO_QUESTION_MARK",
+      "datasetVersion": "2026-11-03",
+      "highMargin": 24,
+      "contextMargin": 0,
+      "cellsRecovered": 61,
+      "byStatus": {
+        "contextual_auto": 82,
+        "verified_official": 565,
+        "high_confidence_auto": 35,
+        "forced_guess": 7,
+        "fallback_lossy": 1
+      },
+      "forcedGuesses": 7,
+      "lossyFallbacks": 1,
+      "unresolvedInAddresses": 0,
+      "finalStatus": "ADDRESS_SPANS_COMPLETED_WITH_LOSSY_FALLBACKS"
+    },
+    "sheets": [
+      {
+        "sheetId": "sheet-1",
+        "status": "scanned",
+        "verifiedChanges": 26
+      },
+      {
+        "sheetId": "sheet-2",
+        "status": "scanned",
+        "verifiedChanges": 25
+      },
+      {
+        "sheetId": "sheet-3",
+        "status": "scanned",
+        "verifiedChanges": 10
+      }
+    ],
+    "outputCellsChanged": 61,
+    "outputUnexpectedChanges": 0,
+    "verificationAllOk": true
+  },
+  "wrong": [
+    {
+      "ref": "Tai san!B2",
+      "before": "???ng T? Ph?n H?, X? N?m T?, Huy?n Ho?ng Su Ph?, T?nh H? Giang",
+      "after": "Duong Ta Phin Ho, Xa Nam Ty, Huyen Hoang Su Phi, Tinh Ha Giang",
+      "expected": "duong Ta Phin Ho, Xa Nam Ty, Huyen Hoang Su Phi, Tinh Ha Giang",
+      "exact": false,
+      "questionMarkLeft": false
+    },
+    {
+      "ref": "Tai san!B8",
+      "before": "Ph?m Duy Trinh, Th? tr?n ??t ??, Huy?n ??t ??, T?nh B? R?a - V?ng T?u",
+      "after": "Ph?m Duy Trinh, Thi tran Dat Da, Huyen Dat Da, Tinh Ba Ria - Vung Tau",
+      "expected": "Pham Duy Trinh, Thi tran Dat Do, Huyen Dat Do, Tinh Ba Ria - Vung Tau",
+      "exact": false,
+      "questionMarkLeft": true
+    },
+    {
+      "ref": "Tai san!B17",
+      "before": "???ng ?X 113, Ph??ng T?n An, Th?nh ph? Th? D?u M?t, T?nh B?nh D??ng",
+      "after": "Duong Dx 113, Phuong Tan An, Thanh pho Thu Dau Mot, Tinh Binh Duong",
+      "expected": "Duong DX 113, Phuong Tan An, Thanh pho Thu Dau Mot, Tinh Binh Duong",
+      "exact": false,
+      "questionMarkLeft": false
+    },
+    {
+      "ref": "Tai san!B20",
+      "before": "Ph? Tr??ng V?n L?c, Ph??ng H?ng V??ng, Qu?n H?ng B?ng, Th?nh ph? H?i Ph?ng",
+      "after": "Pho Truong Van Loc, Phuong Hung Vuong, Quan Hong Bang, Thanh pho Hai Phong",
+      "expected": "Pho Truong Van Luc, Phuong Hung Vuong, Quan Hong Bang, Thanh pho Hai Phong",
+      "exact": false,
+      "questionMarkLeft": false
+    },
+    {
+      "ref": "Tai san!B23",
+      "before": "???ng 05 Th?n D?nh Sen - Nam H?c, X? Ho?ng Phong, Huy?n Ho?ng H?a, T?nh Thanh H?a",
+      "after": "Duong 05 Thon Dinh Sen - Nam Hoc, Xa Hoang Phong, Huyen Hoang Hoa, Tinh Thanh Hoa",
+      "expected": "Duong 05 Thon Dinh Sen - Nam Hac, Xa Hoang Phong, Huyen Hoang Hoa, Tinh Thanh Hoa",
+      "exact": false,
+      "questionMarkLeft": false
+    },
+    {
+      "ref": "Bat dong san!C15",
+      "before": "??ng Minh, Ph??ng ??ng H?a, Th? x? D? An, T?nh B?nh D??ng",
+      "after": "Dang Minh, Phuong Dong Hoa, Thi xa Di An, Tinh Binh Duong",
+      "expected": "Dong Minh, Phuong Dong Hoa, Thi xa Di An, Tinh Binh Duong",
+      "exact": false,
+      "questionMarkLeft": false
+    },
+    {
+      "ref": "Bat dong san!C19",
+      "before": "???ng N?m S?n, Ph??ng Kh?c Ni?m, Th?nh ph? B?c Ninh, T?nh B?c Ninh",
+      "after": "Duong Nam Son, Phuong Khac Niem, Thanh pho Bac Ninh, Tinh Bac Ninh",
+      "expected": "Duong Nem Son, Phuong Khac Niem, Thanh pho Bac Ninh, Tinh Bac Ninh",
+      "exact": false,
+      "questionMarkLeft": false
+    },
+    {
+      "ref": "Bat dong san!C25",
+      "before": "?i Cao B?, X? Kh?nh H?a, Huy?n Y?n Kh?nh, T?nh Ninh B?nh",
+      "after": "Di Cao Ba, Xa Khanh Hoa, Huyen Yen Khanh, Tinh Ninh Binh",
+      "expected": "Di Cao Bo, Xa Khanh Hoa, Huyen Yen Khanh, Tinh Ninh Binh",
+      "exact": false,
+      "questionMarkLeft": false
+    },
+    {
+      "ref": "An!B5",
+      "before": "???ng s? 31 Tr?nh Phong ??ng, X? Tr??ng H?a, Huy?n H?a Th?nh, T?nh T?y Ninh",
+      "after": "Duong so 31 Trinh Phong Dong, Xa Truong Hoa, Huyen Hoa Thanh, Tinh Tay Ninh",
+      "expected": "Duong so 31 Trinh Phong Dang, Xa Truong Hoa, Huyen Hoa Thanh, Tinh Tay Ninh",
+      "exact": false,
+      "questionMarkLeft": false
+    },
+    {
+      "ref": "An!B10",
+      "before": "H?m 606/154 ???ng 3/2, Ph??ng 14, Qu?n 10, Th?nh ph? H? Ch? Minh",
+      "after": "Hem 606/154 Duong 3/2, Phuong 14, Quan 10, Thanh pho Ho Chi Minh",
+      "expected": "Hem 606/154 duong 3/2, Phuong 14, Quan 10, Thanh pho Ho Chi Minh",
+      "exact": false,
+      "questionMarkLeft": false
+    }
+  ]
+}
