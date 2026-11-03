@@ -6,6 +6,6 @@
 .arc-floating__highlight { position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: color-mix(in oklab, var(--ink) 8%, transparent); pointer-events: none; }
 .arc-floating__button[data-primary] .arc-floating__highlight { background: color-mix(in oklab, var(--card) 18%, transparent); }
 .arc-floating__icon, .arc-floating__label { position: relative; display: inline-flex; align-items: center; }
-.collateral .arc-floating__button:active { scale: 1; }
+.crm-page .collateral .arc-floating__button:not(:disabled):active { scale: 1; }
 @media (max-width: 560px) { .arc-floating { gap: 2px; border-radius: 13px; } .arc-floating__button { min-width: 36px; padding: 0 9px; } .arc-floating__button:not([data-primary]) .arc-floating__label { display: none; } }
 @media (prefers-reduced-motion: reduce) { .arc-floating * { scroll-behavior: auto; } }

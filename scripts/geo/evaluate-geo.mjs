@@ -10,7 +10,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { GeoKnowledge } from "../../src/components/sites/collateral/excel-formation/engine/geo/geo-knowledge.ts";
 import { recoverAddressText, UNCALIBRATED } from "../../src/components/sites/collateral/excel-formation/engine/geo/address-recovery.ts";
-import { foldKey, toAscii, pieces } from "../../src/components/sites/collateral/excel-formation/engine/geo/vn-text.ts";
+import { foldKey, toAscii } from "../../src/components/sites/collateral/excel-formation/engine/geo/vn-text.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const out = join(root, "public", "data", "vn-geo");
@@ -45,7 +45,7 @@ function damage(text) {
 }
 
 const rows = [];
-let cells = 0, tokens = 0, covered = 0, correctCells = 0, remaining = 0, unseenCells = 0, unseenCorrect = 0, falseChanges = 0;
+let cells = 0, tokens = 0, covered = 0, correctCells = 0, remaining = 0, unseenCells = 0, unseenCorrect = 0;
 const t0 = performance.now();
 for (const item of sample) {
   const original = address(item), upper = random() < 0.25, source = upper ? original.toUpperCase() : original;
@@ -64,9 +64,6 @@ for (const item of sample) {
     if (!right) allRight = false;
     rows.push({ margin: Number.isFinite(token.margin) ? token.margin : 99, right, status: token.status, official: token.evidence.some(line => line.includes("official")), gazetteer: token.evidence.some(line => line.includes("geographic data")) });
   }
-  // Text that was not damaged must come out unchanged.
-  const untouched = [...pieces(text)].filter(piece => piece.kind === "word" && !piece.text.includes("?"));
-  for (const piece of untouched) if (result.value.indexOf(piece.text) < 0 && !result.segments.some(segment => segment.tokens.length)) falseChanges++;
   if (result.value !== truth) allRight = false;
   if (allRight) correctCells++;
   if (unseen) { unseenCells++; if (allRight) unseenCorrect++; }

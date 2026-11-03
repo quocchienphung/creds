@@ -2,6 +2,7 @@ import { catalog } from './catalog';
 export const finalPreview = catalog(`
 Preview & export	Xem trước & xuất
 Final preview	Bản xem trước cuối
+This preview has no changed cells. Export will contain the original values.	Bản xem trước chưa có ô nào thay đổi. File xuất sẽ giữ các giá trị gốc.
 Your workbook, before you export	Kiểm tra file trước khi xuất
 Compare the original and edited values. Click a cell to review it; only Expand opens fullscreen.	Đối chiếu bản gốc và bản sửa. Bấm ô để xem và chỉnh; chỉ nút Mở rộng mới mở toàn màn hình.
 Not exported	Chưa xuất file
