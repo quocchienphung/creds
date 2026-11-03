@@ -22,8 +22,8 @@ const STRONG: readonly NameGroup[] = ["province", "district", "ward", "street", 
 interface TypeInfo { phrase: string; groups: Set<NameGroup>; strong: boolean }
 /** Types and their abbreviations, derived from the knowledge once. */
 export class TypeIndex {
-  /** The one type that fits a damaged type word (huy?n), if exactly one does. */
-  declare findPattern: (parts: string[]) => TypeInfo | undefined;
+  /** The types that fit a damaged type word (huy?n), the strong ones first. */
+  declare findPatterns: (parts: string[]) => TypeInfo[];
   readonly types = new Map<string, TypeInfo>();
   readonly abbreviations = new Map<string, TypeInfo[]>();
   readonly longest: number;
@@ -39,10 +39,10 @@ export class TypeIndex {
     this.longest = Math.max(1, ...[...this.types.keys()].map(key => key.split(" ").length));
   }
 }
-TypeIndex.prototype.findPattern = function findPattern(this: TypeIndex, parts: string[]) {
+TypeIndex.prototype.findPatterns = function findPatterns(this: TypeIndex, parts: string[]) {
   const shape = parts.map(part => part.length).join(","), found: TypeInfo[] = [];
   for (const key of (this as unknown as { byShape: Map<string, string[]> }).byShape.get(shape) ?? []) { const have = key.split(" "); if (parts.every((part, i) => [...part].every((ch, j) => ch === "?" || ch === have[i][j]))) found.push(this.types.get(key)!); }
-  return found.length === 1 ? found[0] : undefined;
+  return found.sort((a, b) => Number(b.strong) - Number(a.strong));
 };
 const indexes = new WeakMap<GeoKnowledge, TypeIndex>();
 export const typeIndexOf = (knowledge: GeoKnowledge): TypeIndex => { let index = indexes.get(knowledge); if (!index) indexes.set(knowledge, index = new TypeIndex(knowledge)); return index; };
@@ -72,23 +72,23 @@ export function classifySegment(segment: string, knowledge: GeoKnowledge, hints:
   // 1. A type word (Phường, Hẻm, Chung cư, ...) or its abbreviation, followed by something it can introduce. Strong types count fully, the others half.
   const typeGroups = new Set<NameGroup>();
   let typeScore = 0, typeHits = 0;
+  // A type introduces something that exists: a number (house, ward and alley numbers), or a name that really follows this type in the data.
+  const introduces = (hit: TypeInfo, follow: string | undefined) => follow !== undefined && (NUMBER.test(follow) ? hit.strong : knowledge.matchWindow([...foldKey(hit.phrase).split(" "), follow], 1).length > 0);
   for (let at = 0; at + 1 < folds.length; at++) {
-    let hit: TypeInfo | undefined, size = 0;
-    for (let trySize = Math.min(index.longest, folds.length - at - 1); trySize >= 1 && !hit; trySize--) { const parts = folds.slice(at, at + trySize); hit = index.types.get(parts.join(" ")) ?? (parts.some(part => part.includes("?")) ? index.findPattern(parts) : undefined); if (hit) size = trySize; }
-    if (!hit && !words[at].includes("?")) {
+    let picked: TypeInfo | undefined, size = 0;
+    for (let trySize = Math.min(index.longest, folds.length - at - 1); trySize >= 1 && !picked; trySize--) {
+      const parts = folds.slice(at, at + trySize), follow = folds[at + trySize];
+      const options = [index.types.get(parts.join(" ")), ...(parts.some(part => part.includes("?")) ? index.findPatterns(parts) : [])].filter((option): option is TypeInfo => !!option);
+      picked = options.find(option => introduces(option, follow)); if (picked) size = trySize;
+    }
+    if (!picked && !words[at].includes("?")) {
       const abbreviated = index.abbreviations.get(folds[at]);
-      const dotted = /^\.[\p{L}\d?]/u.test(segment.slice(wordPieces[at].end, wordPieces[at].end + 2)) || NUMBER.test(folds[at + 1]);
-      if (abbreviated && (folds[at].length >= 2 || dotted)) { hit = abbreviated[0]; size = 1; }
+      const dotted = /^.[p{L}d?]/u.test(segment.slice(wordPieces[at].end, wordPieces[at].end + 2)) || NUMBER.test(folds[at + 1]);
+      if (abbreviated && (folds[at].length >= 2 || dotted)) { picked = abbreviated.find(option => introduces(option, folds[at + 1])); size = 1; }
     }
-    if (hit) {
-      // The type must introduce something that exists: a number (house, ward and alley numbers), or a name that really follows this type in the data.
-      const follow = folds[at + size];
-      const introduces = follow !== undefined && (NUMBER.test(follow) ? hit.strong : knowledge.matchWindow([...foldKey(hit.phrase).split(" "), follow], 1).length > 0);
-      if (introduces) { typeHits++; typeScore += hit.strong ? 2.5 : 1.5; for (const group of hit.groups) typeGroups.add(group); }
-      at += size - 1;
-    }
+    if (picked) { typeHits++; typeScore += picked.strong ? 3 : 1.5; for (const group of picked.groups) typeGroups.add(group); at += size - 1; }
   }
-  if (typeHits) { score += Math.min(3.5, typeScore); evidence.push(`type words: ${typeHits}`); }
+  if (typeHits) { score += Math.min(4, typeScore); evidence.push(`type words: ${typeHits}`); }
 
   // 2. Windows of clean words that are the core of an administrative unit.
   let admin = 0;
@@ -139,8 +139,9 @@ export function classifySegment(segment: string, knowledge: GeoKnowledge, hints:
  */
 export function classifySegments(text: string, knowledge: GeoKnowledge, hints: ClassifyHints = {}): Segment[] {
   const segments: Segment[] = segmentsOf(text).map(part => ({ ...part, ...classifySegment(part.text, knowledge, hints) }));
+  // In a list of address parts the parts without a type word of their own (a street name, a house number) belong to it too.
   if (segments.some(segment => isAddressClass(segment.class) && segment.score >= 3.5))
-    for (const segment of segments) if (segment.class === "AMBIGUOUS") { segment.class = "ADMINISTRATIVE_ADDRESS"; segment.evidence.push("next to an address in the same cell"); }
+    for (const segment of segments) if ((segment.class === "AMBIGUOUS" || segment.class === "GENERAL_VIETNAMESE_TEXT" || segment.class === "NON_ADDRESS_TEXT") && segment.text.split(/s+/).length <= 8) { segment.class = "ADMINISTRATIVE_ADDRESS"; segment.evidence.push("part of an address list in the same cell"); }
   return segments;
 }
 export const isAddressClass = (cls: SpanClass): boolean => ADDRESS_CLASSES.includes(cls);
