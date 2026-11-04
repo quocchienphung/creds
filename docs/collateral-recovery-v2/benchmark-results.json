@@ -1,0 +1,643 @@
+{
+  "labVersion": "synthetic-lab-1",
+  "SYNTHETIC": true,
+  "warning": "SYNTHETIC benchmark: text generated from the ontology and damaged by simulated operators. REAL-WORLD ACCURACY NOT VERIFIED.",
+  "conceptCount": {
+    "train": 732,
+    "validation": 138,
+    "test": 163
+  },
+  "recordsPerSeed": 600,
+  "seeds": 3,
+  "calibration": {
+    "version": "collateral-calibration-synthetic-lab-1",
+    "minMargin": {
+      "low": 6,
+      "high": 10
+    },
+    "forceSlotMargin": 2,
+    "heldOutWords": 1468,
+    "precision": {
+      "low": 0.9909,
+      "high": 0.9922
+    },
+    "method": "SYNTHETIC validation split (600 records, 1468 damaged words in ontology phrases), lexicon of train concepts only; smallest margin per impact tier with precision >= 0.99 (n >= 100); forceSlotMargin: smallest margin at which high-impact words are right >= 95% (below it FORCE writes KHONG XAC DINH)",
+    "synthetic": true
+  },
+  "calibrationPopulations": {
+    "low": {
+      "thr": 6,
+      "words": 883,
+      "precision": 0.9909399773499433
+    },
+    "high": {
+      "thr": 10,
+      "words": 386,
+      "precision": 0.9922279792746114
+    }
+  },
+  "conditions": {
+    "held_out_concepts": {
+      "existing_predict_baseline|SAFE_AUTO": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.7523,
+        "exactCell": 0.195,
+        "applied": 1864.3333,
+        "appliedPrecision": 0.8744,
+        "coverage": 0.8603,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 315,
+        "questionMarkCompletion": 0.8616,
+        "cellsWithQuestionMarkLeft": 202,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 39,
+        "msPerCell": 0.0336,
+        "wordAccuracyRange": [
+          0.7401,
+          0.7646
+        ],
+        "seeds": 3
+      },
+      "existing_predict_baseline|FORCE_NO_QUESTION_MARK": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.7817,
+        "exactCell": 0.2106,
+        "applied": 2167.3333,
+        "appliedPrecision": 0.7817,
+        "coverage": 1,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 0,
+        "questionMarkCompletion": 1,
+        "cellsWithQuestionMarkLeft": 0,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 48.3333,
+        "msPerCell": 0.0352,
+        "wordAccuracyRange": [
+          0.7691,
+          0.7949
+        ],
+        "seeds": 3
+      },
+      "address_only_geo|SAFE_AUTO": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.2813,
+        "exactCell": 0.0517,
+        "applied": 761,
+        "appliedPrecision": 0.8019,
+        "coverage": 0.3509,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 1471.3333,
+        "questionMarkCompletion": 0.3521,
+        "cellsWithQuestionMarkLeft": 478,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 20,
+        "msPerCell": 12.6333,
+        "wordAccuracyRange": [
+          0.2803,
+          0.2823
+        ],
+        "seeds": 3
+      },
+      "address_only_geo|FORCE_NO_QUESTION_MARK": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.6054,
+        "exactCell": 0.1033,
+        "applied": 1974.6667,
+        "appliedPrecision": 0.6644,
+        "coverage": 0.9112,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 198.3333,
+        "questionMarkCompletion": 0.9128,
+        "cellsWithQuestionMarkLeft": 68,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 70.6667,
+        "msPerCell": 14.1914,
+        "wordAccuracyRange": [
+          0.6033,
+          0.6084
+        ],
+        "seeds": 3
+      },
+      "domain_retrieval_only|SAFE_AUTO": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.3241,
+        "exactCell": 0.0705,
+        "applied": 701.3333,
+        "appliedPrecision": 1,
+        "coverage": 0.3241,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 1554.6667,
+        "questionMarkCompletion": 0.3163,
+        "cellsWithQuestionMarkLeft": 484.3333,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 0,
+        "msPerCell": 0.7927,
+        "wordAccuracyRange": [
+          0.3117,
+          0.333
+        ],
+        "seeds": 3
+      },
+      "domain_retrieval_only|FORCE_NO_QUESTION_MARK": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.6171,
+        "exactCell": 0.2206,
+        "applied": 2166,
+        "appliedPrecision": 0.6175,
+        "coverage": 0.9994,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 2.3333,
+        "questionMarkCompletion": 0.999,
+        "cellsWithQuestionMarkLeft": 2.3333,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 4.6667,
+        "msPerCell": 0.75,
+        "wordAccuracyRange": [
+          0.5933,
+          0.6638
+        ],
+        "seeds": 3
+      },
+      "domain_decoder|SAFE_AUTO": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.7231,
+        "exactCell": 0.1783,
+        "applied": 1585,
+        "appliedPrecision": 0.9879,
+        "coverage": 0.732,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 620.3333,
+        "questionMarkCompletion": 0.7277,
+        "cellsWithQuestionMarkLeft": 301.3333,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 0,
+        "msPerCell": 0.751,
+        "wordAccuracyRange": [
+          0.7024,
+          0.7395
+        ],
+        "seeds": 3
+      },
+      "domain_decoder|FORCE_NO_QUESTION_MARK": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.828,
+        "exactCell": 0.2528,
+        "applied": 2165,
+        "appliedPrecision": 0.8289,
+        "coverage": 0.9989,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 2.3333,
+        "questionMarkCompletion": 0.999,
+        "cellsWithQuestionMarkLeft": 2.3333,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 7.6667,
+        "msPerCell": 0.7729,
+        "wordAccuracyRange": [
+          0.8071,
+          0.8501
+        ],
+        "seeds": 3
+      },
+      "domain_decoder_plus_synthetic_corpus|SAFE_AUTO": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.71,
+        "exactCell": 0.18,
+        "applied": 1592.6667,
+        "appliedPrecision": 0.9666,
+        "coverage": 0.7346,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 621,
+        "questionMarkCompletion": 0.7267,
+        "cellsWithQuestionMarkLeft": 298,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 4,
+        "msPerCell": 5.4371,
+        "wordAccuracyRange": [
+          0.7054,
+          0.7191
+        ],
+        "seeds": 3
+      },
+      "domain_decoder_plus_synthetic_corpus|FORCE_NO_QUESTION_MARK": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.7912,
+        "exactCell": 0.2339,
+        "applied": 2165.3333,
+        "appliedPrecision": 0.7918,
+        "coverage": 0.9991,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 2.3333,
+        "questionMarkCompletion": 0.999,
+        "cellsWithQuestionMarkLeft": 2.3333,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 32.3333,
+        "msPerCell": 5.3111,
+        "wordAccuracyRange": [
+          0.7769,
+          0.8005
+        ],
+        "seeds": 3
+      }
+    },
+    "in_lexicon": {
+      "existing_predict_baseline|SAFE_AUTO": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.7523,
+        "exactCell": 0.195,
+        "applied": 1864.3333,
+        "appliedPrecision": 0.8744,
+        "coverage": 0.8603,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 315,
+        "questionMarkCompletion": 0.8616,
+        "cellsWithQuestionMarkLeft": 202,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 39,
+        "msPerCell": 0.0314,
+        "wordAccuracyRange": [
+          0.7401,
+          0.7646
+        ],
+        "seeds": 3
+      },
+      "existing_predict_baseline|FORCE_NO_QUESTION_MARK": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.7817,
+        "exactCell": 0.2106,
+        "applied": 2167.3333,
+        "appliedPrecision": 0.7817,
+        "coverage": 1,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 0,
+        "questionMarkCompletion": 1,
+        "cellsWithQuestionMarkLeft": 0,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 48.3333,
+        "msPerCell": 0.0299,
+        "wordAccuracyRange": [
+          0.7691,
+          0.7949
+        ],
+        "seeds": 3
+      },
+      "address_only_geo|SAFE_AUTO": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.2813,
+        "exactCell": 0.0517,
+        "applied": 761,
+        "appliedPrecision": 0.8019,
+        "coverage": 0.3509,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 1471.3333,
+        "questionMarkCompletion": 0.3521,
+        "cellsWithQuestionMarkLeft": 478,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 20,
+        "msPerCell": 11.8315,
+        "wordAccuracyRange": [
+          0.2803,
+          0.2823
+        ],
+        "seeds": 3
+      },
+      "address_only_geo|FORCE_NO_QUESTION_MARK": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.6054,
+        "exactCell": 0.1033,
+        "applied": 1974.6667,
+        "appliedPrecision": 0.6644,
+        "coverage": 0.9112,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 198.3333,
+        "questionMarkCompletion": 0.9128,
+        "cellsWithQuestionMarkLeft": 68,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 70.6667,
+        "msPerCell": 14.4519,
+        "wordAccuracyRange": [
+          0.6033,
+          0.6084
+        ],
+        "seeds": 3
+      },
+      "domain_retrieval_only|SAFE_AUTO": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.3418,
+        "exactCell": 0.075,
+        "applied": 740.3333,
+        "appliedPrecision": 1,
+        "coverage": 0.3418,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 1514.6667,
+        "questionMarkCompletion": 0.3336,
+        "cellsWithQuestionMarkLeft": 471.6667,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 0,
+        "msPerCell": 0.9029,
+        "wordAccuracyRange": [
+          0.3378,
+          0.3477
+        ],
+        "seeds": 3
+      },
+      "domain_retrieval_only|FORCE_NO_QUESTION_MARK": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.6804,
+        "exactCell": 0.2572,
+        "applied": 2165.6667,
+        "appliedPrecision": 0.6809,
+        "coverage": 0.9992,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 2.3333,
+        "questionMarkCompletion": 0.999,
+        "cellsWithQuestionMarkLeft": 2.3333,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 4.6667,
+        "msPerCell": 0.8755,
+        "wordAccuracyRange": [
+          0.6353,
+          0.73
+        ],
+        "seeds": 3
+      },
+      "domain_decoder|SAFE_AUTO": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.8543,
+        "exactCell": 0.2528,
+        "applied": 1857.3333,
+        "appliedPrecision": 0.997,
+        "coverage": 0.8569,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 343.6667,
+        "questionMarkCompletion": 0.8488,
+        "cellsWithQuestionMarkLeft": 203.3333,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 0,
+        "msPerCell": 0.8626,
+        "wordAccuracyRange": [
+          0.8442,
+          0.8662
+        ],
+        "seeds": 3
+      },
+      "domain_decoder|FORCE_NO_QUESTION_MARK": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.9332,
+        "exactCell": 0.3167,
+        "applied": 2165,
+        "appliedPrecision": 0.9343,
+        "coverage": 0.9989,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 2.3333,
+        "questionMarkCompletion": 0.999,
+        "cellsWithQuestionMarkLeft": 2.3333,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 3.3333,
+        "msPerCell": 0.8746,
+        "wordAccuracyRange": [
+          0.9272,
+          0.9371
+        ],
+        "seeds": 3
+      },
+      "domain_decoder_plus_synthetic_corpus|SAFE_AUTO": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.8047,
+        "exactCell": 0.2272,
+        "applied": 1776.6667,
+        "appliedPrecision": 0.9817,
+        "coverage": 0.8196,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 427.6667,
+        "questionMarkCompletion": 0.8118,
+        "cellsWithQuestionMarkLeft": 228.6667,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 0.6667,
+        "msPerCell": 5.4039,
+        "wordAccuracyRange": [
+          0.7974,
+          0.8142
+        ],
+        "seeds": 3
+      },
+      "domain_decoder_plus_synthetic_corpus|FORCE_NO_QUESTION_MARK": {
+        "cells": 600,
+        "damagedWords": 2167.3333,
+        "wordAccuracy": 0.8396,
+        "exactCell": 0.2794,
+        "applied": 2165.3333,
+        "appliedPrecision": 0.8404,
+        "coverage": 0.9991,
+        "questionMarksIn": 2272,
+        "questionMarksOut": 2.3333,
+        "questionMarkCompletion": 0.999,
+        "cellsWithQuestionMarkLeft": 2.3333,
+        "cellsWithAnchorLoss": 0,
+        "protectedSlotFlips": 7,
+        "msPerCell": 5.3699,
+        "wordAccuracyRange": [
+          0.8242,
+          0.8638
+        ],
+        "seeds": 3
+      }
+    }
+  },
+  "detail": {
+    "SAFE_AUTO": {
+      "byTier": {
+        "high": {
+          "words": 1776,
+          "precision": 0.9313
+        },
+        "low": {
+          "words": 4435,
+          "precision": 0.9177
+        }
+      },
+      "byDomain": {
+        "deposit_and_valuable_papers": {
+          "words": 179,
+          "precision": 0.8603
+        },
+        "future_asset": {
+          "words": 263,
+          "precision": 0.9734
+        },
+        "general_collateral_description": {
+          "words": 1056,
+          "precision": 0.9337
+        },
+        "geographic_address": {
+          "words": 127,
+          "precision": 0.8504
+        },
+        "house_and_building": {
+          "words": 500,
+          "precision": 0.932
+        },
+        "inventory_and_goods": {
+          "words": 440,
+          "precision": 0.9318
+        },
+        "land_attached_asset": {
+          "words": 425,
+          "precision": 0.8894
+        },
+        "land_use_right": {
+          "words": 411,
+          "precision": 0.9294
+        },
+        "machinery_equipment": {
+          "words": 146,
+          "precision": 0.8699
+        },
+        "ownership_and_security_status": {
+          "words": 1722,
+          "precision": 0.9292
+        },
+        "property_rights_and_receivables": {
+          "words": 529,
+          "precision": 0.879
+        },
+        "vehicle_and_transport": {
+          "words": 413,
+          "precision": 0.9492
+        }
+      },
+      "byStatus": {
+        "needs_review": {
+          "words": 1456,
+          "precision": 0.7054
+        },
+        "safe_auto_domain_calibrated": {
+          "words": 4755,
+          "precision": 0.9878
+        }
+      },
+      "byDifficulty": {
+        "easy": {
+          "words": 478,
+          "precision": 0.9623
+        },
+        "hard": {
+          "words": 4945,
+          "precision": 0.9139
+        },
+        "medium": {
+          "words": 788,
+          "precision": 0.9454
+        }
+      }
+    },
+    "FORCE_NO_QUESTION_MARK": {
+      "byTier": {
+        "high": {
+          "words": 1776,
+          "precision": 0.9161
+        },
+        "low": {
+          "words": 4435,
+          "precision": 0.9177
+        }
+      },
+      "byDomain": {
+        "deposit_and_valuable_papers": {
+          "words": 179,
+          "precision": 0.8547
+        },
+        "future_asset": {
+          "words": 263,
+          "precision": 0.9734
+        },
+        "general_collateral_description": {
+          "words": 1056,
+          "precision": 0.9337
+        },
+        "geographic_address": {
+          "words": 127,
+          "precision": 0.8504
+        },
+        "house_and_building": {
+          "words": 500,
+          "precision": 0.92
+        },
+        "inventory_and_goods": {
+          "words": 440,
+          "precision": 0.9318
+        },
+        "land_attached_asset": {
+          "words": 425,
+          "precision": 0.8894
+        },
+        "land_use_right": {
+          "words": 411,
+          "precision": 0.9294
+        },
+        "machinery_equipment": {
+          "words": 146,
+          "precision": 0.863
+        },
+        "ownership_and_security_status": {
+          "words": 1722,
+          "precision": 0.9262
+        },
+        "property_rights_and_receivables": {
+          "words": 529,
+          "precision": 0.8526
+        },
+        "vehicle_and_transport": {
+          "words": 413,
+          "precision": 0.9492
+        }
+      },
+      "byStatus": {
+        "fallback_lossy": {
+          "words": 83,
+          "precision": 0
+        },
+        "forced_guess": {
+          "words": 1373,
+          "precision": 0.7283
+        },
+        "safe_auto_domain_calibrated": {
+          "words": 4755,
+          "precision": 0.9878
+        }
+      },
+      "byDifficulty": {
+        "easy": {
+          "words": 478,
+          "precision": 0.9623
+        },
+        "hard": {
+          "words": 4945,
+          "precision": 0.9088
+        },
+        "medium": {
+          "words": 788,
+          "precision": 0.9429
+        }
+      }
+    }
+  }
+}

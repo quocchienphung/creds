@@ -15,12 +15,12 @@ import { textRoleOf } from "./sheet-scan.ts";
 import { PLAIN, MARKED, clean, damage, target, workbookA, workbookB } from "./generic-fixture.mjs";
 
 const verifier = join(dirname(fileURLToPath(import.meta.url)), "independent-xlsx-dump.py");
-const python = spawnSync("python", ["--version"]).status === 0 ? "python" : null;
+const python = ["python3", "python"].find(name => spawnSync(name, ["--version"]).status === 0) ?? null; // `python` alone does not exist on macOS
 /** Every text cell of an .xlsx as `Sheet!A1 -> text`, read by code that shares nothing with the app. */
 function dump(bytes) {
-  if (!python) return null;
+  if (!python) { assert.ok(process.env.ALLOW_NO_PYTHON === "1", "independent verifier unavailable: install python3 or set ALLOW_NO_PYTHON=1 to accept degraded verification"); return null; }
   const dir = mkdtempSync(join(tmpdir(), "xlsx-"));
-  try { const file = join(dir, "out.xlsx"); writeFileSync(file, bytes); const r = spawnSync(python, [verifier, file], { encoding: "utf8", maxBuffer: 1 << 28 }); assert.equal(r.status, 0, r.stderr); return JSON.parse(r.stdout); }
+  try { const file = join(dir, "out.xlsx"); writeFileSync(file, bytes); const r = spawnSync(python, ["-I", verifier, file], { encoding: "utf8", maxBuffer: 1 << 28 }); assert.equal(r.status, 0, r.stderr); return JSON.parse(r.stdout); }
   finally { rmSync(dir, { recursive: true, force: true }); }
 }
 const repaired = async (bytes, name = "x.xlsx") => { const s = await openSession(bytes, name); return { s, out: await autoRepair(s, emptyReview()) }; };

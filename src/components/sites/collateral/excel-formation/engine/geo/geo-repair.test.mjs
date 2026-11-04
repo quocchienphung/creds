@@ -16,9 +16,10 @@ import { toAscii } from "./vn-text.ts";
 import { knowledge, loadDataset } from "./geo-fixture.mjs";
 
 const verifier = join(dirname(fileURLToPath(import.meta.url)), "..", "independent-xlsx-dump.py");
-const python = spawnSync("python", ["--version"]).status === 0 ? "python" : null;
+// `python` does not exist on macOS (only `python3`): probing one name made this verifier disappear silently and the tests below passed without reading the file.
+const python = ["python3", "python"].find(name => spawnSync(name, ["--version"]).status === 0) ?? null;
 function dump(bytes) {
-  if (!python) return null;
+  if (!python) { assert.ok(process.env.ALLOW_NO_PYTHON === "1", "independent verifier unavailable: install python3 or set ALLOW_NO_PYTHON=1 to accept degraded verification"); return null; }
   const dir = mkdtempSync(join(tmpdir(), "xlsx-"));
   try { const file = join(dir, "out.xlsx"); writeFileSync(file, bytes); const r = spawnSync(python, ["-I", verifier, file], { encoding: "utf8", maxBuffer: 1 << 28 }); assert.equal(r.status, 0, r.stderr); return JSON.parse(r.stdout); }
   finally { rmSync(dir, { recursive: true, force: true }); }

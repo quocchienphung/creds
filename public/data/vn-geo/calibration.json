@@ -1,8 +1,9 @@
 {
-  "highMargin": 6,
-  "contextMargin": 0,
+  "highMargin": 12,
+  "contextMargin": 2,
+  "contextualAuto": false,
   "heldOut": 17094,
-  "precisionAtHigh": 0.9924,
-  "precisionAtContext": 0.9798,
-  "method": "held-out wards (every 10th), 2000 damaged addresses, 17094 damaged words; smallest margin with precision >= 0.99 (high) and >= 0.95 among words backed by a name in the data (context)"
+  "precisionAtHigh": 0.9929,
+  "precisionAtContext": 0.9903,
+  "method": "held-out wards (every 10th), 2000 damaged addresses, 17094 damaged words (SYNTHETIC corruption); each trust level is the smallest margin at which the words that receive exactly that status reach precision >= 0.99 (n >= 100); contextual_auto is enabled only if its own population reaches it"
 }

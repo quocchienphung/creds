@@ -65,11 +65,11 @@ async function handle(id: number, request: WorkerRequest["request"]) {
       const task = { cancelled: false }; repair = task;
       try {
         const loaded = await geoEngine(), geo = "error" in loaded ? undefined : loaded;
-        const out = await autoRepair(need(), history.present, { cancelled: () => task.cancelled, onProgress: progress => post({ id, repairProgress: progress }), ...(geo ? { geo } : {}), ...(request.policy ? { policy: request.policy } : {}) });
+        const out = await autoRepair(need(), history.present, { cancelled: () => task.cancelled, onProgress: progress => post({ id, repairProgress: progress }), collateral: true, ...(geo ? { geo } : {}), ...(request.policy ? { policy: request.policy } : {}) });
         history = commit(history, out.state);
         document = null;
         const bytes = out.bytes.buffer.slice(out.bytes.byteOffset, out.bytes.byteOffset + out.bytes.byteLength) as ArrayBuffer;
-        return { type: "repaired" as const, fileName: out.fileName, bytes, report: out.report, geoAudit: out.geoAudit, view: view(), ...("error" in loaded ? { geoUnavailable: loaded.error } : {}) };
+        return { type: "repaired" as const, fileName: out.fileName, bytes, report: out.report, geoAudit: out.geoAudit, collateralAudit: out.collateralAudit, view: view(), ...("error" in loaded ? { geoUnavailable: loaded.error } : {}) };
       } finally { repair = null; }
     }
     case "open": {

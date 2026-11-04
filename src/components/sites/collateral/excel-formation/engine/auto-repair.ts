@@ -18,6 +18,8 @@ import { otherCellBlockers } from "./workbook-coverage.ts";
 import { duplicateSummary, type DuplicateSummary } from "./duplicate-repairs.ts";
 import { recoverAddressText, type CellRecovery, type GeoStatus, type RepairPolicy } from "./geo/address-recovery.ts";
 import type { GeoEngine } from "./geo/geo-load.ts";
+import { collateralCalibration, collateralLexicon, completeRemaining, COLLATERAL_VERSION, recoverCollateralText, type CollateralToken } from "./collateral/index.ts";
+import type { TextDomain } from "./collateral/ontology.ts";
 export interface RepairProgress { stage: "evidence_index" | "candidate_generation" | "validation" | "patch" | "package_verification" | "download"; processedRows: number; totalRows: number; applied: number; unresolved: number; elapsedMs: number }
 export interface RepairReport {
   version: 2; mode: "Source-verified + calibrated model"; status: RepairOutcome; metrics: RepairMetrics; byReasonCode: Partial<Record<ReasonCode, number>>; calibration: Calibration; packageVerdict: PackageVerdict; modelVersion: string; policyVersion: string;
@@ -35,6 +37,8 @@ export interface RepairReport {
   zeroPatch: ZeroPatch | null;
   /** The geographic address recovery; null when its data was not available to this run. */
   geo: GeoReport | null;
+  /** The collateral-domain recovery and the final completion of the remaining placeholders; null when switched off. Counts only. */
+  collateral: CollateralReport | null;
   /** Candidates a protection rule refused (identifier, name, formula, rich text, an existing review). */
   rejected: number;
   /** One re-read check per written patch: where it is, how the cell was stored, and whether the exported cell holds exactly the approved value. No values. */
@@ -50,10 +54,23 @@ export interface GeoReport {
   /** Never a claim of full verification while a guess or a lossy fallback was written. */
   finalStatus: "ADDRESS_SPANS_COMPLETED" | "ADDRESS_SPANS_COMPLETED_WITH_FORCED_GUESSES" | "ADDRESS_SPANS_COMPLETED_WITH_LOSSY_FALLBACKS" | "ADDRESS_SPANS_PARTIAL" | "NO_ADDRESS_SPAN_REPAIRED";
 }
+export type CollateralCounts = { safe: number; forced: number; lossy: number; needsReview: number; blockedAnchors: number };
+/** What the collateral recovery did, in counts only (no cell values). `safe` is calibrated on SYNTHETIC text: it is not a measured real-world accuracy. */
+export interface CollateralReport {
+  policy: RepairPolicy; lexiconVersion: string; calibration: { version: string; synthetic: true; minMargin: { low: number; high: number }; forceSlotMargin: number };
+  cellsRecovered: number; words: CollateralCounts; byDomain: Partial<Record<TextDomain | "unknown", CollateralCounts>>;
+  bySheet: { sheetId: string; cellsRecovered: number; words: CollateralCounts; byDomain: Partial<Record<TextDomain | "unknown", number>>; remainingQuestionMarks: number }[];
+  /** `?` in the cells this stage touched, before and after: how many placeholders were completed. NOT how many were completed correctly. */
+  questionMarkCompletion: { before: number; after: number; rate: number };
+  finalStatus: "COLLATERAL_COMPLETED" | "COLLATERAL_COMPLETED_WITH_GUESSES" | "COLLATERAL_PARTIAL" | "NO_COLLATERAL_REPAIR";
+  note: string;
+}
+/** The local audit of the collateral recovery: values included, so it is a separate download from the report. */
+export interface CollateralAuditEntry { sheet: string; ref: string; original: string; repaired: string; domains: { domain: string; score: number }[]; words: { original: string; accented: string; ascii: string; status: CollateralToken["status"]; applied: boolean; tier: "low" | "high"; domain: string; margin: number | null; runnerUp?: string; evidence: string[] }[] }
 /** The local audit of the geographic recovery: values included, so it is a separate download from the report. */
 export interface GeoAuditEntry { sheet: string; ref: string; original: string; repaired: string; words: { original: string; accented: string; ascii: string; status: GeoStatus; applied: boolean; margin: number | null; runnerUp?: string; evidence: string[] }[] }
-export interface AutoRepairOutput { bytes: Uint8Array; report: RepairReport; state: ReviewState; fileName: string; geoAudit: GeoAuditEntry[] }
-export interface AutoRepairOptions { cancelled?: () => boolean; onProgress?: (p: RepairProgress) => void; geo?: GeoEngine; policy?: RepairPolicy }
+export interface AutoRepairOutput { bytes: Uint8Array; report: RepairReport; state: ReviewState; fileName: string; geoAudit: GeoAuditEntry[]; collateralAudit: CollateralAuditEntry[] }
+export interface AutoRepairOptions { cancelled?: () => boolean; onProgress?: (p: RepairProgress) => void; geo?: GeoEngine; policy?: RepairPolicy; /** Switch on the collateral-domain recovery and, under FORCE_NO_QUESTION_MARK, the final completion of the remaining placeholders. Off by default like `geo`: the engine then does evidence-only repair. Needs no data file, so a missing geographic dataset never disables it. */ collateral?: boolean }
 export class RepairValidationError extends Error { constructor(message: string) { super(message); this.name = "RepairValidationError"; } }
 const pause = () => new Promise<void>(resolve => setTimeout(resolve, 0));
 
@@ -61,6 +78,9 @@ const pause = () => new Promise<void>(resolve => setTimeout(resolve, 0));
 export async function autoRepair(session: Session, state: ReviewState, options: AutoRepairOptions = {}): Promise<AutoRepairOutput> {
   const policy: RepairPolicy = options.policy ?? "FORCE_NO_QUESTION_MARK", geo = options.geo;
   const recoveries = new Map<string, { sheet: string; ref: string; recovery: CellRecovery }>();
+  const collateralRuns = new Map<string, { sheet: string; ref: string; tokens: CollateralToken[]; domains: { domain: string; score: number }[]; before: number }>();
+  const collateralOn = options.collateral === true, lexicon = collateralOn ? collateralLexicon() : null, collateralCalib = collateralCalibration();
+  const sheetQuestions = new Map<string, number>();
   // No profile, no header and no mapping is needed: the repair reads every sheet and every text cell of whatever workbook it is given.
   const start = performance.now(), totalRows = session.workbook.sheets.reduce((n, s) => n + s.rows.length + s.emptyRows, 0);
   let processed = 0, applied = 0, unresolved = 0;
@@ -142,6 +162,7 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
           metrics.suspectedCorruptions++; count.flagged++;
           byRole.packedCsv ??= { cells: 0, applied: 0, unresolved: 0 }; byRole.packedCsv.cells++; byRole[role].cells--;
           record(sheet.name, decision, "packedCsv", metrics);
+          sheetQuestions.set(sheet.name, (sheetQuestions.get(sheet.name) ?? 0) + ((fixed ? line.value! : value).match(/\?/g)?.length ?? 0));
           continue;
         }
         const spans = corruptionSpans(value);
@@ -155,19 +176,34 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
         const ranked = rankCandidates(generated.candidates, index.model); metrics.candidatesRanked += ranked.length;
         let decision = decideRepair({ sheetId: info.sheetId, row: row.r, col, role }, { ...cell, v: value }, ranked, generated.conflict, { calibrationEnabled: calibration.enabled, plan: () => planModelRepair(index.model, value, calibration) });
         if (decision.status === "unchanged" && findings.length) { decision.status = "needs_review"; decision.reasonCode = findings[0].category.toLowerCase(); decision.reason = "LOW_CONFIDENCE"; }
-        // Address and location parts are recovered from geographic knowledge, whatever the sheet; a clean same-asset record in this file still wins.
-        if (geo && !current && !cell.f && value.includes("?") && decision.status !== "source_verified" && (role === "freeText" || role === "name")) {
-          const recovery = recoverAddressText(value, geo.knowledge, { policy, calibration: geo.calibration, ...(spec ? { hints: { header: spec.header } } : {}) });
-          if (recovery.changed) {
-            recoveries.set(cellKey(sheet.name, row.r, col), { sheet: sheet.name, ref: columnLetters(col) + row.r, recovery });
-            const rest = corruptionSpans(recovery.value).some(span => span.kind !== "suspected_punctuation");
-            decision = { ...decision, proposed: recovery.value, status: "model_auto_accepted", evidence: [{ kind: "geo_recovery", sourceId: `vn-geo:${geo.datasetVersion}` }], reasonCode: "geo_address_recovery", reason: rest || recovery.remainingPlaceholders ? "PARTIAL_WORDS" : null };
+        // Collateral wording, then address parts, then what is left: recovered from the ontology, from geographic knowledge and finally completed, whatever the sheet.
+        // A clean same-asset record in this file still wins, and a text the calibrated file model already restored is the starting point.
+        if (!current && !cell.f && value.includes("?") && decision.status !== "source_verified" && (role === "freeText" || role === "name")) {
+          const baseText = decision.status === "model_auto_accepted" && decision.proposed ? decision.proposed : value;
+          let text = baseText;
+          const evidence: RepairDecision["evidence"] = baseText === value ? [] : [...decision.evidence];
+          const collateral = lexicon ? recoverCollateralText(text, lexicon, { policy, calibration: collateralCalib }) : null;
+          if (collateral?.changed) { text = collateral.value; evidence.push({ kind: "collateral_recovery", sourceId: `collateral:${COLLATERAL_VERSION}` }); }
+          if (geo && text.includes("?")) {
+            const recovery = recoverAddressText(text, geo.knowledge, { policy, calibration: geo.calibration, ...(spec ? { hints: { header: spec.header } } : {}) });
+            if (recovery.changed) { recoveries.set(cellKey(sheet.name, row.r, col), { sheet: sheet.name, ref: columnLetters(col) + row.r, recovery }); text = recovery.value; evidence.push({ kind: "geo_recovery", sourceId: `vn-geo:${geo.datasetVersion}` }); }
+          }
+          // FORCE_NO_QUESTION_MARK: whatever is still a placeholder becomes a recorded guess or a recorded loss. A proper name is never completed.
+          const completion = collateralOn && policy === "FORCE_NO_QUESTION_MARK" && role === "freeText" && text.includes("?") ? completeRemaining(text, index.model) : null;
+          if (completion?.tokens.some(token => token.applied)) { text = completion.value; evidence.push({ kind: "collateral_recovery", sourceId: `collateral:${COLLATERAL_VERSION}:completion` }); }
+          const tokens = [...(collateral?.tokens ?? []), ...(completion?.tokens ?? [])];
+          if (tokens.length || collateral?.recognized) collateralRuns.set(cellKey(sheet.name, row.r, col), { sheet: sheet.name, ref: columnLetters(col) + row.r, tokens, domains: collateral?.domains ?? [], before: (value.match(/\?/g) ?? []).length });
+          if (text !== baseText) {
+            const rest = corruptionSpans(text).some(span => span.kind !== "suspected_punctuation");
+            decision = { ...decision, proposed: text, status: "model_auto_accepted", evidence, reasonCode: collateral?.changed && !recoveries.has(cellKey(sheet.name, row.r, col)) ? "collateral_recovery" : "geo_address_recovery", reason: rest ? "PARTIAL_WORDS" : null };
             delete decision.words;
           }
         }
         if (current) { decision.status = "blocked"; decision.reasonCode = "existing_review_patch"; decision.reason = "EXISTING_REVIEW"; delete decision.proposed; delete decision.words; }
         if (session.ctx.issuesAt(sheet.name, row.r, col).some(issue => state.states[issue.id]?.status === "accepted_exception")) { decision.status = "blocked"; decision.reasonCode = "reviewed_exception_preserved"; decision.reason = "EXISTING_REVIEW"; delete decision.proposed; delete decision.words; }
         record(sheet.name, decision, role, metrics);
+        const written = (decision.status === "source_verified" || decision.status === "model_auto_accepted") && decision.proposed !== undefined ? decision.proposed : value;
+        sheetQuestions.set(sheet.name, (sheetQuestions.get(sheet.name) ?? 0) + (written.match(/\?/g)?.length ?? 0));
       }
       if (++processed % 500 === 0) await progress("candidate_generation");
     }
@@ -220,6 +256,30 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
     cellsRecovered: geoAudit.length, byStatus: geoCounts, forcedGuesses: forced, lossyFallbacks: lossy, unresolvedInAddresses: left,
     finalStatus: !geoAudit.length ? "NO_ADDRESS_SPAN_REPAIRED" : left ? "ADDRESS_SPANS_PARTIAL" : lossy ? "ADDRESS_SPANS_COMPLETED_WITH_LOSSY_FALLBACKS" : forced ? "ADDRESS_SPANS_COMPLETED_WITH_FORCED_GUESSES" : "ADDRESS_SPANS_COMPLETED",
   } : null;
+  // The collateral recovery, only for the cells that were really written.
+  const collateralAudit: CollateralAuditEntry[] = [], blank = (): CollateralCounts => ({ safe: 0, forced: 0, lossy: 0, needsReview: 0, blockedAnchors: 0 });
+  const total2 = blank(), byDomain: NonNullable<CollateralReport["byDomain"]> = {}, perSheet = new Map<string, CollateralReport["bySheet"][number]>();
+  let qBefore = 0, qAfter = 0;
+  const tally = (counts: CollateralCounts, token: CollateralToken) => {
+    if (token.status === "safe_auto_domain_calibrated") counts.safe++; else if (token.status === "forced_guess") counts.forced++; else if (token.status === "fallback_lossy") counts.lossy++;
+    else if (token.status === "needs_review") counts.needsReview++; else if (token.status === "blocked_protected_anchor") counts.blockedAnchors++;
+  };
+  for (const { sheet, decision: d } of approved) {
+    const run = collateralRuns.get(cellKey(sheet, d.row, d.col)); if (!run || !run.tokens.length && !run.domains.length) continue;
+    const info = perSheet.get(sheet) ?? { sheetId: sheetCounts.get(sheet)!.sheetId, cellsRecovered: 0, words: blank(), byDomain: {}, remainingQuestionMarks: sheetQuestions.get(sheet) ?? 0 };
+    perSheet.set(sheet, info); info.cellsRecovered++;
+    for (const token of run.tokens) { tally(total2, token); tally(info.words, token); tally(byDomain[token.domain] ??= blank(), token); info.byDomain[token.domain] = (info.byDomain[token.domain] ?? 0) + 1; }
+    qBefore += run.before; qAfter += (d.proposed!.match(/\?/g) ?? []).length;
+    collateralAudit.push({ sheet, ref: run.ref, original: d.original, repaired: d.proposed!, domains: run.domains, words: run.tokens.map(token => ({ original: token.original, accented: token.accented, ascii: token.ascii, status: token.status, applied: token.applied, tier: token.tier, domain: token.domain, margin: Number.isFinite(token.margin) ? +token.margin.toFixed(2) : null, ...(token.runnerUp ? { runnerUp: token.runnerUp } : {}), evidence: token.evidence })) });
+  }
+  const pending = total2.needsReview + total2.blockedAnchors;
+  const collateralReport: CollateralReport | null = lexicon ? {
+    policy, lexiconVersion: COLLATERAL_VERSION, calibration: { version: collateralCalib.version, synthetic: true, minMargin: collateralCalib.minMargin, forceSlotMargin: collateralCalib.forceSlotMargin },
+    cellsRecovered: collateralAudit.length, words: total2, byDomain, bySheet: [...perSheet.values()],
+    questionMarkCompletion: { before: qBefore, after: qAfter, rate: qBefore ? +(1 - qAfter / qBefore).toFixed(4) : 0 },
+    finalStatus: !collateralAudit.length ? "NO_COLLATERAL_REPAIR" : pending || qAfter ? "COLLATERAL_PARTIAL" : total2.forced || total2.lossy ? "COLLATERAL_COMPLETED_WITH_GUESSES" : "COLLATERAL_COMPLETED",
+    note: "Completion rate counts placeholders removed, not placeholders restored correctly. 'safe' is calibrated on SYNTHETIC text; REAL-WORLD ACCURACY NOT VERIFIED.",
+  } : null;
   timings.total = performance.now() - start;
   const base = session.workbook.fileName.replace(/\.xlsx$/i, "");
   const report: RepairReport = {
@@ -230,12 +290,12 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
     hiddenRowsIncluded: session.workbook.sheets.reduce((n, s) => n + s.hiddenRows, 0), hiddenRowsExcluded: 0, byStatus, byRole, byReason, sheets: [...sheetCounts.values()],
     locations: decisions.map(({ decision: d }) => ({ sheetId: d.sheetId, row: d.row, col: d.col, role: d.role, status: d.status, reasonCode: d.reasonCode, reason: d.reason, evidence: d.evidence })),
     workbook: { sheetsDiscovered: session.workbook.sheets.length, sheetsScanned: session.workbook.sheets.filter(sheet => !sheet.error).length, sheetsFailed: session.workbook.sheets.filter(sheet => sheet.error).length, hiddenSheets: session.workbook.sheets.filter(sheet => sheet.state && sheet.state !== "visible").length, cellsVisited: session.workbook.sheets.reduce((n, sheet) => n + (sheet.cellsVisited ?? 0), 0) },
-    zeroPatch: zeroPatchOf(total, byReasonCode), geo: geoReport, rejected: byStatus.blocked,
+    zeroPatch: zeroPatchOf(total, byReasonCode), geo: geoReport, collateral: collateralReport, rejected: byStatus.blocked,
     verification: checks.map(check => { const sheet = session.workbook.sheets.find(item => item.name === check.sheet)!, cell = sheet.rows.find(row => row.r === check.row)?.cells[check.col]; return { sheetId: sheetCounts.get(check.sheet)!.sheetId, ref: columnLetters(check.col) + check.row, part: sheet.part, rid: sheet.rid ?? "", storage: cell?.t ?? "none", ok: check.ok, changed: check.changed }; }),
     timings, validation: { roundTrip: true, packageIntegrity: true, desktopExcel: "not_tested" }, jsonReadiness: "separate_gates_required",
   };
   // Nothing changed: hand back the untouched input under a name that says so, never a re-compressed copy dressed as a repair.
   return noChange
-    ? { bytes: session.bytes.slice(), report, state, fileName: base + ".not-repaired.xlsx", geoAudit: [] }
-    : { bytes: patched.bytes, report, state: next, fileName: base + ".repaired.xlsx", geoAudit };
+    ? { bytes: session.bytes.slice(), report, state, fileName: base + ".not-repaired.xlsx", geoAudit: [], collateralAudit: [] }
+    : { bytes: patched.bytes, report, state: next, fileName: base + ".repaired.xlsx", geoAudit, collateralAudit };
 }

@@ -10,7 +10,7 @@ import type { ProgressFile, RestoreError } from "../excel-formation/engine/progr
 import type { JsonPlan } from "../json-formation/engine/json-session.ts";
 import type { ReportMeta, ReportOptions } from "../json-formation/engine/json-report.ts";
 import type { JsonNodeInfo, SearchResult } from "../../json-viewer/json-model.ts";
-import type { GeoAuditEntry, RepairProgress, RepairReport } from "../excel-formation/engine/auto-repair.ts";
+import type { CollateralAuditEntry, GeoAuditEntry, RepairProgress, RepairReport } from "../excel-formation/engine/auto-repair.ts";
 import type { RepairPolicy } from "../excel-formation/engine/geo/address-recovery.ts";
 import type { DuplicatePlan } from "../excel-formation/engine/duplicate-repairs.ts";
 
@@ -88,7 +88,7 @@ export type Request =
 export type Response =
   | { type: "duplicatePlan"; plan: DuplicatePlan | null }
   | { type: "duplicateApplied"; view: ReviewView; rows: number; changedCells: number }
-  | { type: "repaired"; fileName: string; bytes: ArrayBuffer; report: RepairReport; geoAudit: GeoAuditEntry[]; /** Why the geographic data could not be used, when it could not. */ geoUnavailable?: string; view: ReviewView }
+  | { type: "repaired"; fileName: string; bytes: ArrayBuffer; report: RepairReport; geoAudit: GeoAuditEntry[]; collateralAudit: CollateralAuditEntry[]; /** Why the geographic data could not be used, when it could not. */ geoUnavailable?: string; view: ReviewView }
   | { type: "repairCancelRequested" }
   | { type: "opened"; result: OpenResult; view: ReviewView }
   | { type: "view"; view: ReviewView }

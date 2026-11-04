@@ -71,10 +71,33 @@ for (const item of sample) {
 }
 const seconds = (performance.now() - t0) / 1000;
 const thresholds = [0, 0.5, 1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32];
-const at = (predicate, thr) => { const kept = rows.filter(row => row.margin >= thr && predicate(row)); return { thr, tokens: kept.length, precision: kept.length ? kept.filter(row => row.right).length / kept.length : 0 }; };
-const high = thresholds.map(thr => at(() => true, thr)).find(row => row.tokens >= 100 && row.precision >= 0.99);
-const context = thresholds.map(thr => at(row => row.gazetteer, thr)).find(row => row.tokens >= 100 && row.precision >= 0.95);
+// The engine's status of a word is a function of (official, gazetteer, margin) and the two margins, so every configuration can be scored from the
+// recorded rows. A population is scored on exactly the words that status would receive: never on a cumulative superset that contains better words.
+const TARGET = 0.99, MIN_WORDS = 100;
+const statusOf = (row, cfg) => row.official && row.margin >= cfg.contextMargin ? "verified_official" : row.margin >= cfg.highMargin ? "high_confidence_auto" : row.gazetteer && row.margin >= cfg.contextMargin ? (cfg.contextualAuto ? "contextual_auto" : "forced_guess") : "forced_guess";
+const score = (cfg) => {
+  const by = {};
+  for (const row of rows) { const status = statusOf(row, cfg); const e = by[status] ??= { words: 0, right: 0 }; e.words++; if (row.right) e.right++; }
+  const safe = rows.filter(row => statusOf(row, cfg) !== "forced_guess");
+  return { byStatus: Object.fromEntries(Object.entries(by).map(([k, v]) => [k, { words: v.words, precision: +(v.right / v.words).toFixed(4) }])), safeAccepted: safe.length, safeCoverage: +(safe.length / rows.length).toFixed(4), safePrecision: +(safe.filter(row => row.right).length / Math.max(1, safe.length)).toFixed(4) };
+};
+const pop = (rowsIn) => ({ n: rowsIn.length, precision: rowsIn.length ? rowsIn.filter(row => row.right).length / rowsIn.length : 0 });
+// 1. official names: smallest context margin whose official population reaches the target.
+const officialAt = thr => pop(rows.filter(row => row.official && row.margin >= thr));
+const contextMargin = thresholds.find(thr => { const p = officialAt(thr); return p.n >= MIN_WORDS && p.precision >= TARGET; });
+// 2. high_confidence_auto: the words that are NOT trusted as official, from `thr` up.
+const highAt = thr => pop(rows.filter(row => !(row.official && row.margin >= (contextMargin ?? Infinity)) && row.margin >= thr));
+const highMargin = thresholds.find(thr => { const p = highAt(thr); return p.n >= MIN_WORDS && p.precision >= TARGET; });
+// 3. contextual_auto: gazetteer-backed words below the high margin, not official-trusted. Enabled only when that population itself reaches the target.
+const ctxAt = thr => pop(rows.filter(row => row.gazetteer && !(row.official && row.margin >= (contextMargin ?? Infinity)) && row.margin >= thr && row.margin < (highMargin ?? Infinity)));
+const ctxThr = thresholds.find(thr => { const p = ctxAt(thr); return p.n >= MIN_WORDS && p.precision >= TARGET; });
+const contextualAuto = ctxThr !== undefined && ctxThr >= (contextMargin ?? Infinity);
+const shipped = JSON.parse(readFileSync(join(out, "calibration.json"), "utf8"));
+const before = score({ highMargin: shipped.highMargin, contextMargin: shipped.contextMargin, contextualAuto: true });
+const chosen = { highMargin: highMargin ?? thresholds.at(-1), contextMargin: contextMargin ?? thresholds.at(-1), contextualAuto };
+const after = score(chosen);
 const byStatus = Object.fromEntries([...new Set(rows.map(row => row.status))].map(status => [status, { tokens: rows.filter(row => row.status === status).length, precision: rows.filter(row => row.status === status && row.right).length / Math.max(1, rows.filter(row => row.status === status).length) }]));
+const high = highMargin === undefined ? undefined : { thr: highMargin, ...highAt(highMargin) }, context = contextMargin === undefined ? undefined : { thr: contextMargin, ...officialAt(contextMargin) };
 const report = {
   data: { heldOutWards: heldWard.size, trainStreets: trainStreets.length, heldOutStreets: test.length, addresses: cells, damagedWords: tokens, wordsProcessed: covered },
   corruption: { placeholderShare: PLACEHOLDER, upperCaseShare: 0.25, note: "an accented letter becomes ? or its plain letter; plain letters are never touched" },
@@ -83,11 +106,11 @@ const report = {
     wordAccuracy: +(rows.filter(row => row.right).length / rows.length).toFixed(4), wordsCoveredByAddressSegments: +(covered / tokens).toFixed(4),
     remainingQuestionMarks: remaining, byStatus,
   },
-  calibration: { highMargin: high?.thr ?? null, precisionAtHigh: high?.precision ?? null, tokensAtHigh: high?.tokens ?? 0, contextMargin: context?.thr ?? null, precisionAtContext: context?.precision ?? null, tokensAtContext: context?.tokens ?? 0 },
+  calibration: { ...chosen, populationPrecision: { official: context && { thr: context.thr, words: context.n, precision: +context.precision.toFixed(4) }, highConfidence: high && { thr: high.thr, words: high.n, precision: +high.precision.toFixed(4) }, contextualAuto: ctxThr === undefined ? "no margin reaches the target" : { thr: ctxThr, ...ctxAt(ctxThr) } }, safeBefore: { config: { highMargin: shipped.highMargin, contextMargin: shipped.contextMargin, contextualAuto: true }, ...before }, safeAfter: { config: chosen, ...after } },
   seconds: +seconds.toFixed(1), msPerAddress: +(seconds * 1000 / cells).toFixed(1),
 };
 console.log(JSON.stringify(report, null, 2));
 if (process.argv.includes("--write")) {
   writeFileSync(join(out, "evaluation.json"), JSON.stringify(report, null, 2) + "\n");
-  if (high && context) writeFileSync(join(out, "calibration.json"), JSON.stringify({ highMargin: high.thr, contextMargin: context.thr, heldOut: rows.length, precisionAtHigh: +high.precision.toFixed(4), precisionAtContext: +context.precision.toFixed(4), method: `held-out wards (every 10th), ${cells} damaged addresses, ${rows.length} damaged words; smallest margin with precision >= 0.99 (high) and >= 0.95 among words backed by a name in the data (context)` }, null, 2) + "\n");
+  if (high && context) writeFileSync(join(out, "calibration.json"), JSON.stringify({ highMargin: chosen.highMargin, contextMargin: chosen.contextMargin, contextualAuto, heldOut: rows.length, precisionAtHigh: +high.precision.toFixed(4), precisionAtContext: +context.precision.toFixed(4), method: `held-out wards (every 10th), ${cells} damaged addresses, ${rows.length} damaged words (SYNTHETIC corruption); each trust level is the smallest margin at which the words that receive exactly that status reach precision >= ${TARGET} (n >= ${MIN_WORDS}); contextual_auto is enabled only if its own population reaches it` }, null, 2) + "\n");
 }

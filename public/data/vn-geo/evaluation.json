@@ -28,13 +28,9 @@
         "tokens": 13405,
         "precision": 0.9925400969787392
       },
-      "contextual_auto": {
-        "tokens": 165,
-        "precision": 0.7636363636363637
-      },
       "forced_guess": {
-        "tokens": 356,
-        "precision": 0.5252808988764045
+        "tokens": 521,
+        "precision": 0.6007677543186181
       },
       "fallback_lossy": {
         "tokens": 1,
@@ -51,13 +47,75 @@
     }
   },
   "calibration": {
-    "highMargin": 6,
-    "precisionAtHigh": 0.9923987004229755,
-    "tokensAtHigh": 16313,
-    "contextMargin": 0,
-    "precisionAtContext": 0.9797812592373633,
-    "tokensAtContext": 16915
+    "highMargin": 12,
+    "contextMargin": 2,
+    "contextualAuto": false,
+    "populationPrecision": {
+      "official": {
+        "thr": 2,
+        "words": 13465,
+        "precision": 0.9903
+      },
+      "highConfidence": {
+        "thr": 12,
+        "words": 2664,
+        "precision": 0.9929
+      },
+      "contextualAuto": "no margin reaches the target"
+    },
+    "safeBefore": {
+      "config": {
+        "highMargin": 6,
+        "contextMargin": 0,
+        "contextualAuto": true
+      },
+      "byStatus": {
+        "high_confidence_auto": {
+          "words": 3166,
+          "precision": 0.9801
+        },
+        "verified_official": {
+          "words": 13540,
+          "precision": 0.988
+        },
+        "contextual_auto": {
+          "words": 325,
+          "precision": 0.6246
+        },
+        "forced_guess": {
+          "words": 63,
+          "precision": 0.6032
+        }
+      },
+      "safeAccepted": 17031,
+      "safeCoverage": 0.9963,
+      "safePrecision": 0.9796
+    },
+    "safeAfter": {
+      "config": {
+        "highMargin": 12,
+        "contextMargin": 2,
+        "contextualAuto": false
+      },
+      "byStatus": {
+        "high_confidence_auto": {
+          "words": 2664,
+          "precision": 0.9929
+        },
+        "verified_official": {
+          "words": 13465,
+          "precision": 0.9903
+        },
+        "forced_guess": {
+          "words": 965,
+          "precision": 0.7689
+        }
+      },
+      "safeAccepted": 16129,
+      "safeCoverage": 0.9435,
+      "safePrecision": 0.9907
+    }
   },
-  "seconds": 110.5,
-  "msPerAddress": 55.2
+  "seconds": 49.6,
+  "msPerAddress": 24.8
 }

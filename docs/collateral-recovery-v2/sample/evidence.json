@@ -1,0 +1,424 @@
+{
+  "workbook": "SYNTHETIC: lab test split, 3 sheets (one without a header), cells drawn from templates and concepts of the ontology; production lexicon (every concept)",
+  "warning": "SYNTHETIC. REAL-WORLD ACCURACY NOT VERIFIED.",
+  "policies": {
+    "SAFE_AUTO": {
+      "seconds": 0.26,
+      "status": "REPAIRED_PARTIALLY",
+      "cells": 90,
+      "exactCells": 17,
+      "cellsWithQuestionMarkLeft": 34,
+      "collateral": {
+        "policy": "SAFE_AUTO",
+        "lexiconVersion": "collateral-ontology-1",
+        "calibration": {
+          "version": "collateral-calibration-synthetic-lab-1",
+          "synthetic": true,
+          "minMargin": {
+            "low": 6,
+            "high": 10
+          },
+          "forceSlotMargin": 2
+        },
+        "cellsRecovered": 86,
+        "words": {
+          "safe": 319,
+          "forced": 0,
+          "lossy": 0,
+          "needsReview": 54,
+          "blockedAnchors": 0
+        },
+        "byDomain": {
+          "general_collateral_description": {
+            "safe": 42,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 15,
+            "blockedAnchors": 0
+          },
+          "ownership_and_security_status": {
+            "safe": 80,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 11,
+            "blockedAnchors": 0
+          },
+          "land_use_right": {
+            "safe": 14,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 6,
+            "blockedAnchors": 0
+          },
+          "house_and_building": {
+            "safe": 35,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 3,
+            "blockedAnchors": 0
+          },
+          "land_attached_asset": {
+            "safe": 14,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 10,
+            "blockedAnchors": 0
+          },
+          "future_asset": {
+            "safe": 30,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 1,
+            "blockedAnchors": 0
+          },
+          "vehicle_and_transport": {
+            "safe": 31,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 1,
+            "blockedAnchors": 0
+          },
+          "deposit_and_valuable_papers": {
+            "safe": 8,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 5,
+            "blockedAnchors": 0
+          },
+          "property_rights_and_receivables": {
+            "safe": 24,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          },
+          "inventory_and_goods": {
+            "safe": 30,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 1,
+            "blockedAnchors": 0
+          },
+          "geographic_address": {
+            "safe": 7,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 1,
+            "blockedAnchors": 0
+          },
+          "machinery_equipment": {
+            "safe": 4,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          }
+        },
+        "bySheet": [
+          {
+            "sheetId": "sheet-1",
+            "cellsRecovered": 30,
+            "words": {
+              "safe": 113,
+              "forced": 0,
+              "lossy": 0,
+              "needsReview": 25,
+              "blockedAnchors": 0
+            },
+            "byDomain": {
+              "general_collateral_description": 23,
+              "ownership_and_security_status": 30,
+              "land_use_right": 3,
+              "house_and_building": 11,
+              "land_attached_asset": 10,
+              "future_asset": 13,
+              "vehicle_and_transport": 9,
+              "deposit_and_valuable_papers": 12,
+              "property_rights_and_receivables": 9,
+              "inventory_and_goods": 15,
+              "geographic_address": 1,
+              "machinery_equipment": 2
+            },
+            "remainingQuestionMarks": 27
+          },
+          {
+            "sheetId": "sheet-2",
+            "cellsRecovered": 28,
+            "words": {
+              "safe": 115,
+              "forced": 0,
+              "lossy": 0,
+              "needsReview": 17,
+              "blockedAnchors": 0
+            },
+            "byDomain": {
+              "ownership_and_security_status": 23,
+              "general_collateral_description": 21,
+              "future_asset": 13,
+              "land_use_right": 12,
+              "house_and_building": 17,
+              "land_attached_asset": 12,
+              "geographic_address": 5,
+              "vehicle_and_transport": 14,
+              "property_rights_and_receivables": 8,
+              "inventory_and_goods": 7
+            },
+            "remainingQuestionMarks": 24
+          },
+          {
+            "sheetId": "sheet-3",
+            "cellsRecovered": 28,
+            "words": {
+              "safe": 91,
+              "forced": 0,
+              "lossy": 0,
+              "needsReview": 12,
+              "blockedAnchors": 0
+            },
+            "byDomain": {
+              "inventory_and_goods": 9,
+              "ownership_and_security_status": 38,
+              "land_attached_asset": 2,
+              "land_use_right": 5,
+              "property_rights_and_receivables": 7,
+              "general_collateral_description": 13,
+              "house_and_building": 10,
+              "future_asset": 5,
+              "vehicle_and_transport": 9,
+              "machinery_equipment": 2,
+              "geographic_address": 2,
+              "deposit_and_valuable_papers": 1
+            },
+            "remainingQuestionMarks": 14
+          }
+        ],
+        "questionMarkCompletion": {
+          "before": 401,
+          "after": 61,
+          "rate": 0.8479
+        },
+        "finalStatus": "COLLATERAL_PARTIAL",
+        "note": "Completion rate counts placeholders removed, not placeholders restored correctly. 'safe' is calibrated on SYNTHETIC text; REAL-WORLD ACCURACY NOT VERIFIED."
+      },
+      "outputCellsChanged": 86,
+      "outputUnexpectedChanges": 0,
+      "independentVerification": {
+        "status": "verified_independent",
+        "reader": "python3 -I independent-ooxml-check.py",
+        "changedCells": 86,
+        "cells": 216,
+        "sheets": 3,
+        "problems": []
+      }
+    },
+    "FORCE_NO_QUESTION_MARK": {
+      "seconds": 0.2,
+      "status": "REPAIRED_VERIFIED",
+      "cells": 90,
+      "exactCells": 24,
+      "cellsWithQuestionMarkLeft": 0,
+      "collateral": {
+        "policy": "FORCE_NO_QUESTION_MARK",
+        "lexiconVersion": "collateral-ontology-1",
+        "calibration": {
+          "version": "collateral-calibration-synthetic-lab-1",
+          "synthetic": true,
+          "minMargin": {
+            "low": 6,
+            "high": 10
+          },
+          "forceSlotMargin": 2
+        },
+        "cellsRecovered": 90,
+        "words": {
+          "safe": 319,
+          "forced": 57,
+          "lossy": 1,
+          "needsReview": 0,
+          "blockedAnchors": 0
+        },
+        "byDomain": {
+          "general_collateral_description": {
+            "safe": 42,
+            "forced": 15,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          },
+          "ownership_and_security_status": {
+            "safe": 80,
+            "forced": 11,
+            "lossy": 1,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          },
+          "land_use_right": {
+            "safe": 14,
+            "forced": 6,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          },
+          "house_and_building": {
+            "safe": 35,
+            "forced": 3,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          },
+          "land_attached_asset": {
+            "safe": 14,
+            "forced": 10,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          },
+          "future_asset": {
+            "safe": 30,
+            "forced": 1,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          },
+          "vehicle_and_transport": {
+            "safe": 31,
+            "forced": 1,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          },
+          "deposit_and_valuable_papers": {
+            "safe": 8,
+            "forced": 5,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          },
+          "property_rights_and_receivables": {
+            "safe": 24,
+            "forced": 2,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          },
+          "inventory_and_goods": {
+            "safe": 30,
+            "forced": 1,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          },
+          "geographic_address": {
+            "safe": 7,
+            "forced": 2,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          },
+          "machinery_equipment": {
+            "safe": 4,
+            "forced": 0,
+            "lossy": 0,
+            "needsReview": 0,
+            "blockedAnchors": 0
+          }
+        },
+        "bySheet": [
+          {
+            "sheetId": "sheet-1",
+            "cellsRecovered": 30,
+            "words": {
+              "safe": 113,
+              "forced": 24,
+              "lossy": 1,
+              "needsReview": 0,
+              "blockedAnchors": 0
+            },
+            "byDomain": {
+              "general_collateral_description": 23,
+              "ownership_and_security_status": 30,
+              "land_use_right": 3,
+              "house_and_building": 11,
+              "land_attached_asset": 10,
+              "future_asset": 13,
+              "vehicle_and_transport": 9,
+              "deposit_and_valuable_papers": 12,
+              "property_rights_and_receivables": 9,
+              "inventory_and_goods": 15,
+              "geographic_address": 1,
+              "machinery_equipment": 2
+            },
+            "remainingQuestionMarks": 0
+          },
+          {
+            "sheetId": "sheet-2",
+            "cellsRecovered": 30,
+            "words": {
+              "safe": 115,
+              "forced": 19,
+              "lossy": 0,
+              "needsReview": 0,
+              "blockedAnchors": 0
+            },
+            "byDomain": {
+              "ownership_and_security_status": 24,
+              "general_collateral_description": 21,
+              "future_asset": 13,
+              "land_use_right": 12,
+              "house_and_building": 17,
+              "land_attached_asset": 12,
+              "geographic_address": 5,
+              "vehicle_and_transport": 14,
+              "property_rights_and_receivables": 9,
+              "inventory_and_goods": 7
+            },
+            "remainingQuestionMarks": 0
+          },
+          {
+            "sheetId": "sheet-3",
+            "cellsRecovered": 30,
+            "words": {
+              "safe": 91,
+              "forced": 14,
+              "lossy": 0,
+              "needsReview": 0,
+              "blockedAnchors": 0
+            },
+            "byDomain": {
+              "inventory_and_goods": 9,
+              "ownership_and_security_status": 38,
+              "land_attached_asset": 2,
+              "land_use_right": 5,
+              "property_rights_and_receivables": 8,
+              "general_collateral_description": 13,
+              "house_and_building": 10,
+              "future_asset": 5,
+              "vehicle_and_transport": 9,
+              "machinery_equipment": 2,
+              "geographic_address": 3,
+              "deposit_and_valuable_papers": 1
+            },
+            "remainingQuestionMarks": 0
+          }
+        ],
+        "questionMarkCompletion": {
+          "before": 405,
+          "after": 0,
+          "rate": 1
+        },
+        "finalStatus": "COLLATERAL_COMPLETED_WITH_GUESSES",
+        "note": "Completion rate counts placeholders removed, not placeholders restored correctly. 'safe' is calibrated on SYNTHETIC text; REAL-WORLD ACCURACY NOT VERIFIED."
+      },
+      "outputCellsChanged": 90,
+      "outputUnexpectedChanges": 0,
+      "independentVerification": {
+        "status": "verified_independent",
+        "reader": "python3 -I independent-ooxml-check.py",
+        "changedCells": 90,
+        "cells": 216,
+        "sheets": 3,
+        "problems": []
+      }
+    }
+  }
+}

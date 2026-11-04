@@ -13,8 +13,12 @@ import { caseShape, nfc, pieces, toAscii, withCase } from "./vn-text.ts";
 export type GeoStatus = "verified_official" | "verified_internal_match" | "high_confidence_auto" | "contextual_auto" | "forced_guess" | "fallback_lossy" | "needs_review" | "unchanged_legitimate_punctuation" | "rejected_numeric_anchor_conflict";
 export type RepairPolicy = "SAFE_AUTO" | "FORCE_NO_QUESTION_MARK";
 /** The margins (between the best answer and the best answer that writes something else) from which a repair is trusted; measured on held-out data, see calibrate-geo. */
-export interface GeoCalibration { highMargin: number; contextMargin: number; heldOut: number; precisionAtHigh: number; precisionAtContext: number; method: string }
-export const UNCALIBRATED: GeoCalibration = { highMargin: 6, contextMargin: 3, heldOut: 0, precisionAtHigh: 0, precisionAtContext: 0, method: "not calibrated: conservative defaults" };
+export interface GeoCalibration {
+  highMargin: number; contextMargin: number; heldOut: number; precisionAtHigh: number; precisionAtContext: number; method: string;
+  /** `contextual_auto` may be applied by SAFE_AUTO only when the held-out precision of exactly that population reached the target. Absent means off. */
+  contextualAuto?: boolean;
+}
+export const UNCALIBRATED: GeoCalibration = { highMargin: 6, contextMargin: 3, heldOut: 0, precisionAtHigh: 0, precisionAtContext: 0, method: "not calibrated: conservative defaults", contextualAuto: false };
 
 export interface TokenRepair {
   /** Offsets in the text that was given. */
@@ -174,7 +178,7 @@ function decode(words: Word[], knowledge: GeoKnowledge): Solution {
  * letters of its own keeps their shape; one whose first letter is lost follows the style of the words whose first letter is known (capitals throughout,
  * or each word capitalised).
  */
-function caseOfDamaged(word: string, cell: string): "upper" | "title" | "lower" {
+export function caseOfDamaged(word: string, cell: string): "upper" | "title" | "lower" {
   const letters = (text: string) => text.replace(/\?/g, "");
   const known = (cell.match(/[\p{L}\p{M}\d?]+/gu) ?? []).filter(text => !text.startsWith("?") && /\p{L}/u.test(letters(text))).map(text => caseShape(letters(text)));
   const upper = known.filter(item => item === "upper").length, title = known.filter(item => item === "title").length, lower = known.length - upper - title;
@@ -225,6 +229,8 @@ function repairSegment(segment: Segment, knowledge: GeoKnowledge, options: Requi
     else if (margin >= calibration.highMargin) status = "high_confidence_auto";
     else if (margin >= calibration.contextMargin && gazetteer) status = "contextual_auto";
     else status = "forced_guess";
+    // A population whose held-out precision did not reach the target is a guess, not an automatic repair: it is labelled so and SAFE_AUTO leaves it.
+    if (status === "contextual_auto" && !calibration.contextualAuto) status = "forced_guess";
     const trusted = status !== "forced_guess";
     result.tokens.push({ ...base, accented: state.accented, ascii, status: trusted || policy === "FORCE_NO_QUESTION_MARK" ? status : "needs_review", applied: trusted || policy === "FORCE_NO_QUESTION_MARK", margin, score: solved.score, ...(solved.runnerUps[i] ? { runnerUp: solved.runnerUps[i] } : {}), evidence, variableLength: state.variable });
   });

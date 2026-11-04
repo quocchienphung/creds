@@ -43,7 +43,7 @@ const before = buildXlsx([{ name: "Tai san", rows: rows1 }, { name: "Bat dong sa
 const session = await openSession(before, "mau-khong-phai-mau9.xlsx");
 const out = await autoRepair(session, emptyReview(), { geo, policy: "FORCE_NO_QUESTION_MARK" });
 
-const python = spawnSync("python", ["--version"]).status === 0 ? "python" : null;
+const python = ["python3", "python"].find(name => spawnSync(name, ["--version"]).status === 0) ?? null;
 const verifier = join(root, "src", "components", "sites", "collateral", "excel-formation", "engine", "independent-xlsx-dump.py");
 function dump(bytes) {
   const tmp = mkdtempSync(join(tmpdir(), "xlsx-"));

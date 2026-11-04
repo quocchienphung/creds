@@ -49,3 +49,7 @@ public/storage/pdf.worker.min.mjs
 data/vn-geo/raw/*.pbf
 data/vn-geo/raw/*.csv
 data/vn-geo/staging/
+
+# real customer workbooks and human-reviewed evaluation sets stay on the machine
+data/collateral-real/
+*.reviewed.json

@@ -1,0 +1,4160 @@
+[
+  {
+    "sheet": "Tai san 1",
+    "ref": "B2",
+    "original": "Th?ng tin t? s?n: ng??i s? d?ng dat; n? mat ti?n g?n li?n v?i d?t",
+    "repaired": "Thong tin tai san: nguoi su dung dat; nha mat tien gan lien voi dat",
+    "domains": [
+      {
+        "domain": "land_use_right",
+        "score": 0.307
+      },
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.226
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.179
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.179
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.038
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.038
+      },
+      {
+        "domain": "geographic_address",
+        "score": 0.019
+      },
+      {
+        "domain": "house_and_building",
+        "score": 0.009
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.005
+      }
+    ],
+    "words": [
+      {
+        "original": "Th?ng",
+        "accented": "thông",
+        "ascii": "Thong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 10.41,
+        "runnerUp": "tháng",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "t?",
+        "accented": "tài",
+        "ascii": "tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 16.5,
+        "runnerUp": "thửa",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "s?n",
+        "accented": "sản",
+        "ascii": "san",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 22.42,
+        "runnerUp": "sơn",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "ng??i",
+        "accented": "người",
+        "ascii": "nguoi",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 18.58,
+        "runnerUp": "ngoại",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "s?",
+        "accented": "sử",
+        "ascii": "su",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "land_use_right",
+        "margin": 22.82,
+        "runnerUp": "số",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "d?ng",
+        "accented": "dụng",
+        "ascii": "dung",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "land_use_right",
+        "margin": 20.77,
+        "runnerUp": "đồng",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "n?",
+        "accented": "nhà",
+        "ascii": "nha",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 3.16,
+        "runnerUp": "nuôi",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "ti?n",
+        "accented": "tiền",
+        "ascii": "tien",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "house_and_building",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "g?n",
+        "accented": "gắn",
+        "ascii": "gan",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": 21.99,
+        "runnerUp": "giàn",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "li?n",
+        "accented": "liền",
+        "ascii": "lien",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "v?i",
+        "accented": "với",
+        "ascii": "voi",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": 24.82,
+        "runnerUp": "vải",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "d?t",
+        "accented": "đất",
+        "ascii": "dat",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": 21.81,
+        "runnerUp": "đốt",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B3",
+    "original": "Tai san bao dam la hop dong thue mua nha ? so 4, khu pho Công ty TNHH Hòa Bình",
+    "repaired": "Tai san bao dam la hop dong thue mua nha o so 4, khu pho Công ty TNHH Hòa Bình",
+    "domains": [
+      {
+        "domain": "house_and_building",
+        "score": 0.538
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.192
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.154
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.115
+      }
+    ],
+    "words": [
+      {
+        "original": "?",
+        "accented": "ở",
+        "ascii": "o",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 10.34,
+        "runnerUp": "kho",
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B4",
+    "original": "Giấy ph? x? dựng do Công ty TNHH Đại Nam l? ch? đầu tư, b?n b?n",
+    "repaired": "Giấy phep xay dựng do Công ty TNHH Đại Nam la chu đầu tư, bien ban",
+    "domains": [
+      {
+        "domain": "general_collateral_description",
+        "score": 0.28
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.18
+      },
+      {
+        "domain": "house_and_building",
+        "score": 0.12
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.12
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.1
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.08
+      },
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.08
+      },
+      {
+        "domain": "land_use_right",
+        "score": 0.02
+      },
+      {
+        "domain": "machinery_equipment",
+        "score": 0.02
+      }
+    ],
+    "words": [
+      {
+        "original": "ph?",
+        "accented": "phép",
+        "ascii": "phep",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "future_asset",
+        "margin": 16.24,
+        "runnerUp": "phố",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "x?",
+        "accented": "xây",
+        "ascii": "xay",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "future_asset",
+        "margin": 21.53,
+        "runnerUp": "xã",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "one ? stands for several letters",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "l?",
+        "accented": "là",
+        "ascii": "la",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": 1.26,
+        "runnerUp": "lý",
+        "evidence": [
+          "no ontology phrase: frequency and neighbours only",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "ch?",
+        "accented": "chủ",
+        "ascii": "chu",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "house_and_building",
+        "margin": 11.23,
+        "runnerUp": "cho",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "b?n",
+        "accented": "biên",
+        "ascii": "bien",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 5.73,
+        "runnerUp": "bên",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "b?n",
+        "accented": "bản",
+        "ascii": "ban",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 16.98,
+        "runnerUp": "bồn",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B5",
+    "original": "Ph??ng ti?n: doi tau, gi?y ??ng k? so YO 991151",
+    "repaired": "Phuong tien: doi tau, giay dang ky so YO 991151",
+    "domains": [
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.43
+      },
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.327
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.243
+      }
+    ],
+    "words": [
+      {
+        "original": "Ph??ng",
+        "accented": "phương",
+        "ascii": "Phuong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "vehicle_and_transport",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "ti?n",
+        "accented": "tiện",
+        "ascii": "tien",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "vehicle_and_transport",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "gi?y",
+        "accented": "giấy",
+        "ascii": "giay",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "general_collateral_description",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "??ng",
+        "accented": "đăng",
+        "ascii": "dang",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 12.19,
+        "runnerUp": "chứng",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "k?",
+        "accented": "ký",
+        "ascii": "ky",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 17.7,
+        "runnerUp": "kiểm",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B6",
+    "original": "T?i sản gồm năm sản xuất và nguyên vật liệu tại kho Công ty TNHH Tân Tiến",
+    "repaired": "Tai sản gồm năm sản xuất và nguyên vật liệu tại kho Công ty TNHH Tân Tiến",
+    "domains": [
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.431
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.235
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.137
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.078
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.078
+      },
+      {
+        "domain": "geographic_address",
+        "score": 0.039
+      }
+    ],
+    "words": [
+      {
+        "original": "T?i",
+        "accented": "tài",
+        "ascii": "Tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 23.5,
+        "runnerUp": "thời",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B7",
+    "original": "Bi?n ban kiem ke nguyen vat lieu, don gia 984.000.000 dong",
+    "repaired": "Bien ban kiem ke nguyen vat lieu, don gia 984.000.000 dong",
+    "domains": [
+      {
+        "domain": "general_collateral_description",
+        "score": 0.545
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.182
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.182
+      },
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.091
+      }
+    ],
+    "words": [
+      {
+        "original": "Bi?n",
+        "accented": "biên",
+        "ascii": "Bien",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B8",
+    "original": "T?i s? b?o ??m l? s? ti?t ki? khong k? h?n do Công ty TNHH An Khang so h?u",
+    "repaired": "Tai san bao dam la so tiet kiem khong ky han do Công ty TNHH An Khang so huu",
+    "domains": [
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.445
+      },
+      {
+        "domain": "deposit_and_valuable_papers",
+        "score": 0.166
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.161
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.085
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.057
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.038
+      },
+      {
+        "domain": "geographic_address",
+        "score": 0.019
+      },
+      {
+        "domain": "house_and_building",
+        "score": 0.014
+      },
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.009
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.005
+      }
+    ],
+    "words": [
+      {
+        "original": "T?i",
+        "accented": "tài",
+        "ascii": "Tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 23.5,
+        "runnerUp": "thời",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?",
+        "accented": "sản",
+        "ascii": "san",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 21.07,
+        "runnerUp": "số",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "b?o",
+        "accented": "bảo",
+        "ascii": "bao",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "??m",
+        "accented": "đảm",
+        "ascii": "dam",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 7.65,
+        "runnerUp": "hiểm",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "l?",
+        "accented": "là",
+        "ascii": "la",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": 1.26,
+        "runnerUp": "lý",
+        "evidence": [
+          "no ontology phrase: frequency and neighbours only",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?",
+        "accented": "sổ",
+        "ascii": "so",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "deposit_and_valuable_papers",
+        "margin": 9.47,
+        "runnerUp": "suất",
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "ti?t",
+        "accented": "tiết",
+        "ascii": "tiet",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "deposit_and_valuable_papers",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "ki?",
+        "accented": "kiệm",
+        "ascii": "kiem",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "deposit_and_valuable_papers",
+        "margin": 20.01,
+        "runnerUp": "kinh",
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable",
+          "one ? stands for several letters",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "k?",
+        "accented": "kỳ",
+        "ascii": "ky",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "deposit_and_valuable_papers",
+        "margin": 22.44,
+        "runnerUp": "kê",
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "h?n",
+        "accented": "hạn",
+        "ascii": "han",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "deposit_and_valuable_papers",
+        "margin": 18.66,
+        "runnerUp": "hiện",
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "h?u",
+        "accented": "hữu",
+        "ascii": "huu",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 13.92,
+        "runnerUp": "hiệu",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B9",
+    "original": "Quyen thu ph? giao th?ng, h?a ??n c?a Công ty TNHH Phú Cường",
+    "repaired": "Quyen thu phi giao thong, hoa don cua Công ty TNHH Phú Cường",
+    "domains": [
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.318
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.318
+      },
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.182
+      },
+      {
+        "domain": "machinery_equipment",
+        "score": 0.091
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.091
+      }
+    ],
+    "words": [
+      {
+        "original": "ph?",
+        "accented": "phí",
+        "ascii": "phi",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "property_rights_and_receivables",
+        "margin": 17.89,
+        "runnerUp": "phố",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "th?ng",
+        "accented": "thông",
+        "ascii": "thong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "vehicle_and_transport",
+        "margin": 10.32,
+        "runnerUp": "tháng",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "h?a",
+        "accented": "hóa",
+        "ascii": "hoa",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "??n",
+        "accented": "đơn",
+        "ascii": "don",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": 9.06,
+        "runnerUp": "luân",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "c?a",
+        "accented": "của",
+        "ascii": "cua",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 4.23,
+        "runnerUp": "chứa",
+        "evidence": [
+          "no ontology phrase: frequency and neighbours only",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B10",
+    "original": "Tài sản tặng cho, nghĩa vụ s? YQ 512467",
+    "repaired": "Tài sản tặng cho, nghĩa vụ so YQ 512467",
+    "domains": [
+      {
+        "domain": "general_collateral_description",
+        "score": 1
+      }
+    ],
+    "words": [
+      {
+        "original": "s?",
+        "accented": "số",
+        "ascii": "so",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 13.58,
+        "runnerUp": "sử",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B11",
+    "original": "H? so: tu ngay do Công ty TNHH Thành Đạt cap",
+    "repaired": "Ho so: tu ngay do Công ty TNHH Thành Đạt cap",
+    "domains": [
+      {
+        "domain": "general_collateral_description",
+        "score": 1
+      }
+    ],
+    "words": [
+      {
+        "original": "H?",
+        "accented": "hồ",
+        "ascii": "Ho",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 8.11,
+        "runnerUp": "hạn",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B12",
+    "original": "GIẤY PHÉP XÂY DỰNG VÀ QUY?N THU PHÍ GIAO THÔNG THEO PHỤ LỤC HỢP ĐỒNG",
+    "repaired": "GIẤY PHÉP XÂY DỰNG VÀ QUYEN THU PHÍ GIAO THÔNG THEO PHỤ LỤC HỢP ĐỒNG",
+    "domains": [
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 1
+      }
+    ],
+    "words": [
+      {
+        "original": "QUY?N",
+        "accented": "quyền",
+        "ascii": "QUYEN",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "property_rights_and_receivables",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B13",
+    "original": "Thong tin tai san: dien tich x?y d?ng; khu can ho gan lien voi dat",
+    "repaired": "Thong tin tai san: dien tich xay dung; khu can ho gan lien voi dat",
+    "domains": [
+      {
+        "domain": "future_asset",
+        "score": 0.318
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.182
+      },
+      {
+        "domain": "house_and_building",
+        "score": 0.182
+      },
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.091
+      },
+      {
+        "domain": "land_use_right",
+        "score": 0.045
+      },
+      {
+        "domain": "machinery_equipment",
+        "score": 0.045
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.045
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.045
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.045
+      }
+    ],
+    "words": [
+      {
+        "original": "x?y",
+        "accented": "xây",
+        "ascii": "xay",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "future_asset",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "d?ng",
+        "accented": "dựng",
+        "ascii": "dung",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "future_asset",
+        "margin": 15.31,
+        "runnerUp": "đồng",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B14",
+    "original": "T?i san bao dam la khu can ho so 893, dia chi tai san Công ty TNHH Hải Âu",
+    "repaired": "Tai san bao dam la khu can ho so 893, dia chi tai san Công ty TNHH Hải Âu",
+    "domains": [
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.431
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.235
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.137
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.078
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.078
+      },
+      {
+        "domain": "geographic_address",
+        "score": 0.039
+      }
+    ],
+    "words": [
+      {
+        "original": "T?i",
+        "accented": "tài",
+        "ascii": "Tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 23.5,
+        "runnerUp": "thời",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B15",
+    "original": "Giay ph? x?y d?ng do Công ty TNHH Trường Sinh l? chu ?au t?, h?p ?ong x?y d?ng",
+    "repaired": "Giay phep xay dung do Công ty TNHH Trường Sinh la chu dau tu, hop dong xay dung",
+    "domains": [
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.209
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.178
+      },
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.157
+      },
+      {
+        "domain": "house_and_building",
+        "score": 0.136
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.099
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.084
+      },
+      {
+        "domain": "machinery_equipment",
+        "score": 0.042
+      },
+      {
+        "domain": "deposit_and_valuable_papers",
+        "score": 0.031
+      },
+      {
+        "domain": "land_use_right",
+        "score": 0.021
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.021
+      },
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.021
+      }
+    ],
+    "words": [
+      {
+        "original": "ph?",
+        "accented": "phép",
+        "ascii": "phep",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "future_asset",
+        "margin": 16.24,
+        "runnerUp": "phố",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "x?y",
+        "accented": "xây",
+        "ascii": "xay",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "future_asset",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "d?ng",
+        "accented": "dựng",
+        "ascii": "dung",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "future_asset",
+        "margin": 15.31,
+        "runnerUp": "đồng",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "l?",
+        "accented": "là",
+        "ascii": "la",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": 1.26,
+        "runnerUp": "lý",
+        "evidence": [
+          "no ontology phrase: frequency and neighbours only",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "?au",
+        "accented": "đầu",
+        "ascii": "dau",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 20.2,
+        "runnerUp": "tàu",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "t?",
+        "accented": "tư",
+        "ascii": "tu",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 11.87,
+        "runnerUp": "tô",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "h?p",
+        "accented": "hợp",
+        "ascii": "hop",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "property_rights_and_receivables",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "?ong",
+        "accented": "đồng",
+        "ascii": "dong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "property_rights_and_receivables",
+        "margin": 28.2,
+        "runnerUp": "không",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "x?y",
+        "accented": "xây",
+        "ascii": "xay",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "future_asset",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "d?ng",
+        "accented": "dựng",
+        "ascii": "dung",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "future_asset",
+        "margin": 15.17,
+        "runnerUp": "đồng",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B16",
+    "original": "PHƯƠNG TIỆN: MÀU S?N, GI?Y ĐĂNG KÝ SỐ GK 453155",
+    "repaired": "PHƯƠNG TIỆN: MÀU SON, GIAY ĐĂNG KÝ SỐ GK 453155",
+    "domains": [
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.75
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.25
+      }
+    ],
+    "words": [
+      {
+        "original": "S?N",
+        "accented": "sơn",
+        "ascii": "SON",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "vehicle_and_transport",
+        "margin": 6.43,
+        "runnerUp": "sản",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "GI?Y",
+        "accented": "giấy",
+        "ascii": "GIAY",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "vehicle_and_transport",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B17",
+    "original": "Tai san gom may ep coc va nguyen v?t lieu tai kho Công ty TNHH Thành Đạt",
+    "repaired": "Tai san gom may ep coc va nguyen vat lieu tai kho Công ty TNHH Thành Đạt",
+    "domains": [
+      {
+        "domain": "inventory_and_goods",
+        "score": 1
+      }
+    ],
+    "words": [
+      {
+        "original": "v?t",
+        "accented": "vật",
+        "ascii": "vat",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": 21.22,
+        "runnerUp": "vẹt",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B18",
+    "original": "Bi?n b?n kiem k? h?ng lu?n chuyen, ??n gi? 833.000.000 d?ng",
+    "repaired": "Bien ban kiem ke hang luan chuyen, don gia 833.000.000 dong",
+    "domains": [
+      {
+        "domain": "general_collateral_description",
+        "score": 0.417
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.361
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.167
+      },
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.056
+      }
+    ],
+    "words": [
+      {
+        "original": "Bi?n",
+        "accented": "biên",
+        "ascii": "Bien",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "b?n",
+        "accented": "bản",
+        "ascii": "ban",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 19.03,
+        "runnerUp": "biển",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "k?",
+        "accented": "kê",
+        "ascii": "ke",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": 14.11,
+        "runnerUp": "kho",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "h?ng",
+        "accented": "hàng",
+        "ascii": "hang",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": 20.98,
+        "runnerUp": "hồng",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "lu?n",
+        "accented": "luân",
+        "ascii": "luan",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "??n",
+        "accented": "đơn",
+        "ascii": "don",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": 12.12,
+        "runnerUp": "tiện",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "gi?",
+        "accented": "giá",
+        "ascii": "gia",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "inventory_and_goods",
+        "margin": 14.19,
+        "runnerUp": "giao",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "d?ng",
+        "accented": "đồng",
+        "ascii": "dong",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "general_collateral_description",
+        "margin": 7.35,
+        "runnerUp": "dụng",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B19",
+    "original": "Tai san bao dam la giay to c? gia do Công ty TNHH Tân Tiến so huu",
+    "repaired": "Tai san bao dam la giay to co gia do Công ty TNHH Tân Tiến so huu",
+    "domains": [
+      {
+        "domain": "deposit_and_valuable_papers",
+        "score": 1
+      }
+    ],
+    "words": [
+      {
+        "original": "c?",
+        "accented": "có",
+        "ascii": "co",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "deposit_and_valuable_papers",
+        "margin": 16.11,
+        "runnerUp": "cá",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B20",
+    "original": "Ngu?n thu, hợp đồng xây dựng của Công ty TNHH Tân Tiến",
+    "repaired": "Nguon thu, hợp đồng xây dựng của Công ty TNHH Tân Tiến",
+    "domains": [
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 1
+      }
+    ],
+    "words": [
+      {
+        "original": "Ngu?n",
+        "accented": "nguồn",
+        "ascii": "Nguon",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "property_rights_and_receivables",
+        "margin": 12.03,
+        "runnerUp": "nguyên",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B21",
+    "original": "T?i s?n ?at c?c, ?a ???c c? s? OM 427324",
+    "repaired": "Tai san xuat KHONG XAC DINH, da duoc cap so OM 427324",
+    "domains": [
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.417
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.257
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.104
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.056
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.056
+      },
+      {
+        "domain": "land_use_right",
+        "score": 0.035
+      },
+      {
+        "domain": "machinery_equipment",
+        "score": 0.035
+      },
+      {
+        "domain": "geographic_address",
+        "score": 0.028
+      },
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.007
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.007
+      }
+    ],
+    "words": [
+      {
+        "original": "T?i",
+        "accented": "tài",
+        "ascii": "Tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 23.5,
+        "runnerUp": "thời",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?n",
+        "accented": "sản",
+        "ascii": "san",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 24.9,
+        "runnerUp": "sơn",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "?at",
+        "accented": "xuất",
+        "ascii": "xuat",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_use_right",
+        "margin": 2.5,
+        "runnerUp": "đặt",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "c?c",
+        "accented": "cọc",
+        "ascii": "KHONG XAC DINH",
+        "status": "fallback_lossy",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 0.15,
+        "runnerUp": "các",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute",
+          "high-impact word below the margin: not asserted"
+        ]
+      },
+      {
+        "original": "?a",
+        "accented": "đã",
+        "ascii": "da",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 4.6,
+        "runnerUp": "chưa",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "???c",
+        "accented": "được",
+        "ascii": "duoc",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 13.7,
+        "runnerUp": "nước",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "c?",
+        "accented": "cấp",
+        "ascii": "cap",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 6.92,
+        "runnerUp": "căn",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "s?",
+        "accented": "số",
+        "ascii": "so",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 11.92,
+        "runnerUp": "sử",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B22",
+    "original": "Hồ sơ: ph?ng công chứng do Công ty TNHH Hưng Thịnh cấp",
+    "repaired": "Hồ sơ: phong công chứng do Công ty TNHH Hưng Thịnh cấp",
+    "domains": [
+      {
+        "domain": "general_collateral_description",
+        "score": 1
+      }
+    ],
+    "words": [
+      {
+        "original": "ph?ng",
+        "accented": "phòng",
+        "ascii": "phong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 12.87,
+        "runnerUp": "phương",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B23",
+    "original": "Gi?y ph?p x?y dựng và thanh to? ?t hai theo b? ch?nh",
+    "repaired": "Giay phep xay dựng và thanh toan dot hai theo ban chinh",
+    "domains": [
+      {
+        "domain": "future_asset",
+        "score": 0.3
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.175
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.125
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.1
+      },
+      {
+        "domain": "house_and_building",
+        "score": 0.1
+      },
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.1
+      },
+      {
+        "domain": "land_use_right",
+        "score": 0.025
+      },
+      {
+        "domain": "machinery_equipment",
+        "score": 0.025
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.025
+      },
+      {
+        "domain": "deposit_and_valuable_papers",
+        "score": 0.025
+      }
+    ],
+    "words": [
+      {
+        "original": "Gi?y",
+        "accented": "giấy",
+        "ascii": "Giay",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "future_asset",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "ph?p",
+        "accented": "phép",
+        "ascii": "phep",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "future_asset",
+        "margin": 20.09,
+        "runnerUp": "pháp",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "x?y",
+        "accented": "xây",
+        "ascii": "xay",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "future_asset",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "to?",
+        "accented": "toán",
+        "ascii": "toan",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "property_rights_and_receivables",
+        "margin": 23.53,
+        "runnerUp": "tông",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "?t",
+        "accented": "đợt",
+        "ascii": "dot",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "property_rights_and_receivables",
+        "margin": 14.52,
+        "runnerUp": "đất",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "b?",
+        "accented": "bản",
+        "ascii": "ban",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 6.58,
+        "runnerUp": "bị",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "ch?nh",
+        "accented": "chính",
+        "ascii": "chinh",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B24",
+    "original": "Th?g tin tai san: quyen su dung dat thue; nha ba tang gan lien voi dat",
+    "repaired": "Thong tin tai san: quyen su dung dat thue; nha ba tang gan lien voi dat",
+    "domains": [
+      {
+        "domain": "general_collateral_description",
+        "score": 1
+      }
+    ],
+    "words": [
+      {
+        "original": "Th?g",
+        "accented": "thông",
+        "ascii": "Thong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 10.41,
+        "runnerUp": "tháng",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B25",
+    "original": "T?i s?n b?o ?m l? nh? ba t?ng s? 78, d?a chi t?i s?n Công ty TNHH Trường Sinh",
+    "repaired": "Tai san bao dam la nha ba tang so 78, dia chi tai san Công ty TNHH Trường Sinh",
+    "domains": [
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.46
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.23
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.106
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.066
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.058
+      },
+      {
+        "domain": "geographic_address",
+        "score": 0.055
+      },
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.007
+      },
+      {
+        "domain": "house_and_building",
+        "score": 0.007
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.004
+      },
+      {
+        "domain": "deposit_and_valuable_papers",
+        "score": 0.004
+      },
+      {
+        "domain": "land_use_right",
+        "score": 0.004
+      }
+    ],
+    "words": [
+      {
+        "original": "T?i",
+        "accented": "tài",
+        "ascii": "Tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 23.5,
+        "runnerUp": "thời",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?n",
+        "accented": "sản",
+        "ascii": "san",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 30.27,
+        "runnerUp": "sơn",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "b?o",
+        "accented": "bảo",
+        "ascii": "bao",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "?m",
+        "accented": "đảm",
+        "ascii": "dam",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 3.65,
+        "runnerUp": "hiểm",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "one ? stands for several letters",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "l?",
+        "accented": "là",
+        "ascii": "la",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": 7.81,
+        "runnerUp": "lý",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "nh?",
+        "accented": "nhà",
+        "ascii": "nha",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 16.55,
+        "runnerUp": "nhuận",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "t?ng",
+        "accented": "tầng",
+        "ascii": "tang",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 9.07,
+        "runnerUp": "tông",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?",
+        "accented": "số",
+        "ascii": "so",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 11.39,
+        "runnerUp": "sử",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "d?a",
+        "accented": "địa",
+        "ascii": "dia",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "geographic_address",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "t?i",
+        "accented": "tài",
+        "ascii": "tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 29.56,
+        "runnerUp": "thời",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?n",
+        "accented": "sản",
+        "ascii": "san",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 22.4,
+        "runnerUp": "sơn",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B26",
+    "original": "D? ?N ĐANG TRIỂN KHAI DO C?NG TY TNHH H?NG TH?NH L?M CHỦ ĐẦU T?, QUYỀN THU PH? GIAO TH?NG",
+    "repaired": "DU AN ĐANG TRIỂN KHAI DO CONG TY TNHH HANG THANH LAM CHỦ ĐẦU TU, QUYỀN THU PHI GIAO THONG",
+    "domains": [
+      {
+        "domain": "house_and_building",
+        "score": 0.37
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.222
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.185
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.148
+      },
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.074
+      }
+    ],
+    "words": [
+      {
+        "original": "D?",
+        "accented": "dự",
+        "ascii": "DU",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 10.1,
+        "runnerUp": "đã",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "?N",
+        "accented": "án",
+        "ascii": "AN",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 14.92,
+        "runnerUp": "hoàn",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "C?NG",
+        "accented": "công",
+        "ascii": "CONG",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 17.33,
+        "runnerUp": "chứng",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "H?NG",
+        "accented": "hàng",
+        "ascii": "HANG",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": 3.32,
+        "runnerUp": "hồng",
+        "evidence": [
+          "no ontology phrase: frequency and neighbours only",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "TH?NH",
+        "accented": "thành",
+        "ascii": "THANH",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "future_asset",
+        "margin": null,
+        "evidence": [
+          "no ontology phrase: frequency and neighbours only",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "L?M",
+        "accented": "làm",
+        "ascii": "LAM",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": null,
+        "evidence": [
+          "no ontology phrase: frequency and neighbours only",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "T?",
+        "accented": "tư",
+        "ascii": "TU",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 11.87,
+        "runnerUp": "tô",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "PH?",
+        "accented": "phí",
+        "ascii": "PHI",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "property_rights_and_receivables",
+        "margin": 17.89,
+        "runnerUp": "phố",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "TH?NG",
+        "accented": "thông",
+        "ascii": "THONG",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "vehicle_and_transport",
+        "margin": 10.81,
+        "runnerUp": "tháng",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B27",
+    "original": "Phuong tien: t?u ca, gi? dang ky so LW 492796",
+    "repaired": "Phuong tien: tau ca, giay dang ky so LW 492796",
+    "domains": [
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.75
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.25
+      }
+    ],
+    "words": [
+      {
+        "original": "t?u",
+        "accented": "tàu",
+        "ascii": "tau",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "vehicle_and_transport",
+        "margin": 14.6,
+        "runnerUp": "tiêu",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "gi?",
+        "accented": "giấy",
+        "ascii": "giay",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "vehicle_and_transport",
+        "margin": 7.09,
+        "runnerUp": "giá",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable",
+          "one ? stands for several letters",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B28",
+    "original": "T?i sản g?m c?n c?u v? phân b?n t?i kho Công ty TNHH Đại Nam",
+    "repaired": "Tai sản gom can cau va phân bon tai kho Công ty TNHH Đại Nam",
+    "domains": [
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.4
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.218
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.127
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.073
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.073
+      },
+      {
+        "domain": "geographic_address",
+        "score": 0.036
+      },
+      {
+        "domain": "machinery_equipment",
+        "score": 0.036
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.036
+      }
+    ],
+    "words": [
+      {
+        "original": "T?i",
+        "accented": "tài",
+        "ascii": "Tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 23.5,
+        "runnerUp": "thời",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "g?m",
+        "accented": "gồm",
+        "ascii": "gom",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 6,
+        "runnerUp": "gam",
+        "evidence": [
+          "no ontology phrase: frequency and neighbours only",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "c?n",
+        "accented": "cần",
+        "ascii": "can",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "machinery_equipment",
+        "margin": 12.11,
+        "runnerUp": "còn",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "c?u",
+        "accented": "cẩu",
+        "ascii": "cau",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "machinery_equipment",
+        "margin": 11.5,
+        "runnerUp": "cứu",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "v?",
+        "accented": "và",
+        "ascii": "va",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 1,
+        "runnerUp": "vụ",
+        "evidence": [
+          "no ontology phrase: frequency and neighbours only",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "b?n",
+        "accented": "bón",
+        "ascii": "bon",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": 6.72,
+        "runnerUp": "bán",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "t?i",
+        "accented": "tại",
+        "ascii": "tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": 14.05,
+        "runnerUp": "thời",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B29",
+    "original": "Bi?n b?n ki?m k? v?n ?p, ??n gi? 681.000.000 đ?ng",
+    "repaired": "Bien ban kiem ke von gop, don gia 681.000.000 dong",
+    "domains": [
+      {
+        "domain": "general_collateral_description",
+        "score": 0.385
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.256
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.205
+      },
+      {
+        "domain": "deposit_and_valuable_papers",
+        "score": 0.103
+      },
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.051
+      }
+    ],
+    "words": [
+      {
+        "original": "Bi?n",
+        "accented": "biên",
+        "ascii": "Bien",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "b?n",
+        "accented": "bản",
+        "ascii": "ban",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 19.03,
+        "runnerUp": "biển",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "ki?m",
+        "accented": "kiểm",
+        "ascii": "kiem",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "k?",
+        "accented": "kê",
+        "ascii": "ke",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": 10.3,
+        "runnerUp": "ký",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "v?n",
+        "accented": "vốn",
+        "ascii": "von",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "deposit_and_valuable_papers",
+        "margin": 2.36,
+        "runnerUp": "ván",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "?p",
+        "accented": "góp",
+        "ascii": "gop",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "deposit_and_valuable_papers",
+        "margin": 2.36,
+        "runnerUp": "ép",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "one ? stands for several letters",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "??n",
+        "accented": "đơn",
+        "ascii": "don",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": 9.39,
+        "runnerUp": "vốn",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "gi?",
+        "accented": "giá",
+        "ascii": "gia",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "inventory_and_goods",
+        "margin": 14.19,
+        "runnerUp": "giao",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "đ?ng",
+        "accented": "đồng",
+        "ascii": "dong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "general_collateral_description",
+        "margin": 16.41,
+        "runnerUp": "đường",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B30",
+    "original": "T?i s?n b?o ??m l? gi?y t? c? gi? do Công ty TNHH Tân Tiến so h?u",
+    "repaired": "Tai san bao dam la giay to co gia do Công ty TNHH Tân Tiến so huu",
+    "domains": [
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.519
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.188
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.099
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.066
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.044
+      },
+      {
+        "domain": "deposit_and_valuable_papers",
+        "score": 0.028
+      },
+      {
+        "domain": "geographic_address",
+        "score": 0.022
+      },
+      {
+        "domain": "house_and_building",
+        "score": 0.017
+      },
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.011
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.006
+      }
+    ],
+    "words": [
+      {
+        "original": "T?i",
+        "accented": "tài",
+        "ascii": "Tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 23.5,
+        "runnerUp": "thời",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?n",
+        "accented": "sản",
+        "ascii": "san",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 30.27,
+        "runnerUp": "sơn",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "b?o",
+        "accented": "bảo",
+        "ascii": "bao",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "??m",
+        "accented": "đảm",
+        "ascii": "dam",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 7.65,
+        "runnerUp": "hiểm",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "l?",
+        "accented": "là",
+        "ascii": "la",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": 1.26,
+        "runnerUp": "lý",
+        "evidence": [
+          "no ontology phrase: frequency and neighbours only",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "gi?y",
+        "accented": "giấy",
+        "ascii": "giay",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "deposit_and_valuable_papers",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "t?",
+        "accented": "tờ",
+        "ascii": "to",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "deposit_and_valuable_papers",
+        "margin": 12.03,
+        "runnerUp": "thế",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "c?",
+        "accented": "có",
+        "ascii": "co",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "deposit_and_valuable_papers",
+        "margin": 8.95,
+        "runnerUp": "cấp",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "gi?",
+        "accented": "giá",
+        "ascii": "gia",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "deposit_and_valuable_papers",
+        "margin": 8.11,
+        "runnerUp": "giấy",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "h?u",
+        "accented": "hữu",
+        "ascii": "huu",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 13.92,
+        "runnerUp": "hiệu",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Tai san 1",
+    "ref": "B31",
+    "original": "Quyen so huu cong nghiep, quyen thu ph? giao th?ng cua Công ty TNHH Bình Minh",
+    "repaired": "Quyen so huu cong nghiep, quyen thu phi giao thong cua Công ty TNHH Bình Minh",
+    "domains": [
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.6
+      },
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.4
+      }
+    ],
+    "words": [
+      {
+        "original": "ph?",
+        "accented": "phí",
+        "ascii": "phi",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "property_rights_and_receivables",
+        "margin": 17.89,
+        "runnerUp": "phố",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "th?ng",
+        "accented": "thông",
+        "ascii": "thong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "vehicle_and_transport",
+        "margin": 10.32,
+        "runnerUp": "tháng",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Phu luc",
+    "ref": "B2",
+    "original": "Tai san ?ang tranh ch?, dang tranh chap so WN 148561",
+    "repaired": "Tai san dang tranh chap, dang tranh chap so WN 148561",
+    "domains": [
+      {
+        "domain": "ownership_and_security_status",
+        "score": 1
+      }
+    ],
+    "words": [
+      {
+        "original": "?ang",
+        "accented": "đang",
+        "ascii": "dang",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 12.76,
+        "runnerUp": "tháng",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "ch?",
+        "accented": "chấp",
+        "ascii": "chap",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 7.94,
+        "runnerUp": "chỉ",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "one ? stands for several letters",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Phu luc",
+    "ref": "B3",
+    "original": "Hồ s?: s? ph?t hành # do Công ty TNHH Minh Phát c?p",
+    "repaired": "Hồ so: so phat hành # do Công ty TNHH Minh Phát cap",
+    "domains": [
+      {
+        "domain": "general_collateral_description",
+        "score": 1
+      }
+    ],
+    "words": [
+      {
+        "original": "s?",
+        "accented": "sơ",
+        "ascii": "so",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 10.51,
+        "runnerUp": "sử",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?",
+        "accented": "số",
+        "ascii": "so",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 5.8,
+        "runnerUp": "sản",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "ph?t",
+        "accented": "phát",
+        "ascii": "phat",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "c?p",
+        "accented": "cấp",
+        "ascii": "cap",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 3.11,
+        "runnerUp": "chấp",
+        "evidence": [
+          "no ontology phrase: frequency and neighbours only",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Phu luc",
+    "ref": "B4",
+    "original": "Gi?y phep xay dung va khach hang theo cong ty trach nhiem huu han",
+    "repaired": "Giay phep xay dung va khach hang theo cong ty trach nhiem huu han",
+    "domains": [
+      {
+        "domain": "future_asset",
+        "score": 0.667
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.333
+      }
+    ],
+    "words": [
+      {
+        "original": "Gi?y",
+        "accented": "giấy",
+        "ascii": "Giay",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "future_asset",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Phu luc",
+    "ref": "B5",
+    "original": "Th?ng tin t?i s?: quy?n s? d?ng ?t n?ng nghi?p; khu c?n h? g?n li?n v?i d?t",
+    "repaired": "Thong tin tai san: quyen su dung dat nong nghiep; khu can ho gan lien voi dat",
+    "domains": [
+      {
+        "domain": "land_use_right",
+        "score": 0.404
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.162
+      },
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.158
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.128
+      },
+      {
+        "domain": "house_and_building",
+        "score": 0.061
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.04
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.034
+      },
+      {
+        "domain": "geographic_address",
+        "score": 0.013
+      }
+    ],
+    "words": [
+      {
+        "original": "Th?ng",
+        "accented": "thông",
+        "ascii": "Thong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 10.41,
+        "runnerUp": "tháng",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "t?i",
+        "accented": "tài",
+        "ascii": "tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 30.38,
+        "runnerUp": "thời",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?",
+        "accented": "sản",
+        "ascii": "san",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 13.2,
+        "runnerUp": "số",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "quy?n",
+        "accented": "quyền",
+        "ascii": "quyen",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_use_right",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?",
+        "accented": "sử",
+        "ascii": "su",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "land_use_right",
+        "margin": 13.74,
+        "runnerUp": "sở",
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "d?ng",
+        "accented": "dụng",
+        "ascii": "dung",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "land_use_right",
+        "margin": 25.9,
+        "runnerUp": "đồng",
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "?t",
+        "accented": "đất",
+        "ascii": "dat",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_use_right",
+        "margin": 26.8,
+        "runnerUp": "một",
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "n?ng",
+        "accented": "nông",
+        "ascii": "nong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_use_right",
+        "margin": 23.39,
+        "runnerUp": "nâng",
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "nghi?p",
+        "accented": "nghiệp",
+        "ascii": "nghiep",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_use_right",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "c?n",
+        "accented": "căn",
+        "ascii": "can",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 23.63,
+        "runnerUp": "còn",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "h?",
+        "accented": "hộ",
+        "ascii": "ho",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "house_and_building",
+        "margin": 15.79,
+        "runnerUp": "hệ",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "g?n",
+        "accented": "gắn",
+        "ascii": "gan",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": 21.99,
+        "runnerUp": "giàn",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "li?n",
+        "accented": "liền",
+        "ascii": "lien",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "v?i",
+        "accented": "với",
+        "ascii": "voi",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": 24.82,
+        "runnerUp": "vải",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "d?t",
+        "accented": "đất",
+        "ascii": "dat",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": 21.81,
+        "runnerUp": "đốt",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Phu luc",
+    "ref": "B6",
+    "original": "T?i s?n b?o ??m l? khu c?n h? s? 977, thu?c ??a chỉ Công ty TNHH Đại Nam",
+    "repaired": "Tai san bao dam la khu can ho so 977, thuoc dia chỉ Công ty TNHH Đại Nam",
+    "domains": [
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.416
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.208
+      },
+      {
+        "domain": "house_and_building",
+        "score": 0.096
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.071
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.061
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.061
+      },
+      {
+        "domain": "geographic_address",
+        "score": 0.061
+      },
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.01
+      },
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.005
+      },
+      {
+        "domain": "deposit_and_valuable_papers",
+        "score": 0.005
+      },
+      {
+        "domain": "land_use_right",
+        "score": 0.005
+      }
+    ],
+    "words": [
+      {
+        "original": "T?i",
+        "accented": "tài",
+        "ascii": "Tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 23.5,
+        "runnerUp": "thời",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?n",
+        "accented": "sản",
+        "ascii": "san",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 30.27,
+        "runnerUp": "sơn",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "b?o",
+        "accented": "bảo",
+        "ascii": "bao",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "??m",
+        "accented": "đảm",
+        "ascii": "dam",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 7.65,
+        "runnerUp": "hiểm",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "l?",
+        "accented": "là",
+        "ascii": "la",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "land_attached_asset",
+        "margin": 1.26,
+        "runnerUp": "lý",
+        "evidence": [
+          "no ontology phrase: frequency and neighbours only",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "c?n",
+        "accented": "căn",
+        "ascii": "can",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 23.63,
+        "runnerUp": "còn",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "h?",
+        "accented": "hộ",
+        "ascii": "ho",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "house_and_building",
+        "margin": 21.15,
+        "runnerUp": "hệ",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "s?",
+        "accented": "số",
+        "ascii": "so",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 16.75,
+        "runnerUp": "sử",
+        "evidence": [
+          "phrase of the ontology (4 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "thu?c",
+        "accented": "thuộc",
+        "ascii": "thuoc",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "geographic_address",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "??a",
+        "accented": "địa",
+        "ascii": "dia",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "geographic_address",
+        "margin": 25.17,
+        "runnerUp": "chưa",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Phu luc",
+    "ref": "B7",
+    "original": "D? án đang tri?n khai do Công ty TNHH Kim Long làm chủ đầu tư, quyền yêu cầu thanh toán",
+    "repaired": "Du án đang trien khai do Công ty TNHH Kim Long làm chủ đầu tư, quyền yêu cầu thanh toán",
+    "domains": [
+      {
+        "domain": "house_and_building",
+        "score": 0.5
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.375
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.125
+      }
+    ],
+    "words": [
+      {
+        "original": "D?",
+        "accented": "dự",
+        "ascii": "Du",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 12.3,
+        "runnerUp": "đã",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "tri?n",
+        "accented": "triển",
+        "ascii": "trien",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "future_asset",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Phu luc",
+    "ref": "B8",
+    "original": "Ph??ng ti?: h?p ??ng mua b?n ph??ng ti?n, gi?y d?ng ky s? QO 787649",
+    "repaired": "Phuong tien: hop dong mua ban phuong tien, giay dang ky so QO 787649",
+    "domains": [
+      {
+        "domain": "vehicle_and_transport",
+        "score": 0.342
+      },
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.194
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.179
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.153
+      },
+      {
+        "domain": "house_and_building",
+        "score": 0.041
+      },
+      {
+        "domain": "deposit_and_valuable_papers",
+        "score": 0.031
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.031
+      },
+      {
+        "domain": "machinery_equipment",
+        "score": 0.031
+      }
+    ],
+    "words": [
+      {
+        "original": "Ph??ng",
+        "accented": "phương",
+        "ascii": "Phuong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "vehicle_and_transport",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "ti?",
+        "accented": "tiện",
+        "ascii": "tien",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "vehicle_and_transport",
+        "margin": 15.21,
+        "runnerUp": "tích",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "h?p",
+        "accented": "hợp",
+        "ascii": "hop",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "property_rights_and_receivables",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "??ng",
+        "accented": "đồng",
+        "ascii": "dong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "property_rights_and_receivables",
+        "margin": 27.61,
+        "runnerUp": "đăng",
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "b?n",
+        "accented": "bán",
+        "ascii": "ban",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "house_and_building",
+        "margin": 22.52,
+        "runnerUp": "bên",
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "ph??ng",
+        "accented": "phương",
+        "ascii": "phuong",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "vehicle_and_transport",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "ti?n",
+        "accented": "tiện",
+        "ascii": "tien",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "vehicle_and_transport",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (6 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "gi?y",
+        "accented": "giấy",
+        "ascii": "giay",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "vehicle_and_transport",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "d?ng",
+        "accented": "đăng",
+        "ascii": "dang",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 23.28,
+        "runnerUp": "đồng",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?",
+        "accented": "số",
+        "ascii": "so",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 18.13,
+        "runnerUp": "sử",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Phu luc",
+    "ref": "B9",
+    "original": "T?i s? gồm thiết bị sản xuất và hàng luân chuyển tại kho Công ty TNHH Phú Cường",
+    "repaired": "Tai san gồm thiết bị sản xuất và hàng luân chuyển tại kho Công ty TNHH Phú Cường",
+    "domains": [
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.431
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.235
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.137
+      },
+      {
+        "domain": "future_asset",
+        "score": 0.078
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.078
+      },
+      {
+        "domain": "geographic_address",
+        "score": 0.039
+      }
+    ],
+    "words": [
+      {
+        "original": "T?i",
+        "accented": "tài",
+        "ascii": "Tai",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 23.5,
+        "runnerUp": "thời",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "s?",
+        "accented": "sản",
+        "ascii": "san",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 13.2,
+        "runnerUp": "số",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Phu luc",
+    "ref": "B10",
+    "original": "Bi?n b? ki?m k? h?ng lu?n chuy?n, d? gi? 670.000.000 dong",
+    "repaired": "Bien ban kiem ke hang luan chuyen, dinh gia 670.000.000 dong",
+    "domains": [
+      {
+        "domain": "inventory_and_goods",
+        "score": 0.347
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.306
+      },
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.245
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.102
+      }
+    ],
+    "words": [
+      {
+        "original": "Bi?n",
+        "accented": "biên",
+        "ascii": "Bien",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "b?",
+        "accented": "bản",
+        "ascii": "ban",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "general_collateral_description",
+        "margin": 15.03,
+        "runnerUp": "biển",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "ki?m",
+        "accented": "kiểm",
+        "ascii": "kiem",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "k?",
+        "accented": "kê",
+        "ascii": "ke",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": 14.11,
+        "runnerUp": "kho",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "h?ng",
+        "accented": "hàng",
+        "ascii": "hang",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": 20.98,
+        "runnerUp": "hồng",
+        "evidence": [
+          "phrase of the ontology (5 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "lu?n",
+        "accented": "luân",
+        "ascii": "luan",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "low",
+        "domain": "inventory_and_goods",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable"
+        ]
+      },
+      {
+        "original": "chuy?n",
+        "accented": "chuyển",
+        "ascii": "chuyen",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "inventory_and_goods",
+        "margin": null,
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      },
+      {
+        "original": "d?",
+        "accented": "định",
+        "ascii": "dinh",
+        "status": "forced_guess",
+        "applied": true,
+        "tier": "low",
+        "domain": "ownership_and_security_status",
+        "margin": 1.95,
+        "runnerUp": "đơn",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "one ? stands for several letters"
+        ]
+      },
+      {
+        "original": "gi?",
+        "accented": "giá",
+        "ascii": "gia",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 20.99,
+        "runnerUp": "giấy",
+        "evidence": [
+          "phrase of the ontology (3 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  },
+  {
+    "sheet": "Phu luc",
+    "ref": "B11",
+    "original": "Tai san bao dam la so du do Công ty TNHH Trường Sinh s? huu",
+    "repaired": "Tai san bao dam la so du do Công ty TNHH Trường Sinh so huu",
+    "domains": [
+      {
+        "domain": "ownership_and_security_status",
+        "score": 0.48
+      },
+      {
+        "domain": "land_attached_asset",
+        "score": 0.16
+      },
+      {
+        "domain": "general_collateral_description",
+        "score": 0.16
+      },
+      {
+        "domain": "house_and_building",
+        "score": 0.12
+      },
+      {
+        "domain": "property_rights_and_receivables",
+        "score": 0.08
+      }
+    ],
+    "words": [
+      {
+        "original": "s?",
+        "accented": "sở",
+        "ascii": "so",
+        "status": "safe_auto_domain_calibrated",
+        "applied": true,
+        "tier": "high",
+        "domain": "ownership_and_security_status",
+        "margin": 15.86,
+        "runnerUp": "sử",
+        "evidence": [
+          "phrase of the ontology (2 words)",
+          "known syllable",
+          "tells apart the values of a legal attribute"
+        ]
+      }
+    ]
+  }
+]

@@ -9,7 +9,7 @@ import { LIMITS } from "./excel-formation/engine/limits";
 import type { RestoreError } from "./excel-formation/engine/progress";
 import type { JsonPlan } from "./json-formation/engine/json-session";
 import type { ReportMeta, ReportOptions } from "./json-formation/engine/report-options";
-import type { GeoAuditEntry, RepairProgress, RepairReport } from "./excel-formation/engine/auto-repair";
+import type { CollateralAuditEntry, GeoAuditEntry, RepairProgress, RepairReport } from "./excel-formation/engine/auto-repair";
 import type { RepairPolicy } from "./excel-formation/engine/geo/address-recovery";
 
 const stateKey = (c: { patched: number; exceptions: number; edited: number; verified: number }) => `${c.patched}:${c.exceptions}:${c.edited}:${c.verified}`;
@@ -85,7 +85,7 @@ export function useCollateralEngine() {
     setBusy(true);
     try { return await run(); } catch (error) { setFailure({ message: error instanceof Error ? error.message : String(error) }); return undefined; } finally { setBusy(false); }
   }, []);
-  const autoRepair = useCallback(async (policy?: RepairPolicy): Promise<{ fileName: string; blob: Blob; report: RepairReport; geoAudit: GeoAuditEntry[]; geoUnavailable?: string } | null> => {
+  const autoRepair = useCallback(async (policy?: RepairPolicy): Promise<{ fileName: string; blob: Blob; report: RepairReport; geoAudit: GeoAuditEntry[]; collateralAudit: CollateralAuditEntry[]; geoUnavailable?: string } | null> => {
     if (repairing.current || busy) return null;
     repairing.current = true; setBusy(true); setFailure(null);
     const run = opening.current;
@@ -93,7 +93,7 @@ export function useCollateralEngine() {
       const response = await engine().call({ type: "autoRepair", ...(policy ? { policy } : {}) }, { repairProgress: p => { if (run === opening.current) setRepairProgress(p); } });
       if (run !== opening.current || response.type !== "repaired") return null;
       setView(response.view);
-      return { fileName: response.fileName, blob: new Blob([response.bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), report: response.report, geoAudit: response.geoAudit, ...(response.geoUnavailable ? { geoUnavailable: response.geoUnavailable } : {}) };
+      return { fileName: response.fileName, blob: new Blob([response.bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), report: response.report, geoAudit: response.geoAudit ?? [], collateralAudit: response.collateralAudit ?? [], ...(response.geoUnavailable ? { geoUnavailable: response.geoUnavailable } : {}) };
     } catch (error) {
       if (run === opening.current) setFailure({ message: error instanceof Error ? error.message : "Automatic repair failed." });
       return null;

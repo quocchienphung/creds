@@ -9,7 +9,7 @@ export const MIN_FILE_SUPPORT = 2;
 export const MODEL_VERSION = "local-retrieval-4", POLICY_VERSION = "source-verified+calibrated-model-1";
 /** `source_verified`: a clean record of the same asset proves the text. `model_auto_accepted`: a calibrated local prediction, applied but NEVER verified. */
 export type RepairStatus = "source_verified" | "model_auto_accepted" | "needs_review" | "blocked" | "unchanged";
-export type EvidenceKind = RepairCandidate["kind"] | "calibrated_model" | "geo_recovery";
+export type EvidenceKind = RepairCandidate["kind"] | "calibrated_model" | "geo_recovery" | "collateral_recovery";
 export interface RepairDecision {
   sheetId: string; row: number; col: number; role: string; original: string; proposed?: string; status: RepairStatus;
   evidence: { kind: EvidenceKind; sourceId: string }[]; reasonCode: string; reason: ReasonCode | null; modelVersion: string; policyVersion: string;
