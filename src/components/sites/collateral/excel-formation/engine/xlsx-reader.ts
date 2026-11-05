@@ -31,7 +31,7 @@ function sharedStrings(xml: string): { value: string; rich: boolean }[] {
       if (token.name === "t" && !token.empty) inT = true;
     } else if (token.kind === "text" && inT && !phonetic) text += readXmlText(token.text);
     else if (token.kind === "end") {
-      if (token.name === "si") { if (text.length > 32767 || strings.length >= 3_000_000) throw new CreditImportError("too-large", "Shared string budget exceeded."); strings.push({ value: text, rich }); }
+      if (token.name === "si") { if (text.length > 32767 || strings.length >= LIMITS.strings) throw new CreditImportError("too-large", "Shared string budget exceeded."); strings.push({ value: text, rich }); }
       if (token.name === "t") inT = false;
       if (token.name === "rPh") phonetic--;
     }
@@ -73,7 +73,7 @@ function scanSheet(name: string, part: string, xml: string, strings: { value: st
     } else cell.v = cell.t === "n" || cell.t === "b" || cell.t === "e" || cell.t === "d" ? value : readXmlText(value);
     if (cell.f) sheet.formulaCount++;
     sheet.cellsVisited!++;
-    if (++budget.cells > 3_000_000 || cell.v.length > 32767) throw new CreditImportError("too-large", "Workbook cell or text budget exceeded.");
+    if (++budget.cells > LIMITS.cells || cell.v.length > 32767) throw new CreditImportError("too-large", "Workbook cell or text budget exceeded.");
     // Keep empty, styled cells too: they participate in accounting and preservation.
     row.cells[col] = cell; sheet.maxCol = Math.max(sheet.maxCol, col + 1); cell = null; capture = "";
   };
@@ -99,7 +99,7 @@ function scanSheet(name: string, part: string, xml: string, strings: { value: st
       const r = Number(a.r ?? previousRow + 1);
       if (!Number.isInteger(r) || r <= previousRow || r > 1048576) fail("Invalid or duplicate row reference.");
       previousRow = r; row = { r, hidden: /^(1|true)$/.test(a.hidden ?? ""), cells: [] }; col = -1;
-      if (sheet.rows.length + sheet.emptyRows > 250000) throw new CreditImportError("too-large", "Worksheet row budget exceeded.");
+      if (sheet.rows.length + sheet.emptyRows > LIMITS.rows) throw new CreditImportError("too-large", "Worksheet row budget exceeded.");
       if (row.hidden) sheet.hiddenRows++;
       if (token.empty) endRow();
     } else if (tag === "c") {
@@ -141,8 +141,11 @@ export function readWorkbook(bytes: Uint8Array, { fileName, fileHash, onProgress
     const workbookXml = decode("xl/workbook.xml"), rels = new Map<string, string>(), notes: string[] = [];
     if (files["xl/_rels/workbook.xml.rels"]) for (const token of scanXml(decode("xl/_rels/workbook.xml.rels"))) if (token.kind === "start" && token.name === "Relationship" && token.attrs.TargetMode !== "External") {
       const target = readXmlText(token.attrs.Target ?? "");
-      if (target.includes("..") || target.includes(":")) throw new Error("Unsafe worksheet target.");
-      rels.set(token.attrs.Id, target.startsWith("/") ? target.slice(1) : `xl/${target.replace(/^\.\//, "")}`);
+      // Excel and SharePoint write `../customXml/item1.xml` for parts the reader never opens: resolve the path, and skip (not fail on) one that leaves the package.
+      const path = target.startsWith("/") ? [] : ["xl"];
+      let inside = !target.includes(":");
+      for (const part of target.split("/")) { if (part === "..") inside &&= path.pop() !== undefined; else if (part && part !== ".") path.push(part); }
+      if (inside) rels.set(token.attrs.Id, path.join("/"));
     }
     const targets: { name: string; part: string; rid: string; state: NonNullable<Sheet["state"]> }[] = [];
     for (const token of scanXml(workbookXml)) if (token.kind === "start") {

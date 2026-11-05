@@ -1,6 +1,7 @@
 import type { Session } from "./session.ts";
 import { applyEdits, cellKey, summarize, type ReviewState } from "./review.ts";
-import { EvidenceBuilder, scopeOf } from "./evidence-index.ts";
+import { EvidenceBuilder, scopeOf, sheetEvidence } from "./evidence-index.ts";
+import { cleanText, dropLoneQuestionMarks } from "./text-clean.ts";
 import { isTextCell, specRoleOf, textRoleOf } from "./sheet-scan.ts";
 import { generateCandidates } from "./candidate-generator.ts";
 import { rankCandidates } from "./context-ranker.ts";
@@ -10,8 +11,10 @@ import { patchWorkbookBytes, verifyRoundTrip, verifyPackageIntegrity, verifyPatc
 import { calibrate, planModelRepair, CALIBRATION_VERSION, type Calibration } from "./model-repair.ts";
 import { addMetrics, classifyOutcome, emptyMetrics, metricViolations, zeroPatchOf, type ReasonCode, type RepairMetrics, type RepairOutcome, type ZeroPatch } from "./repair-metrics.ts";
 import { columnLetters } from "./text.ts";
-import { wordsOf } from "./predict.ts";
-import { IDENTIFIER_FIELD, planPacked, repairPackedLine } from "./packed-csv.ts";
+import { VietnameseModel, wordsOf } from "./predict.ts";
+import { NAME_CALIBRATION_VERSION, nameColumnsOf, planNameRepair } from "./name-repair.ts";
+import type { ColumnSpec } from "./mapping-profiles.ts";
+import { IDENTIFIER_FIELD, planPacked, repairPackedLine, SEPARATOR } from "./packed-csv.ts";
 import { patchesOf } from "./session.ts";
 import { analyzeValue } from "./detect.ts";
 import { otherCellBlockers } from "./workbook-coverage.ts";
@@ -24,7 +27,7 @@ export interface RepairProgress { stage: "evidence_index" | "candidate_generatio
 export interface RepairReport {
   version: 2; mode: "Source-verified + calibrated model"; status: RepairOutcome; metrics: RepairMetrics; byReasonCode: Partial<Record<ReasonCode, number>>; calibration: Calibration; packageVerdict: PackageVerdict; modelVersion: string; policyVersion: string;
   cellsAccounted: number; rowsAccounted: number; applied: number; modelAccepted: number; unresolved: number; protected: number; unchanged: number; questionMarksAccounted: number;
-  reviewBlocking: number; existingReviewPatches: number;
+  reviewBlocking: number; existingReviewPatches: number; /** Names predicted by the name model of the file, and how that model was calibrated (a hold-out of the clean names of this file). */ names: { fields: number; distinctNames: number; calibration: Calibration }; /** Cells whose strange characters were cleaned (encoding accidents, control and invisible characters, odd spaces, decomposed letters). */ normalized: number;
   duplicateGroups: DuplicateSummary;
   hiddenRowsIncluded: number; hiddenRowsExcluded: number; byStatus: Record<RepairStatus, number>;
   byRole: Record<string, { cells: number; applied: number; unresolved: number }>;
@@ -84,8 +87,26 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   // No profile, no header and no mapping is needed: the repair reads every sheet and every text cell of whatever workbook it is given.
   const start = performance.now(), totalRows = session.workbook.sheets.reduce((n, s) => n + s.rows.length + s.emptyRows, 0);
   let processed = 0, applied = 0, unresolved = 0;
+  // A reviewer's decision stands: a typed value or an accepted exception on a cell is never repaired over, whatever kind of sheet the cell is on.
+  const excepted = (sheet: string, row: number, col: number) => session.ctx.issuesAt(sheet, row, col).some(issue => state.states[issue.id]?.status === "accepted_exception");
   const check = () => { if (options.cancelled?.()) throw new Error("Repair cancelled; original workbook and review history are unchanged."); };
   const progress = async (stage: RepairProgress["stage"]) => { options.onProgress?.({ stage, processedRows: processed, totalRows, applied, unresolved, elapsedMs: Math.round(performance.now() - start) }); await pause(); check(); };
+  // Strange characters first (broken encoding, control and invisible characters, odd spaces, decomposed letters): the repair of `?` below reads the cleaned text,
+  // so a cell that has both gets one patch. The evidence and the calibration still learn from the file as it is: cleaning must not move the measured confidence.
+  // A cell a reviewer already edited or accepted is never cleaned over.
+  const cleaned = new Map<string, { sheet: string; row: number; col: number; value: string }>(), columns = sheetEvidence(session);
+  for (const sheet of session.workbook.sheets) {
+    if (sheet.error) continue;
+    const info = columns.get(sheet.name)!, specs = new Map(info.columns.map(item => [item.col, item.spec]));
+    for (const row of sheet.rows) {
+      if (info.columns.length && row.r <= info.headerRow) continue;
+      row.cells.forEach((cell, col) => {
+        if (!cell || cell.f || cell.protectedText || !isTextCell(cell) || state.patches[cellKey(sheet.name, row.r, col)]) return;
+        const value = cleanText(cell.v, specs.get(col));
+        if (value !== cell.v && !excepted(sheet.name, row.r, col)) cleaned.set(cellKey(sheet.name, row.r, col), { sheet: sheet.name, row: row.r, col, value });
+      });
+    }
+  }
   const timings: Record<string, number> = {}, builder = new EvidenceBuilder(session, new Set(Object.keys(state.patches)));
   await progress("evidence_index");
   for (const sheet of session.workbook.sheets) {
@@ -107,6 +128,50 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   }
   const calibration = calibrate([...builder.cleanTexts], words ? brokenWords / words : 0);
   timings.calibration = performance.now() - calibrationStart;
+  // Names have a model of their own, learned from the clean names of this file: the columns the profile calls names, the name fields of a packed sheet, and the
+  // columns that hold names by their values. Each distinct name counts once, so a customer with many rows does not outweigh the others.
+  const packedPlans = new Map<string, ReturnType<typeof planPacked>>(), nameCols = new Map<string, Set<number>>();
+  for (const sheet of session.workbook.sheets) {
+    if (sheet.error) continue;
+    if (session.wprofile.sheets.find(p => p.name === sheet.name)?.role === "csv-packed") packedPlans.set(sheet.name, planPacked(sheet, session.profile));
+    else nameCols.set(sheet.name, nameColumnsOf(sheet, new Set(index.sheets.get(sheet.name)!.columns.map(item => item.col))));
+  }
+  const nameTexts = new Set<string>(); let nameWords = 0, nameBroken = 0, namesFixed = 0;
+  const learnName = (raw: string) => {
+    const text = raw.trim();
+    if (!text || text.length > 120) return;
+    if (/[?\ufffd]/.test(text)) { for (const word of wordsOf(text)) { nameWords++; if (word.text.includes("?")) nameBroken++; } return; }
+    if (!/\p{L}/u.test(text) || corruptionSpans(text).length || textRoleOf(text) === "identifier") return;
+    nameTexts.add(text.normalize("NFC")); nameWords += wordsOf(text).length;
+  };
+  const isNameField = (spec: ColumnSpec | undefined) => !!spec && spec.role === "name" && !IDENTIFIER_FIELD.test(spec.field);
+  for (const sheet of session.workbook.sheets) {
+    if (sheet.error) continue;
+    const info = index.sheets.get(sheet.name)!, specs = new Map(info.columns.map(item => [item.col, item.spec])), plan = packedPlans.get(sheet.name);
+    for (const row of sheet.rows) {
+      if (row.r <= info.headerRow) continue;
+      if (plan) { const line = row.cells[plan.packedCol]; if (line && !line.f && !state.patches[cellKey(sheet.name, row.r, plan.packedCol)]) { const fields = (cleaned.get(cellKey(sheet.name, row.r, plan.packedCol))?.value ?? line.v).split(SEPARATOR); if (fields.length === plan.fieldCount) for (const at of plan.names.keys()) learnName(fields[at]); } continue; }
+      row.cells.forEach((cell, col) => {
+        const spec = specs.get(col);
+        if (!cell || cell.f || cell.protectedText || !isTextCell(cell) || !(spec ? isNameField(spec) : nameCols.get(sheet.name)?.has(col)) || state.patches[cellKey(sheet.name, row.r, col)]) return;
+        learnName(cleaned.get(cellKey(sheet.name, row.r, col))?.value ?? cell.v);
+      });
+    }
+  }
+  const nameModel = new VietnameseModel();
+  for (const text of nameTexts) nameModel.add(text);
+  nameModel.finish();
+  const nameCalibration = calibrate([...nameTexts], nameWords ? nameBroken / nameWords : 0);
+  // The rest of the recovery of free text, for a loose cell and for a field of a packed line alike: collateral wording, then address parts, then what is left.
+  const recoverFree = (start: string, hint?: string) => {
+    let text = start;
+    const collateral = lexicon ? recoverCollateralText(text, lexicon, { policy, calibration: collateralCalib }) : null;
+    if (collateral?.changed) text = collateral.value;
+    if (geo && text.includes("?")) { const recovery = recoverAddressText(text, geo.knowledge, { policy, calibration: geo.calibration, ...(hint ? { hints: { header: hint } } : {}) }); if (recovery.changed) text = recovery.value; }
+    const completion = collateralOn && policy === "FORCE_NO_QUESTION_MARK" && text.includes("?") ? completeRemaining(text, index.model) : null;
+    return completion?.tokens.some(token => token.applied) ? completion.value : text;
+  };
+  const packedHooks = { free: (text: string, spec: ColumnSpec) => recoverFree(text, spec.header), name: (text: string) => { const plan = planNameRepair(nameModel, text, nameCalibration); if (plan) namesFixed++; return plan?.value ?? null; } };
   await progress("candidate_generation");
   const decisions: { sheet: string; decision: RepairDecision }[] = [];
   const sheetCounts = new Map<string, { sheetId: string; status: "scanned" | "failed"; cells: number; flagged: number; metrics: RepairMetrics; verifiedChanges: number }>();
@@ -136,7 +201,7 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
     sheetCounts.set(sheet.name, count);
     if (sheet.error) continue;
     const byCol = new Map(info.columns.map(c => [c.col, c.spec]));
-    const packed = session.wprofile.sheets.find(p => p.name === sheet.name)?.role === "csv-packed" ? planPacked(sheet, session.profile) : null;
+    const packed = packedPlans.get(sheet.name) ?? null;
     for (const row of sheet.rows) {
       const entity = info.entityOf(row);
       for (let col = 0; col < row.cells.length; col++) {
@@ -144,7 +209,7 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
         cells++; count.cells++;
         if (["s", "str", "inlineStr"].includes(cell.t) && !cell.f) metrics.textCellsScanned++;
         const current = state.patches[cellKey(sheet.name, row.r, col)];
-        const value = current?.value ?? cell.v;
+        const value = current?.value ?? cleaned.get(cellKey(sheet.name, row.r, col))?.value ?? cell.v;
         questionMarks += value.match(/\?/g)?.length ?? 0;
         if (value.includes("?")) metrics.cellsContainingQuestionMark++;
         const spec = row.r > info.headerRow ? byCol.get(col) : undefined;
@@ -152,8 +217,8 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
         // A column the profile does not know is judged by its value: free text, unless it looks like an identifier, a link or a code.
         const role = !spec ? textRoleOf(value) : IDENTIFIER_FIELD.test(spec.field) ? "identifier" : spec.role;
         byRole[role] ??= { cells: 0, applied: 0, unresolved: 0 }; byRole[role].cells++;
-        if (packed && col === packed.packedCol && row.r > packed.headerRow && value.includes("?")) {
-          const line = repairPackedLine(value, packed, index.model, calibration);
+        if (packed && col === packed.packedCol && row.r > packed.headerRow && value.includes("?") && !current && !excepted(sheet.name, row.r, col)) {
+          const line = repairPackedLine(value, packed, index.model, calibration, packedHooks);
           if (line.value === null && line.shape) { /* a line whose field count differs from the header is never guessed */ }
           const fixed = line.value !== null, whole = fixed && line.damagedFields === line.fixedFields && line.unresolvedFields === 0 && line.protectedFields === 0;
           const reason: ReasonCode | null = whole ? null : fixed ? "PARTIAL_WORDS" : line.shape ? "UNSUPPORTED_STRUCTURE" : line.protectedFields === line.damagedFields ? "PROTECTED_ROLE" : calibration.enabled ? "LOW_CONFIDENCE" : "CALIBRATION_UNAVAILABLE";
@@ -176,9 +241,19 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
         const ranked = rankCandidates(generated.candidates, index.model); metrics.candidatesRanked += ranked.length;
         let decision = decideRepair({ sheetId: info.sheetId, row: row.r, col, role }, { ...cell, v: value }, ranked, generated.conflict, { calibrationEnabled: calibration.enabled, plan: () => planModelRepair(index.model, value, calibration) });
         if (decision.status === "unchanged" && findings.length) { decision.status = "needs_review"; decision.reasonCode = findings[0].category.toLowerCase(); decision.reason = "LOW_CONFIDENCE"; }
+        // A column of names: the name model decides, on the names of this file. A name it cannot settle is left for a person, never completed, and never
+        // handed to the recovery of collateral wording or addresses: `Th?` in a name is not a word of a land title.
+        const nameColumn = (spec ? isNameField(spec) : !!nameCols.get(sheet.name)?.has(col)) && role !== "identifier";
+        if (nameColumn && !current && !cell.f && value.includes("?") && decision.status !== "source_verified") {
+          const plan = planNameRepair(nameModel, value, nameCalibration);
+          if (plan) {
+            namesFixed++;
+            decision = { ...decision, proposed: plan.value, status: "model_auto_accepted", evidence: [{ kind: "calibrated_model", sourceId: `calibration:${NAME_CALIBRATION_VERSION}` }], reasonCode: plan.unresolvedWords ? "name_model_partial" : "name_model_margin", reason: plan.unresolvedWords ? "PARTIAL_WORDS" : null, words: { resolved: plan.resolvedWords, unresolved: plan.unresolvedWords } };
+          }
+        }
         // Collateral wording, then address parts, then what is left: recovered from the ontology, from geographic knowledge and finally completed, whatever the sheet.
         // A clean same-asset record in this file still wins, and a text the calibrated file model already restored is the starting point.
-        if (!current && !cell.f && value.includes("?") && decision.status !== "source_verified" && (role === "freeText" || role === "name")) {
+        if (!current && !cell.f && !nameColumn && value.includes("?") && decision.status !== "source_verified" && (role === "freeText" || role === "name")) {
           const baseText = decision.status === "model_auto_accepted" && decision.proposed ? decision.proposed : value;
           let text = baseText;
           const evidence: RepairDecision["evidence"] = baseText === value ? [] : [...decision.evidence];
@@ -200,7 +275,7 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
           }
         }
         if (current) { decision.status = "blocked"; decision.reasonCode = "existing_review_patch"; decision.reason = "EXISTING_REVIEW"; delete decision.proposed; delete decision.words; }
-        if (session.ctx.issuesAt(sheet.name, row.r, col).some(issue => state.states[issue.id]?.status === "accepted_exception")) { decision.status = "blocked"; decision.reasonCode = "reviewed_exception_preserved"; decision.reason = "EXISTING_REVIEW"; delete decision.proposed; delete decision.words; }
+        if (excepted(sheet.name, row.r, col)) { decision.status = "blocked"; decision.reasonCode = "reviewed_exception_preserved"; decision.reason = "EXISTING_REVIEW"; delete decision.proposed; delete decision.words; }
         record(sheet.name, decision, role, metrics);
         const written = (decision.status === "source_verified" || decision.status === "model_auto_accepted") && decision.proposed !== undefined ? decision.proposed : value;
         sheetQuestions.set(sheet.name, (sheetQuestions.get(sheet.name) ?? 0) + (written.match(/\?/g)?.length ?? 0));
@@ -212,8 +287,20 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   timings.candidates = performance.now() - scanStart;
   await progress("validation");
   const approved = decisions.filter(d => d.decision.status === "source_verified" || d.decision.status === "model_auto_accepted");
+  // Worst case, last: a `?` that stands alone in a cell no recovery settled is dropped. A cell a reviewer typed, or accepted, is never touched.
+  const approvedAt = new Set(approved.map(({ sheet, decision: d }) => cellKey(sheet, d.row, d.col)));
+  for (const sheet of session.workbook.sheets) {
+    if (sheet.error) continue;
+    for (const row of sheet.rows) row.cells.forEach((cell, col) => {
+      const key = cellKey(sheet.name, row.r, col);
+      if (!cell || cell.f || cell.protectedText || !isTextCell(cell) || state.patches[key] || approvedAt.has(key)) return;
+      const value = cleaned.get(key)?.value ?? cell.v, dropped = value.includes("?") ? dropLoneQuestionMarks(value) : value;
+      if (dropped !== value && !excepted(sheet.name, row.r, col)) cleaned.set(key, { sheet: sheet.name, row: row.r, col, value: dropped });
+    });
+  }
   // All roles and digits were checked per cell. A model prediction is applied as `auto_model` and never promoted to verified.
-  const next = applyEdits(state, session.ctx, approved.map(({ sheet, decision: d }) => ({ sheet, row: d.row, col: d.col, value: d.proposed!, source: d.status === "source_verified" ? "auto_source" as const : "auto_model" as const })));
+  // The cleaned texts go in first: a cell that was also repaired is overwritten below by its final text, one patch per cell.
+  const next = applyEdits(state, session.ctx, [...[...cleaned.values()].map(item => ({ sheet: item.sheet, row: item.row, col: item.col, value: item.value, source: "bulk" as const })), ...approved.map(({ sheet, decision: d }) => ({ sheet, row: d.row, col: d.col, value: dropLoneQuestionMarks(cleanText(d.proposed!)), source: d.status === "source_verified" ? "auto_source" as const : "auto_model" as const }))]);
   for (const { sheet, decision: d } of approved) Object.assign(next.patches[cellKey(sheet, d.row, d.col)], { modelVersion: MODEL_VERSION, policyVersion: POLICY_VERSION, evidenceSourceId: d.evidence[0].sourceId });
   const patches = patchesOf(next), patchStart = performance.now();
   await progress("patch");
@@ -229,9 +316,11 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   timings.verify = performance.now() - verifyStart;
   // Metrics of the whole job. Earlier human edits travel with the output, so they count as proposals/targets/commits too.
   const carried = Object.keys(state.patches).length;
+  // A cleaned cell that was also repaired is already counted as an approved decision; the others are patches of their own.
+  const approvedKeys = new Set(approved.map(({ sheet, decision: d }) => cellKey(sheet, d.row, d.col))), cleanOnly = [...cleaned.keys()].filter(key => !approvedKeys.has(key) && next.patches[key]).length;
   for (const { sheet, decision: d } of approved) addMetrics(sheetCounts.get(sheet)!.metrics, { patchProposals: 1, patchTargetsUnique: 1, patchesCommitted: next.patches[cellKey(sheet, d.row, d.col)] ? 1 : 0 });
   for (const item of sheetCounts.values()) addMetrics(total, item.metrics);
-  total.patchProposals += carried; total.patchTargetsUnique += carried; total.patchesCommitted += carried;
+  total.patchProposals += carried + cleanOnly; total.patchTargetsUnique += carried + cleanOnly; total.patchesCommitted += carried + cleanOnly;
   for (const [name, count] of sheetCounts) { count.verifiedChanges = roundTrip.bySheet[name] ?? 0; count.metrics.outputCellsChanged = count.verifiedChanges; }
   total.outputCellsChanged = roundTrip.cellsChanged; total.outputUnexpectedChanges = roundTrip.unexpectedChanges;
   const bad = metricViolations(total);
@@ -284,7 +373,7 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   const base = session.workbook.fileName.replace(/\.xlsx$/i, "");
   const report: RepairReport = {
     version: 2, mode: "Source-verified + calibrated model", status: outcome, metrics: total, byReasonCode, calibration, packageVerdict: parts.verdict, modelVersion: MODEL_VERSION, policyVersion: POLICY_VERSION,
-    reviewBlocking, existingReviewPatches: carried,
+    reviewBlocking, existingReviewPatches: carried, names: { fields: namesFixed, distinctNames: nameTexts.size, calibration: nameCalibration }, normalized: cleaned.size,
     duplicateGroups: duplicateSummary(session),
     cellsAccounted: cells, rowsAccounted: totalRows, applied: byStatus.source_verified, modelAccepted: byStatus.model_auto_accepted, unresolved, protected: byStatus.blocked, unchanged, questionMarksAccounted: questionMarks,
     hiddenRowsIncluded: session.workbook.sheets.reduce((n, s) => n + s.hiddenRows, 0), hiddenRowsExcluded: 0, byStatus, byRole, byReason, sheets: [...sheetCounts.values()],

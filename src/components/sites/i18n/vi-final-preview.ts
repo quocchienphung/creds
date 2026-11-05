@@ -57,4 +57,20 @@ Needs review	Cần rà soát
 Next to review	Ô cần rà soát tiếp theo
 Cell actions	Thao tác với ô
 Saved	Đã lưu
+Remaining issues	Lỗi còn lại
+Scan again	Rà soát lại
+Search cell, sheet or text	Tìm ô, trang tính hoặc nội dung
+Issue type	Loại lỗi
+Missing characters (?)	Mất ký tự (?)
+Garbled encoding	Lỗi mã hóa
+Extra spaces	Khoảng trắng thừa
+Hidden characters	Ký tự ẩn
+The exported file holds all {0} corrected cells: {1} automatic and {2} typed by you.	Tệp xuất sẽ chứa đủ {0} ô đã sửa: {1} ô tự động và {2} ô do bạn nhập tay.
+Unusual characters	Ký tự lạ
+Scanning the workbook for remaining issues…	Đang rà soát lỗi còn lại trong tệp…
+No issues found in the workbook as it will be exported.	Không còn lỗi nào trong tệp như sẽ được xuất.
+No match	Không có kết quả phù hợp
+Showing the first {0} of {1}. Fix some and scan again to see the rest.	Đang hiện {0} lỗi đầu tiên trong tổng {1}. Sửa bớt rồi rà soát lại để xem phần còn lại.
+Open the Review step	Mở bước Rà soát
+Could not scan the workbook.	Không rà soát được tệp.
 `);

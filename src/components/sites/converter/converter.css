@@ -1,0 +1,82 @@
+/* Converter: Excel to CSV. Everything is scoped under .cv; colours come from the workspace variables (--ink, --muted, --line, --card) so light and dark follow the theme. */
+.cv { --cv-green: var(--arc-success, #278457); }
+.cv .cv-stage { display: grid; gap: 16px; min-width: 0; }
+.cv .cv-muted { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.cv .cv-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.cv .cv-card { display: grid; gap: 16px; min-width: 0; padding: 18px 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: var(--arc-shadow-resting); }
+
+/* Intro and reading */
+.cv .cv-intro h2 { margin: 0 0 6px; color: var(--ink); font-size: clamp(20px, 2.5vw, 26px); line-height: 1.2; letter-spacing: -.025em; font-weight: 550; }
+.cv .cv-intro p { max-width: 640px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
+.cv .cv-reading__name { margin: 0; overflow: hidden; color: var(--ink); font-size: 15px; font-weight: 500; white-space: nowrap; text-overflow: ellipsis; }
+.cv .cv-bar { height: 6px; overflow: hidden; border-radius: 999px; background: var(--line-soft); }
+.cv .cv-bar > span { display: block; width: 100%; height: 100%; border-radius: inherit; background: var(--ink); }
+
+/* Options */
+.cv .cv-ready { display: grid; gap: 16px; min-width: 0; padding-bottom: 16px; }
+.cv .cv-options { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 18px 20px; }
+.cv .cv-field { display: grid; gap: 8px; min-width: 0; align-content: start; }
+.cv .cv-field--wide { grid-column: 1 / -1; }
+.cv .cv-label { color: var(--muted); font-size: 12px; }
+.cv .cv-switch { padding: 0; border: 0; align-items: center; color: var(--ink); }
+.cv .cv-switch small { margin: 0; }
+.cv .cv-hint { margin: 0; min-height: 18px; color: var(--muted); font-size: 12.5px; line-height: 18px; transition: color var(--arc-duration-fast); }
+.cv .cv-name[data-invalid] .cv-hint { color: var(--arc-danger); }
+
+/* File name with an inline completion: the mirror carries the same text metrics as the input, so the completion starts exactly at the caret. */
+.cv .cv-name__box { --cv-name-pad: 14px; position: relative; display: flex; align-items: center; height: var(--arc-control-height-md); border: 1px solid var(--line); border-radius: var(--arc-radius-control); background: var(--card); font: 14px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; transition: border-color var(--arc-duration-fast), box-shadow var(--arc-duration-fast); }
+.cv .cv-name__box:focus-within { border-color: var(--line-strong); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ink) 8%, transparent); }
+.cv .cv-name[data-invalid] .cv-name__box { border-color: var(--arc-danger); }
+.cv .cv-name__mirror, .cv .cv-name__input { position: absolute; inset: 0; box-sizing: border-box; padding: 0 56px 0 var(--cv-name-pad); font: inherit; letter-spacing: 0; white-space: pre; }
+.cv .cv-name__mirror { display: flex; align-items: center; overflow: hidden; pointer-events: none; }
+.cv .cv-name__typed { visibility: hidden; }
+.cv .cv-name__ghost { color: color-mix(in oklab, var(--muted) 72%, transparent); }
+.cv .cv-name__input { z-index: 1; width: 100%; border: 0; border-radius: inherit; outline: 0; background: transparent; color: var(--ink); }
+.cv .cv-name__keys { position: absolute; right: 12px; z-index: 2; pointer-events: none; }
+.cv .cv-name kbd { padding: 2px 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--arc-surface-muted); color: var(--muted); font-family: inherit; font-size: 11px; font-weight: 500; line-height: 1.4; }
+
+/* Stats strip */
+.cv .cv-stats { gap: 12px; transition: opacity var(--arc-duration-standard); }
+.cv .cv-stats[data-busy] .cv-tiles { opacity: .55; }
+.cv .cv-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; transition: opacity var(--arc-duration-standard); }
+.cv .cv-tiles > div { position: relative; display: grid; gap: 6px; min-width: 0; padding: 14px 16px; border-radius: 14px; background: var(--arc-surface-muted); }
+.cv .cv-tiles dt { color: var(--muted); font-size: 12px; }
+.cv .cv-tiles dd { margin: 0; color: var(--ink); font-size: 26px; line-height: 1.15; font-weight: 500; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cv .cv-details { display: grid; min-width: 0; }
+.cv .cv-details__toggle { display: inline-flex; align-items: center; gap: 6px; justify-self: start; height: 28px; padding: 0 8px 0 4px; border: 0; border-radius: 9px; background: none; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; transition: color var(--arc-duration-fast), background-color var(--arc-duration-fast); }
+.cv .cv-details__toggle:hover:not(:disabled) { color: var(--ink); background: var(--arc-surface-muted); }
+.cv .cv-details__toggle:disabled { opacity: .5; cursor: default; }
+.cv .cv-details__toggle:focus-visible { outline: 2px solid var(--arc-focus); outline-offset: 2px; }
+.cv .cv-details__list { display: grid; gap: 6px; margin: 0; padding: 4px 4px 0 22px; overflow: hidden; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+/* Preview: each row stacks its source cells and its CSV line in one fixed-height box, so converting a row never moves anything. */
+.cv .cv-preview { gap: 14px; transition: opacity var(--arc-duration-standard); }
+.cv .cv-preview[data-busy] .cv-rows { opacity: .55; }
+.cv .cv-preview__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.cv .cv-preview__head h3 { margin: 0 0 2px; color: var(--ink); font-size: 15px; font-weight: 550; }
+.cv .cv-rows { display: grid; overflow: hidden; border: 1px solid var(--line-soft); border-radius: 12px; font: 12.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace; transition: opacity var(--arc-duration-standard); }
+.cv .cv-row { position: relative; display: grid; align-items: center; height: 36px; padding: 0 14px; border-top: 1px solid var(--line-soft); }
+.cv .cv-row:first-child { border-top: 0; }
+.cv .cv-row[data-head] { background: var(--arc-surface-muted); font-weight: 600; }
+.cv .cv-row__layer { grid-area: 1 / 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--ink); }
+.cv .cv-row__src { display: grid; grid-template-columns: repeat(var(--cv-cols), minmax(0, 1fr)) auto; gap: 14px; color: var(--muted); }
+.cv .cv-row__src > span { overflow: hidden; text-overflow: ellipsis; }
+.cv .cv-row__src .cv-more { color: var(--muted); }
+.cv .cv-d { display: inline-block; margin: 0 2px; color: var(--cv-green); font-style: normal; font-weight: 600; }
+.cv .cv-row__csv[aria-hidden="true"], .cv .cv-row__src[aria-hidden="true"] { pointer-events: none; user-select: none; }
+
+/* Action tray */
+.cv .cv-tray { position: sticky; z-index: 12; bottom: 16px; display: flex; justify-content: center; width: 100%; pointer-events: none; }
+.cv .cv-tray > * { pointer-events: auto; max-width: 100%; }
+
+@container ui-as (max-width: 700px) {
+  .cv .cv-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cv .cv-options { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 620px) {
+  .cv .cv-tray { bottom: 8px; }
+  .cv .cv-card { padding: 14px; }
+  .cv .cv-tiles dd { font-size: 22px; }
+}
+[data-ui-motion=off] .cv *, [data-ui-motion=off] .cv *::before { transition: none !important; animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .cv * { transition-duration: .01s !important; } }

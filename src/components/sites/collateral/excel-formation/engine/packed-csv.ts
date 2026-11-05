@@ -14,7 +14,7 @@ export const SEPARATOR = "\",\"";
 /** A field the legacy profile calls free text but that identifies something (province code, plate...): never guessed. */
 export const IDENTIFIER_FIELD = /(?:^|\.)(?:id|code|taxCode|idDocument|plate|province|registration|license|certificate)$/;
 
-export interface PackedPlan { packedCol: number; headerRow: number; fieldCount: number; repairable: ReadonlyMap<number, ColumnSpec> }
+export interface PackedPlan { packedCol: number; headerRow: number; fieldCount: number; repairable: ReadonlyMap<number, ColumnSpec>; /** Fields the profile calls names: predicted by the name model, never by the free-text one. */ names: ReadonlyMap<number, ColumnSpec> }
 
 /** The plan for a packed sheet, or null when its first line is not a header the profile recognises. */
 export function planPacked(sheet: Sheet, profile: MappingProfile): PackedPlan | null {
@@ -27,9 +27,12 @@ export function planPacked(sheet: Sheet, profile: MappingProfile): PackedPlan | 
   const headers: HeaderCell[] = names.map((text, col) => ({ col, letter: "", text: text.trim() }));
   const mapping = resolveMapping(headers, profile);
   if (mapping.ambiguous.length || mapping.duplicates.length || mapping.resolved.length < 3) return null;
-  const repairable = new Map<number, ColumnSpec>();
-  for (const { spec, col } of mapping.resolved) if (spec.role === "freeText" && !IDENTIFIER_FIELD.test(spec.field)) repairable.set(col, spec);
-  return { packedCol, headerRow: first.r, fieldCount: names.length, repairable };
+  const repairable = new Map<number, ColumnSpec>(), nameFields = new Map<number, ColumnSpec>();
+  for (const { spec, col } of mapping.resolved) {
+    if (spec.role === "freeText" && !IDENTIFIER_FIELD.test(spec.field)) repairable.set(col, spec);
+    else if (spec.role === "name" && !IDENTIFIER_FIELD.test(spec.field)) nameFields.set(col, spec);
+  }
+  return { packedCol, headerRow: first.r, fieldCount: names.length, repairable, names: nameFields };
 }
 
 export interface PackedOutcome {
@@ -39,7 +42,10 @@ export interface PackedOutcome {
   fixedFields: number; damagedFields: number; unresolvedFields: number; protectedFields: number; shape: boolean;
 }
 
-export function repairPackedLine(line: string, plan: PackedPlan, model: VietnameseModel, calibration: Calibration): PackedOutcome {
+/** What the caller adds to the line repair: the same recovery a loose cell gets for its free text, and the name model for a name field (null: not settled). */
+export interface PackedHooks { free?: (text: string, spec: ColumnSpec) => string; name?: (text: string) => string | null }
+
+export function repairPackedLine(line: string, plan: PackedPlan, model: VietnameseModel, calibration: Calibration, hooks: PackedHooks = {}): PackedOutcome {
   const out: PackedOutcome = { value: null, fixedFields: 0, damagedFields: 0, unresolvedFields: 0, protectedFields: 0, shape: false };
   if (!line.includes("?")) return out;
   const fields = line.split(SEPARATOR);
@@ -48,13 +54,22 @@ export function repairPackedLine(line: string, plan: PackedPlan, model: Vietname
   const next = fields.map((field, index) => {
     if (!field.includes("?")) return field;
     out.damagedFields++;
-    if (!plan.repairable.has(index)) { out.protectedFields++; return field; }
+    if (plan.names.has(index)) {
+      const fixed = hooks.name?.(field) ?? null;
+      if (fixed === null || fixed === field) { out.unresolvedFields++; return field; }
+      changed = true; out.fixedFields++;
+      if (corruptionSpans(fixed).length) out.unresolvedFields++;
+      return fixed;
+    }
+    const spec = plan.repairable.get(index);
+    if (!spec) { out.protectedFields++; return field; }
     if (!corruptionSpans(field).some(span => span.kind === "replacement")) { out.unresolvedFields++; return field; }
-    const planned = planModelRepair(model, field, calibration);
-    if (!planned) { out.unresolvedFields++; return field; }
+    // The model first, then the rest of the recovery on what it left: a word it could not settle may still be a collateral term or part of an address.
+    const text = hooks.free ? hooks.free(planModelRepair(model, field, calibration)?.value ?? field, spec) : planModelRepair(model, field, calibration)?.value ?? field;
+    if (text === field) { out.unresolvedFields++; return field; }
     changed = true; out.fixedFields++;
-    if (planned.unresolvedWords > 0 || corruptionSpans(planned.value).length) out.unresolvedFields++;
-    return planned.value;
+    if (corruptionSpans(text).length) out.unresolvedFields++;
+    return text;
   });
   if (changed) out.value = next.join(SEPARATOR);
   return out;

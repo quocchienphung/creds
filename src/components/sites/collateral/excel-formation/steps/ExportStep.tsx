@@ -13,6 +13,8 @@ import { motionTokens } from "../../../uiarc/motion-tokens";
 import type { CollateralEngine } from "../../useCollateralEngine";
 import type { GridMeta, ReviewView } from "../../engine/protocol";
 import type { Patch } from "../engine/review";
+import type { ResidualReport } from "../engine/residual";
+import { RemainingOutline } from "../RemainingOutline";
 import { columnLetters } from "../engine/text";
 import { wordsOfChange } from "../engine/applied-change";
 import { SheetViewer, type SheetData } from "../gallery/SheetViewer";
@@ -56,6 +58,23 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
     const keys = new Set(known.map(cell => cell.key));
     return [...known, ...Object.values(extras).filter(cell => !keys.has(cell.key))];
   }, [result.issues, view, patches, extras]);
+  // What is still wrong in what would be exported, read again after every change; the last result stays on screen while the next scan runs.
+  const [scanned, setScanned] = useState<{ view: ReviewView; report: ResidualReport | null; error: string } | null>(null), [scanTick, setScanTick] = useState(0);
+  const { residual: scanResidual } = engine;
+  useEffect(() => {
+    let alive = true;
+    void scanResidual().then(report => { if (alive) setScanned({ view, report, error: report ? "" : "scan" }); })
+      .catch(error => { if (alive) setScanned({ view, report: null, error: error instanceof Error ? error.message : "scan" }); });
+    return () => { alive = false; };
+  }, [scanResidual, view, scanTick]);
+  const residualReport = scanned?.report ?? null, scanning = scanned?.view !== view;
+  /** Every cell that needs a decision: the ones the review found plus the ones the scan of the current values found. */
+  const problems = useMemo(() => {
+    const found = new Map<string, { key: string; sheet: string; row: number; col: number }>();
+    for (const cell of all) if (cell.needsReview) found.set(cell.key, cell);
+    for (const item of residualReport?.items ?? []) { const key = previewKey(item); if (!found.has(key)) found.set(key, { key, sheet: item.sheet, row: item.row, col: item.col }); }
+    return [...found.values()].sort((a, b) => a.sheet.localeCompare(b.sheet) || a.row - b.row || a.col - b.col);
+  }, [all, residualReport]);
   const cells = useMemo(() => {
     const shown = all.filter(cell => drafts[cell.key] !== undefined || (filter === "changed" ? cell.before !== cell.after : filter === "review" ? cell.needsReview : true));
     const selected = all.find(cell => cell.key === picked);
@@ -85,14 +104,16 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
         const cols = entry.changes!.get(cell.row) ?? new Set<number>();
         cols.add(cell.col); entry.changes!.set(cell.row, cols);
       }
-      if (!cell.needsReview) continue;
+    }
+    for (const cell of problems) {
+      const entry = bySheet[cell.sheet] ??= { issueCells: new Map(), issueRows: [], open: 0, changes: new Map() };
       const cols = entry.issueCells.get(cell.row) ?? new Map<number, number>();
       cols.set(cell.col, 3); entry.issueCells.set(cell.row, cols);
       entry.issueRows.push({ row: cell.row, level: 3 }); entry.open++;
     }
     const own = bySheet[meta.sheet];
     return { meta, loadRows, loadSheetMeta: loadMeta, issueCells: own?.issueCells ?? new Map(), issueRows: own?.issueRows ?? [], changes: own?.changes, bySheet, epoch: 0 };
-  }, [meta, all, loadRows, loadMeta]);
+  }, [meta, all, problems, loadRows, loadMeta]);
   const selectCell = useCallback(async (row: number, col: number, sheet?: string) => {
     const name = sheet ?? meta?.sheet;
     if (!name) return;
@@ -140,7 +161,9 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
     } catch (error) { setError(error instanceof Error ? error.message : t("Export failed. Your changes are still here.")); }
     finally { setExporting(false); }
   }
-  const pending = all.filter(cell => cell.needsReview).length;
+  const reviewCells = all.filter(cell => cell.needsReview).length;
+  // The scan lists at most a fixed number of cells; the rest are counted, not listed.
+  const pending = problems.length + (residualReport?.truncated ? residualReport.total - residualReport.items.length : 0);
   const predictions = useMemo(() => selected ? wordsOfChange(selected.before, selected.after) : [], [selected]);
   const locked = engine.busy || exporting || !ready;
 
@@ -149,13 +172,20 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
   const [replay, setReplay] = useState(false);
   useEffect(() => { setReplay(false); }, [selected?.key]);
   const changedCount = all.filter(cell => cell.before !== cell.after).length;
+  // What the file will hold: every patch, whether the repair or a person wrote it (cleaning and bulk fixes are automatic too).
+  const automatic = patches.filter(patch => patch.source.startsWith("auto") || patch.source === "bulk").length;
   const diff = useMemo(() => selected ? wordDiff(selected.before, draft) : null, [selected, draft]);
   const move = (delta: number) => { const next = cells[(index + delta + cells.length) % cells.length]; if (next) setPicked(next.key); };
   const ease = [...motionTokens.ease.enter] as [number, number, number, number];
   const group: Variants = { hidden: {}, show: { transition: { staggerChildren: reduce ? 0 : .07, delayChildren: .04 } } };
   const block: Variants = reduce ? { hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: .12 } } }
     : { hidden: { opacity: 0, y: 14, filter: "blur(4px)" }, show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: .52, ease } } };
-  const nextProblem = () => { const from = Math.max(0, all.findIndex(cell => cell.key === selected?.key)); const next = [...all.slice(from + 1), ...all.slice(0, from + 1)].find(cell => cell.needsReview && cell.key !== selected?.key); if (next) setPicked(next.key); };
+  const nextProblem = () => {
+    const next = problems[(problems.findIndex(cell => cell.key === selected?.key) + 1) % Math.max(1, problems.length)];
+    if (next && next.key !== selected?.key) void selectCell(next.row, next.col, next.sheet);
+  };
+  // "Review remaining issues": scan now, in this step, and open the first cell that needs a decision.
+  const reviewHere = () => { setScanTick(value => value + 1); if (!problems.some(cell => cell.key === selected?.key)) nextProblem(); };
   const status = selected ? t(selected.needsReview ? "Needs review" : selected.before !== selected.after ? "Changed" : "Unchanged") : "";
 
   return <motion.div className="fp" aria-busy={!current || exporting} variants={group} initial="hidden" animate="show">
@@ -172,12 +202,14 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
       <SegmentedControl label={t("Show cells")} value={filter} onValueChange={value => { setFilter(value as typeof filter); setPicked(""); }} options={[
         { value: "all", label: t("All"), accessory: <span className="fp-pill">{all.length.toLocaleString()}</span> },
         { value: "changed", label: t("Changed"), accessory: <span className="fp-pill">{changedCount.toLocaleString()}</span> },
-        { value: "review", label: t("Needs review"), accessory: <span className="fp-pill" data-warning={pending > 0 || undefined}>{pending.toLocaleString()}</span> },
+        { value: "review", label: t("Needs review"), accessory: <span className="fp-pill" data-warning={reviewCells > 0 || undefined}>{reviewCells.toLocaleString()}</span> },
       ]} />
       <span className="fp-legend"><i />{t("Changed")}<i data-warning />{t("Needs review")}</span>
     </motion.div>
     {grid?.sheet === sheetName && grid.error && <div className="fp-message" role="alert">{t("Could not load the worksheet.")}<Button variant="secondary" size="sm" onClick={() => setRetry(value => value + 1)}>{t("Retry")}</Button></div>}
-    <div className="fp-work">
+    <div className="fp-work" data-outline>
+      <RemainingOutline report={residualReport} scanning={scanning} error={scanned?.error ? (scanned.error === "scan" ? t("Could not scan the workbook.") : scanned.error) : ""} activeKey={selected?.key ?? ""} disabled={dirty || exporting}
+        onPick={item => { void selectCell(item.row, item.col, item.sheet); }} onScan={() => setScanTick(value => value + 1)} onReview={onReview} />
       <motion.section className="fp-sheet" variants={block} aria-label={t("Worksheet preview")} data-variant={variant}>
         {ready && sheet && meta
           ? <SheetViewer data={sheet} target={{ row: selected?.row ?? 1, col: selected?.col ?? 0, value: selected ? (variant === "edited" ? draft : selected.before) : "", preview: !!selected && variant === "edited" && drafts[selected.key] !== undefined }} mode="readable" onSelectCell={(row, col, name) => { void selectCell(row, col, name); }} />
@@ -214,6 +246,7 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
       </motion.aside>
     </div>
     <motion.div className="fp-notes" variants={block}>
+      {ready && patches.length > 0 && <p className="fp-hint" role="status">{t("The exported file holds all {0} corrected cells: {1} automatic and {2} typed by you.", [patches.length.toLocaleString(), automatic.toLocaleString(), (patches.length - automatic).toLocaleString()])}</p>}
       {pending > 0 && <p className="fp-warning" role="status">{t("{0} cells still need review. Export includes their current values; it does not certify that they are correct.", [pending])}</p>}
       {dirty && <p className="fp-warning" role="status">{t("{0} unsaved cell drafts. Save or discard them before leaving or exporting.", [Object.keys(drafts).length])}</p>}
       <label className="fp-approval" data-checked={approvedView === view || undefined}><input type="checkbox" checked={approvedView === view} disabled={locked || dirty} onChange={event => setApprovedView(event.target.checked ? view : null)} /><span className="fp-approval__box" aria-hidden="true"><Check size={13} /></span><span>{t("I reviewed this version and approve exporting it, including any remaining issues.")}</span></label>
@@ -225,8 +258,8 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
         { id: "undo", label: t("Undo"), icon: <Undo2 />, iconOnly: true, disabled: locked || dirty || !view.canUndo, onSelect: () => { void engine.undo(); } },
         { id: "redo", label: t("Redo"), icon: <Redo2 />, iconOnly: true, disabled: locked || dirty || !view.canRedo, onSelect: () => { void engine.redo(); } },
         { type: "separator" },
-        { id: "next", label: t("Next to review"), icon: <AlertTriangle />, iconOnly: true, disabled: locked || dirty || !all.some(cell => cell.needsReview && cell.key !== selected?.key), onSelect: nextProblem },
-        { id: "review", label: t("Review remaining issues"), icon: <ListChecks />, iconOnly: narrow, disabled: locked || dirty, onSelect: onReview },
+        { id: "next", label: t("Next to review"), icon: <AlertTriangle />, iconOnly: true, disabled: locked || dirty || !problems.some(cell => cell.key !== selected?.key), onSelect: nextProblem },
+        { id: "review", label: t("Review remaining issues"), icon: <ListChecks />, iconOnly: narrow, disabled: locked || dirty, onSelect: reviewHere },
         { id: "export", label: t(exporting ? "Verifying export…" : "Approve and export"), reserveLabels: [t("Approve and export"), t("Verifying export…")], icon: <Download />, iconOnly: false, primary: true, disabled: locked || dirty || approvedView !== view || !meta, onSelect: () => { void approveExport(); } },
       ]} />
     </motion.div>

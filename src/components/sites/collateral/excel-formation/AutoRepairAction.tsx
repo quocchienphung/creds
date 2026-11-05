@@ -92,6 +92,8 @@ export function AutoRepairAction({ engine, onPreview, disabled = false }: { engi
             <div><dt>Ô thực sự thay đổi trong tệp xuất</dt><dd>{result.report.metrics.outputCellsChanged.toLocaleString()}</dd></div>
             <div><dt>Ô ngoài dự kiến bị thay đổi</dt><dd>{result.report.metrics.outputUnexpectedChanges.toLocaleString()}</dd></div>
             <div><dt>Ô chưa giải quyết</dt><dd>{result.report.unresolved.toLocaleString()}</dd></div>
+            <div><dt>Ô đã chuẩn hóa ký tự lạ (mã hóa lỗi, ký tự ẩn, khoảng trắng lạ)</dt><dd>{result.report.normalized.toLocaleString()}</dd></div>
+            <div><dt>Họ tên được dự đoán từ chính các họ tên sạch của tệp</dt><dd>{result.report.names.fields.toLocaleString()}</dd></div>
             <div><dt>Ô được bảo vệ / bỏ qua</dt><dd>{result.report.protected.toLocaleString()}</dd></div>
             <div><dt>Ô đã kiểm kê</dt><dd>{result.report.cellsAccounted.toLocaleString()}</dd></div>
             <div><dt>Thời gian thực đo</dt><dd>{(result.report.timings.total / 1000).toFixed(2)} s</dd></div>
@@ -103,6 +105,9 @@ export function AutoRepairAction({ engine, onPreview, disabled = false }: { engi
             <ul>{Object.entries(result.report.byReasonCode).sort((a, b) => b[1] - a[1]).map(([code, n]) => <li key={code}>{REASON[code] ?? code}: {n.toLocaleString()} ô</li>)}</ul>
           </>}
           {result.report.metrics.modelAutoAccepted > 0 && <p>Các ô sửa bằng dự đoán là gợi ý của mô hình cục bộ (độ chính xác đo trên phần dữ liệu sạch của chính tệp: {(result.report.calibration.precision * 100).toFixed(2)}%, {result.report.calibration.heldOutWords.toLocaleString()} từ). Chúng KHÔNG được coi là đã xác minh: vẫn tính là cần rà soát trong Review and fix.</p>}
+          <p role="status">{result.report.names.calibration.enabled
+            ? `Mô hình họ tên học từ ${result.report.names.distinctNames.toLocaleString()} họ tên khác nhau của tệp; kiểm tra giữ-lại đạt ${(result.report.names.calibration.precision * 100).toFixed(2)}% đúng. Họ tên không đủ căn cứ được giữ nguyên để bạn xem lại, không bị đoán.`
+            : "Chưa đủ họ tên sạch trong tệp để kiểm chứng độ chính xác nên họ tên không được tự sửa; chúng nằm trong danh sách lỗi còn lại."}</p>
           <p>Còn {result.report.reviewBlocking.toLocaleString()} vấn đề nghiêm trọng trong rà soát. Cấu trúc XLSX và các ô đã được đối chiếu. Chưa kiểm tra tệp này bằng Excel desktop. JSON vẫn phải qua các điều kiện xuất riêng.</p>
           {result.report.geo && <div role="status" data-geo-status={result.report.geo.finalStatus}>
             <p>{GEO_FINAL[result.report.geo.finalStatus]} Chế độ: {result.report.geo.policy === "FORCE_NO_QUESTION_MARK" ? "không để lại dấu ?" : "an toàn"} · dữ liệu địa lý {result.report.geo.datasetVersion}.</p>

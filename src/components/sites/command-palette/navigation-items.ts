@@ -11,16 +11,16 @@ export interface NavigationItem {
 }
 
 const workspaceDescriptions: Record<string, string> = {
-  "Excel formation": "Find and repair errors in a workbook", "JSON formation": "Group the repaired data into the reporting JSON", Queue: "Saved upload history and original workbooks",
+  "Excel formation": "Find and repair errors in a workbook", "JSON formation": "Group the repaired data into the reporting JSON", Queue: "Saved upload history and original workbooks", Converter: "Turn a worksheet into a CSV file",
 };
-const workspaceIcons: Record<string, NavigationItem["icon"]> = { "Excel formation": "folder", "JSON formation": "code", Queue: "folder" };
+const workspaceIcons: Record<string, NavigationItem["icon"]> = { "Excel formation": "folder", "JSON formation": "code", Queue: "folder", Converter: "workflow" };
 const aliases: Record<string, readonly string[]> = {
-  Queue: ["upload", "history", "xlsx", "files", "lịch sử", "hàng đợi"],
+  Queue: ["upload", "history", "xlsx", "files", "lịch sử", "hàng đợi"], Converter: ["convert", "csv", "excel", "xlsx", "chuyển đổi", "xuất csv"],
   "Excel formation": ["collateral", "tài sản bảo đảm", "excel", "xlsx", "sửa lỗi", "repair"], "JSON formation": ["collateral", "tài sản bảo đảm", "json", "báo cáo", "report"],
 };
 
 const workspaceItems: NavigationItem[] = workspaceSections.map(label => ({
-  id: `workspace-${label.toLowerCase().replaceAll(" ", "-")}`, label, description: workspaceDescriptions[label], group: "Rules",
+  id: `workspace-${label.toLowerCase().replaceAll(" ", "-")}`, label, description: workspaceDescriptions[label], group: label === "Converter" ? "Tools" : "Rules",
   href: `/personalize?section=${label.toLowerCase().replaceAll(" ", "-")}`,
   icon: workspaceIcons[label] ?? "page", keywords: aliases[label],
 }));

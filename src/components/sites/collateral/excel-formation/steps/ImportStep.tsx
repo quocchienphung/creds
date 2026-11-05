@@ -10,7 +10,7 @@ import { useImportCopy } from "./import-copy";
 import { ArchiveNotice } from "../../queue/ArchiveNotice";
 import "./import-step.css";
 
-const MESSAGE: Record<string, string> = {
+export const MESSAGE: Record<string, string> = {
   "not-xlsx": "This file is not an .xlsx workbook.",
   "legacy-or-encrypted": "This is a legacy .xls file or a password-protected workbook. Save it as an unprotected .xlsx first.",
   empty: "The file is empty.", "too-large": "The file is larger than this tool accepts.", "zip-bomb": "The archive expands to an unsafe size.",

@@ -31,7 +31,10 @@ test("one-click repair covers every sheet, source retrieval only, redacted repor
   for (const r of [2, 4]) assert.equal(out.sheets[0].rows.find(row => row.r === r).cells[5].v, s.workbook.sheets[0].rows.find(row => row.r === r).cells[6].v);
   assert.equal(out.sheets[0].rows.find(r => r.r === 3).cells[5].v, "Quy?n s? d?ng d?t", "unmasked d cannot be silently changed to đ");
   assert.equal(out.sheets[0].rows.find(r => r.r === 5).cells[5].v, "Anh?");
-  assert.deepEqual(out.sheets[1], s.workbook.sheets[1]);
+  // Nothing of the other sheet changes except the decomposed letter, which is written composed.
+  assert.equal(out.sheets[1].rows[1].cells[1].v, "Caf\u00e9");
+  assert.deepEqual(out.sheets[1].rows[0], s.workbook.sheets[1].rows[0]);
+  assert.equal(out.sheets[1].rows[1].cells[0].v, s.workbook.sheets[1].rows[1].cells[0].v);
   assert.equal(out.sheets[0].rows[1].cells[4].v, "1234.5599999999999");
   const strings = value => typeof value === "string" ? [value] : value && typeof value === "object" ? Object.entries(value).flatMap(([key, item]) => [key, ...strings(item)]) : [];
   const reportStrings = strings(result.report);
@@ -48,10 +51,10 @@ test("same input gives same decisions/output, history Undo/Redo and replay retai
   assert.deepEqual(a.bytes, b.bytes);
   const history = commit(newHistory(), a.state);
   assert.equal(Object.keys(undo(history).present.patches).length, 0);
-  assert.equal(Object.keys(redo(undo(history)).present.patches).length, 2);
+  assert.equal(Object.keys(redo(undo(history)).present.patches).length, 3, "two repairs and one cleaned letter");
   const restored = restoreProgress(snapshotProgress(a.state, s.ctx), s.ctx);
   assert.equal(restored.ok, true);
-  assert.equal(restored.patches, 2);
+  assert.equal(restored.patches, 3);
 });
 
 test("cancellation yields before committing any edits", async () => {

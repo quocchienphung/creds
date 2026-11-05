@@ -6,7 +6,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { AnimatePresence, LayoutGroup, MotionConfig, motion, useReducedMotion } from "motion/react";
 import { MenuSurface } from "@/components/interaction/MenuSurface";
-import { ArrowLeft, Braces, Check, FileSpreadsheet, HardDrive, ChevronDown, ChevronRight, Search, X } from "lucide-react";
+import { ArrowLeft, ArrowRightLeft, Braces, Check, FileSpreadsheet, HardDrive, ChevronDown, ChevronRight, Search, X } from "lucide-react";
 import { AccountTheme } from "./AccountTheme";
 import { AccountLanguage } from "./AccountLanguage";
 import { CrmIcon } from "./CrmIcon";
@@ -34,6 +34,7 @@ const SettingsOverlay=dynamic(()=>import("../settings-command/SettingsOverlay").
 const ExcelFormation=dynamic(()=>import("../collateral/excel-formation/ExcelFormation").then(module=>revealed(module.ExcelFormation)),{loading:()=> <SectionSkeleton section="Excel formation" />});
 const JsonFormation=dynamic(()=>import("../collateral/json-formation/JsonFormation").then(module=>revealed(module.JsonFormation)),{loading:()=> <SectionSkeleton section="JSON formation" />});
 const UploadQueue=dynamic(()=>import("../collateral/queue/Queue").then(module=>revealed(module.Queue)),{loading:()=> <SectionSkeleton section="Queue" />});
+const Converter=dynamic(()=>import("../converter/Converter").then(module=>revealed(module.Converter)),{loading:()=> <SectionSkeleton section="Converter" />});
 const seedSettings=defaultSettings("Damenci");
 const setupGroups=[
   {title:"Set up your workspace",items:["Name your workspace","Invite your teammates","Connect your first app"]},
@@ -85,7 +86,7 @@ function Workspace({workspace="Damenci",user={name:"Damenci"},onNavigate,classNa
   const sidebarFolders=[{id:"collateral",title:"Collateral",items:["Excel formation","JSON formation","Queue"] as const}];
   const [folders,setFolders]=useState<Record<string,boolean>>({});
   const folderOpen=(folder:(typeof sidebarFolders)[number])=>folders[folder.id] ?? (folder.items as readonly string[]).includes(section);
-  const navItem=(label:WorkspaceSection)=><button type="button" className="ui-as-side__item" aria-current={section===label ? "page" : undefined} key={label} onClick={()=>navigate(label)}>{section===label && <motion.span className="workspace-nav-pill" layoutId="active-navigation" transition={{type:"spring",stiffness:450,damping:38}} />}{label==="Excel formation" ? <FileSpreadsheet size={16} strokeWidth={1.7} /> : label==="Queue" ? <HardDrive size={16} strokeWidth={1.7} /> : <Braces size={16} strokeWidth={1.7} />}<span className="workspace-nav-label">{uiText(label)}</span>{label==="Excel formation" && badges.open>0 && <span className="ui-as-side__count">{uiText(badges.open)}</span>}{label==="JSON formation" && badges.ready && <span className="collateral-nav-dot" role="img" aria-label={uiText("Ready")} />}</button>;
+  const navItem=(label:WorkspaceSection)=><button type="button" className="ui-as-side__item" aria-current={section===label ? "page" : undefined} key={label} onClick={()=>navigate(label)}>{section===label && <motion.span className="workspace-nav-pill" layoutId="active-navigation" transition={{type:"spring",stiffness:450,damping:38}} />}{label==="Excel formation" ? <FileSpreadsheet size={16} strokeWidth={1.7} /> : label==="Queue" ? <HardDrive size={16} strokeWidth={1.7} /> : label==="Converter" ? <ArrowRightLeft size={16} strokeWidth={1.7} /> : <Braces size={16} strokeWidth={1.7} />}<span className="workspace-nav-label">{uiText(label)}</span>{label==="Excel formation" && badges.open>0 && <span className="ui-as-side__count">{uiText(badges.open)}</span>}{label==="JSON formation" && badges.ready && <span className="collateral-nav-dot" role="img" aria-label={uiText("Ready")} />}</button>;
   const initials=profile.name.split(" ").map(part=>part[0]).slice(0,2).join("");
 
   function notify(text:string) {
@@ -172,7 +173,7 @@ function Workspace({workspace="Damenci",user={name:"Damenci"},onNavigate,classNa
         </div>
       </aside>
       <main className="ui-as-main" aria-busy={booting || undefined}>{booting && <div className="workspace-surface"><SectionSkeleton section={section} /></div>}{!booting && <AnimatePresence mode="wait" initial={false}><motion.div key={section} className="workspace-surface" initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-4}} transition={{duration:reduce ? 0 : 0.18,ease:[0.22,1,0.36,1]}}>
-        {section==="Queue" ? <UploadQueue key={workspaceId} workspaceId={workspaceId} /> : section==="JSON formation" ? <JsonFormation key={workspaceId} workspaceId={workspaceId} notify={notify} /> : <ExcelFormation key={workspaceId} workspaceId={workspaceId} notify={notify} />}
+        {section==="Queue" ? <UploadQueue key={workspaceId} workspaceId={workspaceId} /> : section==="Converter" ? <Converter key={workspaceId} workspaceId={workspaceId} notify={notify} /> : section==="JSON formation" ? <JsonFormation key={workspaceId} workspaceId={workspaceId} notify={notify} /> : <ExcelFormation key={workspaceId} workspaceId={workspaceId} notify={notify} />}
       </motion.div></AnimatePresence>}</main>
       <AnimatePresence>{toast && <motion.div className="ui-as-toast" role="status" key={toast.id} initial={{opacity:0,y:8,scale:0.97}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:5,scale:0.98}} transition={{duration:reduce ? 0 : 0.2}}><Check size={14} />{uiText(toast.text)}</motion.div>}</AnimatePresence>
       <WorkspaceDialog open={searchOpen} title={uiText("Search workspace")} onClose={()=>setSearchOpen(false)}><label className="workspace-search workspace-search--dialog"><Search size={17} /><input autoFocus aria-label={uiText("Search workspace")} placeholder={uiText("Search pages…")} value={search} onChange={event=>setSearch(event.target.value)} /></label><div className="crm-search__results"><AnimatePresence initial={false}>{searchItems.map(item=><motion.button type="button" layout initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} key={item.id} onClick={()=>{navigate(item.label as WorkspaceSection);setSearchOpen(false);}}><CrmIcon name={item.label} /><span>{uiText(item.label)}</span><small>{uiText("section")}</small><ChevronRight size={12} /></motion.button>)}</AnimatePresence>{!searchItems.length && <p className="workspace-muted">{uiText("No pages found.")}</p>}</div></WorkspaceDialog>

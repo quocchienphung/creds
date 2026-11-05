@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildXlsx } from "./xlsx-builder.mjs";
 import { openSession } from "./session.ts";
-import { emptyReview, newHistory, commit, undo, summarize } from "./review.ts";
+import { applyEdits, cellKey, emptyReview, newHistory, commit, undo, summarize } from "./review.ts";
 import { autoRepair } from "./auto-repair.ts";
 import { snapshotProgress, restoreProgress } from "./progress.ts";
 import { classifyOutcome, emptyMetrics, metricViolations } from "./repair-metrics.ts";
@@ -84,6 +84,19 @@ test("a CSV-packed sheet is scanned like any other column and its line keeps quo
   assert.equal(out, line(["00001", "K99", "A99", "303", "12", "may moc tang ba va co so do so 5", "may moc tang ba va co so do so 5", "Nguy?n Van A"]).slice(0), "free-text fields restored, the name field and all separators kept");
   assert.equal(cellMap(r.bytes).Sheet1.cells.get("A" + packed.length).value, "\"");
   assert.ok(r.report.sheets.length === 2 && r.report.sheets[1].metrics.modelAutoAccepted === 1);
+});
+
+test("a line the reviewer already edited by hand is kept as typed even when it still holds a ?, and the repair does not fail", async () => {
+  const line = parts => parts.join("\",\"");
+  const broken = line(["00001", "K99", "A99", "303", "12", "may moc tang ba va c? so do so ?", "may moc tang ba va c? so do so ?", "Nguy?n Van A"]);
+  const packed = [["\"", line(HEADERS), "\""], ...CLEAN.slice(0, 40).map((t, i) => ["\"", line(["00001", `K${i}`, `A${i}`, "303", "12", t, t, "Nguy?n Van A"]), "\""]), ["\"", broken, "\""]];
+  const bytes = buildXlsx([{ name: "S", rows: [HEADERS, ...corpus()] }, { name: "Sheet1", rows: packed }]);
+  const s = await openSession(bytes, "synthetic.xlsx"), r = packed.length;
+  const typed = broken.replace("c?", "co");
+  const state = applyEdits(emptyReview(), s.ctx, [{ sheet: "Sheet1", row: r, col: 1, value: typed, source: "typed" }]);
+  const out = await autoRepair(s, state);
+  assert.equal(cellMap(out.bytes).Sheet1.cells.get("B" + r).value, typed, "the typed line is exported exactly as typed");
+  assert.equal(out.state.patches[cellKey("Sheet1", r, 1)].source, "typed");
 });
 
 test("model-accepted patches are never verified, undo removes them, progress replay keeps provenance", async () => {

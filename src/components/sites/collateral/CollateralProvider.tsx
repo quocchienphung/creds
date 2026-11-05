@@ -1,17 +1,17 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useCollateralEngine, type CollateralEngine } from "./useCollateralEngine";
 import { useJsonPlan, type JsonPlanState } from "./json-formation/useJsonPlan";
 import { defaultFilters, type ReviewFilters } from "./excel-formation/review-filters";
 import { useUploadArchive, queueChanged } from "./queue/useUploadArchive";
-import { queueRequest, readQueueFile } from "./queue/queue-client";
+import { listQueue, queueRequest, readQueueFile } from "./queue/queue-client";
 import type { QueueDeleteReceipt, QueueEntry } from "./queue/queue-model";
 
 /**
  * One workbook, two sections. The file is read and reviewed in a worker of this tab; this provider keeps it alive while the person moves
- * between Excel formation, JSON formation and Queue. Archiving requires an explicit action;
- * cell analysis and unsaved corrections stay in this tab's worker.
+ * between Excel formation, JSON formation and Queue. A workbook that was read is archived in the server Queue once, and reopened from there
+ * after a reload; cell analysis and unsaved corrections stay in this tab's worker.
  */
 export interface CollateralValue {
   engine: CollateralEngine;
@@ -29,25 +29,50 @@ export interface CollateralValue {
 }
 const Context = createContext<CollateralValue | null>(null);
 
+// Which Queue entry was open, so a reload (F5) can reopen it. Storage can throw (private window), then nothing is remembered.
+const activeKey = (workspaceId: string) => `collateral-active-entry:${workspaceId}`;
+const remember = (workspaceId: string, id: string | null) => { try { if (id) localStorage.setItem(activeKey(workspaceId), id); else localStorage.removeItem(activeKey(workspaceId)); } catch { /* not remembered */ } };
+const remembered = (workspaceId: string) => { try { return localStorage.getItem(activeKey(workspaceId)); } catch { return null; } };
+
 export function CollateralProvider({ children, workspaceId }: { children: ReactNode; workspaceId: string }) {
   const rawEngine = useCollateralEngine();
   const { open: openInWorker, close: closeWorker } = rawEngine;
   const { archive, save, openSaved: selectSaved, forget, retry } = useUploadArchive(workspaceId, rawEngine);
   const [localFile, setLocalFile] = useState<File | null>(null);
   const open = useCallback(async (...args: Parameters<CollateralEngine["open"]>) => {
-    forget();
+    forget(); remember(workspaceId, null);
     setLocalFile(args[0]);
     await openInWorker(...args);
-  }, [forget, openInWorker]);
+  }, [workspaceId, forget, openInWorker]);
   const saveToQueue = useCallback(() => { if (localFile && rawEngine.phase === "ready") void save(localFile); }, [localFile, rawEngine.phase, save]);
-  const close = useCallback(() => { closeWorker(); forget(); setLocalFile(null); }, [closeWorker, forget]);
+  const close = useCallback(() => { closeWorker(); forget(); setLocalFile(null); remember(workspaceId, null); }, [workspaceId, closeWorker, forget]);
+  // Once per file: deleting the archived original must not make the same file upload again.
+  const archivedFile = useRef<File | null>(null);
+  useEffect(() => {
+    if (!localFile || rawEngine.phase !== "ready" || archivedFile.current === localFile) return;
+    archivedFile.current = localFile; save(localFile);
+  }, [localFile, rawEngine.phase, save]);
+  const savedId = archive?.state === "saved" ? archive.entry?.id : undefined;
+  useEffect(() => { if (savedId) remember(workspaceId, savedId); }, [workspaceId, savedId]);
   const engine = useMemo(() => ({ ...rawEngine, open, close }), [rawEngine, open, close]);
   const openSaved = useCallback(async (entry: QueueEntry) => {
     const file = await readQueueFile(workspaceId, entry);
+    archivedFile.current = file;
     setLocalFile(file);
     selectSaved(file, entry);
     await openInWorker(file);
   }, [workspaceId, selectSaved, openInWorker]);
+  const restored = useRef(false);
+  useEffect(() => {
+    const id = remembered(workspaceId);
+    if (restored.current || !id) return;
+    restored.current = true;
+    listQueue(workspaceId).then(entries => {
+      const entry = entries.find(item => item.id === id);
+      if (entry) return openSaved(entry);
+      remember(workspaceId, null);
+    }).catch(() => { /* Queue unreachable: the person can still open the file from Queue */ });
+  }, [workspaceId, openSaved]);
   const deleteSaved = useCallback(async (entry: QueueEntry) => {
     const response = await queueRequest(workspaceId, `/${entry.id}`, { method: "DELETE" });
     const receipt = (await response.json() as { data: QueueDeleteReceipt }).data;

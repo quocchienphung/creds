@@ -11,6 +11,7 @@ import type { JsonPlan } from "./json-formation/engine/json-session";
 import type { ReportMeta, ReportOptions } from "./json-formation/engine/report-options";
 import type { CollateralAuditEntry, GeoAuditEntry, RepairProgress, RepairReport } from "./excel-formation/engine/auto-repair";
 import type { RepairPolicy } from "./excel-formation/engine/geo/address-recovery";
+import type { ResidualReport } from "./excel-formation/engine/residual";
 
 const stateKey = (c: { patched: number; exceptions: number; edited: number; verified: number }) => `${c.patched}:${c.exceptions}:${c.edited}:${c.verified}`;
 export type Phase = "idle" | "scanning" | "ready" | "failed";
@@ -99,6 +100,8 @@ export function useCollateralEngine() {
       return null;
     } finally { if (run === opening.current) { repairing.current = false; setBusy(false); } }
   }, [busy]);
+  /** What is still wrong in the workbook as it would be exported now, read from the worker. */
+  const residual = useCallback(async (): Promise<ResidualReport | null> => { const r = await engine().call({ type: "residual" }); return r.type === "residual" ? r.report : null; }, []);
   const cancelRepair = useCallback(() => { if (repairing.current) void engine().call({ type: "cancelRepair" }).catch(() => {}); }, []);
   const send = useCallback(async (request: Parameters<EngineClient["call"]>[0]) => {
     const response = await engine().call(request);
@@ -184,6 +187,6 @@ export function useCollateralEngine() {
   const docSearch = useCallback(async (query: string, max: number) => { const r = await engine().call({ type: "docSearch", query, max }); return r.type === "docSearch" ? r : null; }, []);
   const docText = useCallback(async (keys: string[]) => { const r = await engine().call({ type: "docText", keys }); return r.type === "docText" ? r : null; }, []);
 
-  return { duplicatePlan, duplicateApply, autoRepair, cancelRepair, repairProgress, openMs, docRoot, docChildren, docSearch, docText, unsaved, saveProgress, loadProgress, jsonPlan, phase, progress, failure, result, view, busy, fileName, fileSize, diacriticPolicy, open, close, retry, rescan, edit, reject, reopen, accept, chooseGroup, undo, redo, bulkPlan, bulkApply, rowContext, sheetWindow, gridMeta, gridRows, predict, previewChanges, groupRows, exportXlsx, clearFailure: () => setFailure(null) };
+  return { duplicatePlan, duplicateApply, autoRepair, cancelRepair, residual, repairProgress, openMs, docRoot, docChildren, docSearch, docText, unsaved, saveProgress, loadProgress, jsonPlan, phase, progress, failure, result, view, busy, fileName, fileSize, diacriticPolicy, open, close, retry, rescan, edit, reject, reopen, accept, chooseGroup, undo, redo, bulkPlan, bulkApply, rowContext, sheetWindow, gridMeta, gridRows, predict, previewChanges, groupRows, exportXlsx, clearFailure: () => setFailure(null) };
 }
 export type CollateralEngine = ReturnType<typeof useCollateralEngine>;

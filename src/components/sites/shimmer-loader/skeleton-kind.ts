@@ -5,7 +5,7 @@
 export type SkeletonKind = "home" | "table" | "reports" | "chat" | "files" | "run" | "canvas" | "trace" | "invoice" | "settings" | "preferences";
 
 const kinds: Record<string, SkeletonKind> = {
-  Queue: "files", "Excel formation": "files", "JSON formation": "settings", Settings: "preferences",
+  Queue: "files", "Excel formation": "files", "JSON formation": "settings", Converter: "files", Settings: "preferences",
 };
 export const skeletonKindOf = (section: string): SkeletonKind => kinds[section] ?? "table";
 

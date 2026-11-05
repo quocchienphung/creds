@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useSyncExternalStore } from "react";
 
-export const workspaceSections = ["Excel formation", "JSON formation", "Queue"] as const;
+export const workspaceSections = ["Excel formation", "JSON formation", "Queue", "Converter"] as const;
 export type WorkspaceSection = (typeof workspaceSections)[number];
 
 function subscribeRoute(listener: () => void) {

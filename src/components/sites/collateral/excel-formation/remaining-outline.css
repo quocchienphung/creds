@@ -1,0 +1,38 @@
+.ro { display: grid; grid-template-rows: auto auto auto minmax(0, 1fr) auto auto; gap: 10px; min-width: 0; height: clamp(440px, 62vh, 620px); padding: 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: 0 1px 2px #0000000a; }
+.ro-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ro-title { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-size: 13px; font-weight: 600; }
+.ro-icon { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
+.ro-icon:hover:not(:disabled) { color: var(--ink); background: var(--tray); }
+.ro-icon:disabled { opacity: .5; cursor: default; }
+.ro-icon [data-spin] { animation: ro-spin 1s linear infinite; }
+.ro-search { display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--tray); color: var(--muted); }
+.ro-search input { flex: 1; min-width: 0; height: 32px; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; font-size: 12.5px; }
+.ro-search:focus-within { border-color: var(--fp-green); box-shadow: 0 0 0 3px color-mix(in oklab, var(--fp-green) 16%, transparent); }
+.ro-kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+.ro-kinds button { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); font-size: 11.5px; cursor: pointer; }
+.ro-kinds button span { font-variant-numeric: tabular-nums; opacity: .8; }
+.ro-kinds button[aria-pressed="true"] { border-color: color-mix(in oklab, var(--fp-green) 45%, var(--line)); background: color-mix(in oklab, var(--fp-green) 9%, var(--card)); color: var(--ink); }
+.ro-body { min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.ro-note { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; padding: 12px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.ro-note[data-ok] { color: var(--fp-green); border-style: solid; }
+.ro-note button { border: 0; background: none; color: var(--ink); text-decoration: underline; cursor: pointer; font: inherit; }
+.ro-group + .ro-group { margin-top: 10px; }
+.ro-group summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 4px; color: var(--ink); font-size: 12px; font-weight: 600; cursor: pointer; list-style: none; position: sticky; top: 0; background: var(--card); z-index: 1; }
+.ro-group summary::-webkit-details-marker { display: none; }
+.ro-group summary span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ro-group ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.ro-item { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 8px; width: 100%; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font: inherit; }
+.ro-item:hover:not(:disabled) { background: var(--tray); }
+.ro-item[aria-current] { border-color: color-mix(in oklab, var(--fp-green) 45%, var(--line)); background: color-mix(in oklab, var(--fp-green) 7%, var(--card)); }
+.ro-item:disabled { opacity: .55; cursor: default; }
+.ro-ref { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; line-height: 1.7; }
+.ro-snippet { min-width: 0; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ro-snippet mark { padding: 0 2px; border-radius: 3px; background: color-mix(in oklab, var(--fp-red) 20%, transparent); color: inherit; }
+.ro-item[data-kind="spacing"] .ro-ref, .ro-item[data-kind="invisible"] .ro-ref { color: #b45309; }
+.ro-more, .ro-link { padding: 6px 8px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 11.5px; text-align: left; text-decoration: underline; cursor: pointer; }
+.ro-more:hover, .ro-link:hover { color: var(--ink); }
+.ro-foot { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.ro button:focus-visible, .ro input:focus-visible { outline: 2px solid var(--fp-green); outline-offset: 2px; }
+@keyframes ro-spin { to { transform: rotate(360deg); } }
+@media (max-width: 1020px) { .ro { height: auto; max-height: 420px; } }
+@media (prefers-reduced-motion: reduce) { .ro-icon [data-spin] { animation: none; } }

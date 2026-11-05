@@ -3,7 +3,7 @@ import { PersonalizeApp } from "@/components/sites/guide-navigation/PersonalizeA
 
 export const metadata: Metadata = {
   title: "Rules · Your workspace",
-  description: "Rules: Excel formation, JSON formation and the upload queue.",
+  description: "Rules: Excel formation, JSON formation and the upload queue. Converter: Excel to CSV.",
 };
 
 export default async function PersonalizePage({ searchParams }: {

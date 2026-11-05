@@ -98,3 +98,12 @@ test("the sheet is found through the workbook relationships, not by file name", 
   assert.equal(wb.sheets[0].name, "Second");
   assert.equal(wb.sheets[0].part, "xl/worksheets/custom-name.xml");
 });
+
+test("Excel's own ../customXml relationships do not make the workbook unreadable, while a sheet outside the package is refused", () => {
+  const rels = files => new TextDecoder().decode(files["xl/_rels/workbook.xml.rels"]);
+  const files = fflateUnzip(buildXlsx([{ name: "First", rows: [["x"]] }]));
+  files["xl/_rels/workbook.xml.rels"] = strToU8(rels(files).replace("</Relationships>", '<Relationship Id="rId99" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml" Target="../customXml/item1.xml"/></Relationships>'));
+  assert.equal(read(zipSync(files)).sheets[0].name, "First");
+  files["xl/_rels/workbook.xml.rels"] = strToU8(rels(files).replace("worksheets/sheet1.xml", "../../evil.xml"));
+  assert.throws(() => read(zipSync(files)), error => error.code === "corrupt");
+});

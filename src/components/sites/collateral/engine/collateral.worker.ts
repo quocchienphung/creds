@@ -11,6 +11,7 @@ import { workbookGridMeta, workbookGridRows } from "../excel-formation/engine/wo
 import { acceptException, applyBulk, applyEdits, chooseForGroup, commit, groupRows, newHistory, planBulk, redo, rejectSuggestion, reopen, summarize, undo, type History } from "../excel-formation/engine/review.ts";
 import type { ReviewView, WorkerMessage, WorkerRequest } from "./protocol.ts";
 import { autoRepair } from "../excel-formation/engine/auto-repair.ts";
+import { findResidual } from "../excel-formation/engine/residual.ts";
 import { loadGeo, type GeoEngine } from "../excel-formation/engine/geo/geo-load.ts";
 import { planDuplicateRepair, applyDuplicateRepair } from "../excel-formation/engine/duplicate-repairs.ts";
 
@@ -60,6 +61,7 @@ async function handle(id: number, request: WorkerRequest["request"]) {
       history = commit(history, result.state); document = null;
       return { type: "duplicateApplied" as const, view: view(), rows: result.plan.rows.length, changedCells: result.changedCells };
     }
+    case "residual": return { type: "residual" as const, report: findResidual(need(), history.present) };
     case "cancelRepair": if (repair) repair.cancelled = true; return { type: "repairCancelRequested" as const };
     case "autoRepair": {
       const task = { cancelled: false }; repair = task;

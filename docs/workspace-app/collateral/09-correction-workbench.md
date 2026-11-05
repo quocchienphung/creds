@@ -58,3 +58,19 @@ The sentence above that the table has "no model playback, simulated performance 
 - The figures describe the replay, not correctness, and say so next to the numbers. Ambiguous or unknown words stay as in the file, in amber, in the output line until chosen; a draft/target agreement on a word the file cannot confirm gets a question mark, not a tick.
 - Table interactions added on top: word hover/focus lights the same word in the output and the other way round, a click on an output word jumps to its row, `1`-`4` choose a candidate, the arrows move between rows, a chosen word flies from its chip into the output with the preview's spring; evidence text shows how often the chosen spelling was seen next to its neighbours.
 - QA: `node scripts/qa/collateral-speculative-run.mjs <base-url>` (50 checks, timings compared with the recording); frame pacing: `node scripts/forensics/speculative-run-fps.mjs <base-url>`. In the correction workbench QA nothing changed. The assertion in `collateral.mjs` that forbade playback controls was replaced by "the table is actionable at once and the replay makes no accuracy claim".
+
+## Preservation audit · 2026-11-05
+
+The user explicitly requested preservation of **Suggested corrections → Guess and check**. The current root app still contains it; no UI rollback is needed.
+
+- `ece6364332d3d80e687c311e31e57e06eb67bef1` (`updated`) contains the suggestion table, `SpeculativeRun.tsx`, its CSS and the multi-pass replay.
+- `6a22fd49101490c264c3c6637f884610466c4857` (`updated database`) adds the approved-change variant without removing the suggestion replay.
+- `0cd857e0aa6aac7f8b65870132c1e43c7615e29a` (`spec final`) adds the preview variant. Keep these later variants when repairing the suggestion UI.
+
+The live path is `ExcelFormation → ReviewStep → IssueDetails → SpeculativePanel → SpeculativeRun` under root `src/components/sites/collateral/excel-formation/`. It appears for question-mark findings with broken-word predictions. Loading, unavailable predictions and cells without broken words have separate states. `web clone engine/` is an older reference copy.
+
+“Continuous correction” here means consecutive draft/check/replace passes through one cell, stopping at completion (already the behavior in `ece6364`). It is a replay, not an infinite loop or permission to write guesses into the workbook. Use this reading fills a draft; approval still saves the change.
+
+`npm run test:correction-ui` checks the live component links, renders the actual suggestion panel/replay in English and Vietnamese, retains the table/manual fallback and uncertain words, and runs the existing predictor, multi-pass timing and confirmed-change tests. `.github/workflows/test.yml` runs this suite in the `correction-ui` job. `src/components/sites/collateral/AGENTS.md` records the preservation requirement for future edits.
+
+The rendered checks use server rendering with the locale/storage hook replaced; they do not exercise browser animation, clicks or CSS layout. Earlier browser QA commands above are historical evidence, not commands run by this audit. A failing CI job detects covered regressions; repository branch protection must require that job to prevent merging them.

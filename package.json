@@ -43,6 +43,7 @@
     "lint": "eslint src",
     "typecheck": "tsc --noEmit -p src/tsconfig.json",
     "test:app": "node --experimental-strip-types --test \"src/**/*.test.mjs\"",
+    "test:correction-ui": "node --experimental-strip-types --test src/components/sites/collateral/excel-formation/gallery/correction-ui.test.mjs src/components/sites/collateral/excel-formation/engine/predict.test.mjs src/components/sites/collateral/excel-formation/engine/run-timeline.test.mjs src/components/sites/collateral/excel-formation/engine/applied-change.test.mjs",
     "check": "npm run lint && npm run typecheck && npm run build",
     "predev": "node scripts/storage-assets.mjs",
     "prebuild": "node scripts/storage-assets.mjs"

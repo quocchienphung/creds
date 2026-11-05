@@ -13,6 +13,7 @@ import type { JsonNodeInfo, SearchResult } from "../../json-viewer/json-model.ts
 import type { CollateralAuditEntry, GeoAuditEntry, RepairProgress, RepairReport } from "../excel-formation/engine/auto-repair.ts";
 import type { RepairPolicy } from "../excel-formation/engine/geo/address-recovery.ts";
 import type { DuplicatePlan } from "../excel-formation/engine/duplicate-repairs.ts";
+import type { ResidualReport } from "../excel-formation/engine/residual.ts";
 
 /** What the page needs after a workbook is opened. Nothing here is sent anywhere: it crosses only the worker boundary of this browser tab. */
 export interface OpenResult {
@@ -61,6 +62,7 @@ export type Request =
   | { type: "duplicateApply"; issueId: string; value: string; includeTwin: boolean }
   | { type: "autoRepair"; policy?: RepairPolicy }
   | { type: "cancelRepair" }
+  | { type: "residual" }
   | { type: "window"; row: number; col: number }
   | { type: "gridMeta"; sheet?: string }
   | { type: "grid"; from: number; count: number; sheet?: string }
@@ -90,6 +92,7 @@ export type Response =
   | { type: "duplicateApplied"; view: ReviewView; rows: number; changedCells: number }
   | { type: "repaired"; fileName: string; bytes: ArrayBuffer; report: RepairReport; geoAudit: GeoAuditEntry[]; collateralAudit: CollateralAuditEntry[]; /** Why the geographic data could not be used, when it could not. */ geoUnavailable?: string; view: ReviewView }
   | { type: "repairCancelRequested" }
+  | { type: "residual"; report: ResidualReport }
   | { type: "opened"; result: OpenResult; view: ReviewView }
   | { type: "view"; view: ReviewView }
   | { type: "bulkPlan"; items: BulkItem[] }

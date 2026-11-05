@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildXlsx } from "./xlsx-builder.mjs";
 import { openSession } from "./session.ts";
-import { applyEdits, emptyReview } from "./review.ts";
+import { applyEdits, cellKey, emptyReview } from "./review.ts";
 import { autoRepair } from "./auto-repair.ts";
 import { fingerprintBytes } from "./text.ts";
 import { scanXml } from "./xml-scan.ts";
@@ -37,12 +37,14 @@ test("bad XML scalar entities and ZIP CRC mismatches are rejected", () => {
   for (let i = 0; i < corrupted.length - 46; i++) if (corrupted[i] === 0x50 && corrupted[i + 1] === 0x4b && corrupted[i + 2] === 1 && corrupted[i + 3] === 2) { corrupted[i + 16] ^= 1; break; }
   assert.throws(() => unzipBounded(corrupted), /CRC/);
 });
-test("reversible mojibake requires a same-entity clean source and never touches protected code", async () => {
+test("reversible mojibake is decoded in the text columns and a protected code with a ? is never touched", async () => {
   const s = await openSession(buildXlsx([{ name: 'Test', rows: [headers, ['001', '002', '003', '303', { n: '1' }, 'CÃ´ng ty', 'Công ty'], ['001', '002', '?id', '303', { n: '1' }, 'CÃ´ng ty', 'Công ty']] }]), 'synthetic.xlsx');
   const result = await autoRepair(s, emptyReview());
-  assert.equal(result.report.applied, 1);
-  assert.equal(result.report.locations.find(d => d.status === 'source_verified').reasonCode, 'reversible_encoding_with_same_entity_source');
+  // The decoding re-encodes to exactly the original text, so it needs no clean record next to it; both rows are cleaned.
+  assert.equal(result.report.normalized, 2);
+  assert.deepEqual([2, 3].map(row => result.state.patches[cellKey('Test', row, 5)]?.value), ['Công ty', 'Công ty']);
   assert.ok(result.report.locations.some(d => d.reasonCode === 'protected_or_unmapped_role'));
+  assert.equal(result.state.patches[cellKey('Test', 3, 2)], undefined, 'the protected code ?id is left as it is');
 });
 test("a manually edited original is excluded from clean source evidence", async () => {
   const s = await openSession(buildXlsx([{ name: 'Test', rows: [headers, ['001', '002', '003', '303', { n: '1' }, 'm?y moc', 'may moc']] }]), 'synthetic.xlsx');
