@@ -8,7 +8,7 @@ import { RESIDUAL_KINDS, type ResidualItem, type ResidualKind, type ResidualRepo
 import { previewKey } from "./preview-model";
 import "./remaining-outline.css";
 
-const KIND_LABEL: Record<ResidualKind, string> = { question_mark: "Missing characters (?)", mojibake: "Garbled encoding", strange: "Unusual characters", spacing: "Extra spaces", invisible: "Hidden characters", other: "Other" };
+const KIND_LABEL: Record<ResidualKind, string> = { question_mark: "Missing characters (?)", mojibake: "Garbled encoding", accented: "Accented text", locked: "Locked cells (formula, merged, rich text)", strange: "Unusual characters", spacing: "Extra spaces", invisible: "Hidden characters", other: "Other" };
 const PAGE = 100;
 const ref = (item: ResidualItem) => `${columnLetters(item.col)}${item.row}`;
 
@@ -18,13 +18,13 @@ function Snippet({ text }: { text: string }) {
 }
 
 /** What is still wrong in the workbook as it would be exported, grouped by worksheet; a click opens the cell in the preview. */
-export function RemainingOutline({ report, scanning, error, activeKey, disabled, onPick, onScan, onReview }: {
+export function RemainingOutline({ report, scanning, error, activeKey, disabled, onPick, onScan, onReview, onFill }: {
   report: ResidualReport | null; scanning: boolean; error: string; activeKey: string; disabled: boolean;
-  onPick: (item: ResidualItem) => void; onScan: () => void; onReview: () => void;
+  onPick: (item: ResidualItem) => void; onScan: () => void; onReview: () => void; onFill: () => void;
 }) {
   const { t } = useWorkspaceI18n();
   const [query, setQuery] = useState(""), [kind, setKind] = useState<ResidualKind | "all">("all"), [shown, setShown] = useState<Record<string, number>>({});
-  const totals = useMemo(() => { const out: Record<ResidualKind, number> = { question_mark: 0, mojibake: 0, strange: 0, spacing: 0, invisible: 0, other: 0 }; for (const sheet of report?.bySheet ?? []) for (const k of RESIDUAL_KINDS) out[k] += sheet.counts[k]; return out; }, [report]);
+  const totals = useMemo(() => { const out: Record<ResidualKind, number> = { question_mark: 0, mojibake: 0, accented: 0, locked: 0, strange: 0, spacing: 0, invisible: 0, other: 0 }; for (const sheet of report?.bySheet ?? []) for (const k of RESIDUAL_KINDS) out[k] += sheet.counts[k]; return out; }, [report]);
   const groups = useMemo(() => {
     const text = query.trim().toLocaleLowerCase(), out = new Map<string, ResidualItem[]>();
     for (const item of report?.items ?? []) {
@@ -66,6 +66,7 @@ export function RemainingOutline({ report, scanning, error, activeKey, disabled,
         })}
     </div>
     {report?.truncated && <p className="ro-foot">{t("Showing the first {0} of {1}. Fix some and scan again to see the rest.", [report.items.length.toLocaleString(), report.total.toLocaleString()])}</p>}
+    {totals.question_mark > 0 && <button type="button" className="ro-fill" disabled={disabled || scanning} onClick={onFill} title={t("Last step, when the automatic repair cannot predict any further. Every ? still left in a text cell, code columns included, becomes the letter a. Undo takes it back.")}>{t("Fill the remaining ? with a")} ({totals.question_mark.toLocaleString()})</button>}
     <button type="button" className="ro-link" onClick={onReview}>{t("Open the Review step")}</button>
   </aside>;
 }

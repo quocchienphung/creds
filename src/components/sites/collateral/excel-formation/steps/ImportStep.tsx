@@ -23,7 +23,6 @@ export function ImportStep({ engine, onReview }: { engine: CollateralEngine; onR
   const input = useRef<HTMLInputElement>(null);
   const drop = useRef<HTMLDivElement>(null);
   const previousFile = useRef(engine.fileName);
-  const scanning = engine.phase === "scanning";
   const receive = (files: File[]) => { const file = files.find(item => /\.xlsx$/i.test(item.name)) ?? files[0]; if (file) void engine.open(file); };
   const error = engine.failure ? MESSAGE[engine.failure.code ?? ""] ?? engine.failure.message : undefined;
   useEffect(() => {
@@ -40,9 +39,9 @@ export function ImportStep({ engine, onReview }: { engine: CollateralEngine; onR
         </> : <StorageDropzone entries={[]} multiple={false} accept=".xlsx" badges={["XLSX", "XLSX"]} inputLabel="Choose an Excel workbook" hint={copy("limits")} onFiles={receive} />}
       </div>
       <aside className="cr-import__options" aria-label={uiText("Options")}>
-        <label className="cr-switch-row"><button type="button" role="switch" className="cr-switch" aria-label={uiText("Flag accented text")} aria-checked={engine.diacriticPolicy} disabled={scanning} onClick={() => engine.rescan(!engine.diacriticPolicy)}><span className="cr-switch__thumb" /></button><span>{uiText("Flag accented text")}</span></label>
         <p className="cr-local"><Lock size={13} aria-hidden="true" /> {uiText("Processed on this device")}</p>
       </aside>
+      {engine.restored > 0 && <p className="cr-local" role="status">{uiText("Restored {0} corrections saved on this device for this file. Undo takes them back.", [engine.restored.toLocaleString()])}</p>}
       <ArchiveNotice />
     </div>
   </div>;

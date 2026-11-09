@@ -4,6 +4,7 @@ import { buildXlsx } from "./xlsx-builder.mjs";
 import { openSession } from "./session.ts";
 import { emptyReview, newHistory, commit, undo, redo } from "./review.ts";
 import { autoRepair } from "./auto-repair.ts";
+import { toPlainText } from "./text-clean.ts";
 import { corruptionSpans, matchesMask } from "./corruption-span.ts";
 import { readWorkbook } from "./xlsx-reader.ts";
 import { snapshotProgress, restoreProgress } from "./progress.ts";
@@ -28,11 +29,12 @@ test("one-click repair covers every sheet, source retrieval only, redacted repor
   assert.ok(result.report.unresolved >= 5);
   assert.equal(result.report.hiddenRowsIncluded, 1);
   const out = readWorkbook(result.bytes, { fileName: "synthetic.xlsx", fileHash: "test" });
-  for (const r of [2, 4]) assert.equal(out.sheets[0].rows.find(row => row.r === r).cells[5].v, s.workbook.sheets[0].rows.find(row => row.r === r).cells[6].v);
+  // Restored from the clean twin of the same asset, then written without marks like every text of the file.
+  for (const r of [2, 4]) assert.equal(out.sheets[0].rows.find(row => row.r === r).cells[5].v, toPlainText(s.workbook.sheets[0].rows.find(row => row.r === r).cells[6].v));
   assert.equal(out.sheets[0].rows.find(r => r.r === 3).cells[5].v, "Quy?n s? d?ng d?t", "unmasked d cannot be silently changed to đ");
   assert.equal(out.sheets[0].rows.find(r => r.r === 5).cells[5].v, "Anh?");
-  // Nothing of the other sheet changes except the decomposed letter, which is written composed.
-  assert.equal(out.sheets[1].rows[1].cells[1].v, "Caf\u00e9");
+  // Nothing of the other sheet changes except the accented letter, which is written plain.
+  assert.equal(out.sheets[1].rows[1].cells[1].v, "Cafe");
   assert.deepEqual(out.sheets[1].rows[0], s.workbook.sheets[1].rows[0]);
   assert.equal(out.sheets[1].rows[1].cells[0].v, s.workbook.sheets[1].rows[1].cells[0].v);
   assert.equal(out.sheets[0].rows[1].cells[4].v, "1234.5599999999999");
@@ -51,10 +53,10 @@ test("same input gives same decisions/output, history Undo/Redo and replay retai
   assert.deepEqual(a.bytes, b.bytes);
   const history = commit(newHistory(), a.state);
   assert.equal(Object.keys(undo(history).present.patches).length, 0);
-  assert.equal(Object.keys(redo(undo(history)).present.patches).length, 3, "two repairs and one cleaned letter");
+  assert.equal(Object.keys(redo(undo(history)).present.patches).length, Object.keys(a.state.patches).length, "redo brings back every patch of the run");
   const restored = restoreProgress(snapshotProgress(a.state, s.ctx), s.ctx);
   assert.equal(restored.ok, true);
-  assert.equal(restored.patches, 3);
+  assert.equal(restored.patches, Object.keys(a.state.patches).length);
 });
 
 test("cancellation yields before committing any edits", async () => {

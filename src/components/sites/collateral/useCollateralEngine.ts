@@ -12,6 +12,7 @@ import type { ReportMeta, ReportOptions } from "./json-formation/engine/report-o
 import type { CollateralAuditEntry, GeoAuditEntry, RepairProgress, RepairReport } from "./excel-formation/engine/auto-repair";
 import type { RepairPolicy } from "./excel-formation/engine/geo/address-recovery";
 import type { ResidualReport } from "./excel-formation/engine/residual";
+import { dropProgress, readProgress, writeProgress } from "./progress-store";
 
 const stateKey = (c: { patched: number; exceptions: number; edited: number; verified: number }) => `${c.patched}:${c.exceptions}:${c.edited}:${c.verified}`;
 export type Phase = "idle" | "scanning" | "ready" | "failed";
@@ -37,8 +38,10 @@ export function useCollateralEngine() {
   const repairing = useRef(false);
   const [fileName, setFileName] = useState("");
   const [fileSize, setFileSize] = useState(0);
-  const [diacriticPolicy, setDiacriticPolicy] = useState(true);
   const lastFile = useRef<File | null>(null);
+  /** The file whose corrections are saved on this device, and whether its saved corrections are still being brought back (nothing is saved meanwhile). */
+  const savedHash = useRef(""), restoring = useRef(false);
+  const [restored, setRestored] = useState(0);
   /** What the person last put in a file (progress or corrected workbook), so closing the tab only warns about work that is not in one. */
   const [kept, setKept] = useState("");
   /** How long the file took to open and scan (ms), read off this tab's clock. */
@@ -47,11 +50,11 @@ export function useCollateralEngine() {
   const engine = () => client.current ?? (client.current = new EngineClient());
   useEffect(() => () => { opening.current++; client.current?.cancel(); client.current = null; }, []);
 
-  const open = useCallback(async (file: File, policy = diacriticPolicy, overrides: Record<string, number> = {}) => {
+  const open = useCallback(async (file: File, overrides: Record<string, number> = {}) => {
     const run = ++opening.current;
     client.current?.cancel(); client.current = null;
     lastFile.current = file;
-    setFileName(file.name); setFileSize(file.size); setKept(""); setFailure(null); setResult(null); setView(null); setProgress({ phase: "read", fraction: 0 }); setRepairProgress(null); setBusy(false); repairing.current = false;
+    setFileName(file.name); setFileSize(file.size); setKept(""); setFailure(null); setResult(null); setView(null); setProgress({ phase: "read", fraction: 0 }); setRepairProgress(null); setBusy(false); repairing.current = false; setRestored(0); restoring.current = true; savedHash.current = "";
     if (!/\.xlsx$/i.test(file.name)) { setPhase("failed"); setFailure({ message: "Only .xlsx workbooks can be opened.", code: "not-xlsx" }); return; }
     if (file.size > LIMITS.fileBytes) { setPhase("failed"); setFailure({ message: "The file is larger than this tool accepts.", code: "too-large" }); return; }
     setPhase("scanning");
@@ -59,27 +62,38 @@ export function useCollateralEngine() {
     try {
       const bytes = await file.arrayBuffer();
       if (run !== opening.current) return;
-      const response = await engine().call({ type: "open", bytes, fileName: file.name, diacriticPolicy: policy, overrides }, { transfer: [bytes], progress: setProgress });
+      const response = await engine().call({ type: "open", bytes, fileName: file.name, overrides }, { transfer: [bytes], progress: setProgress });
       if (run !== opening.current) return;
       if (response.type !== "opened") throw new Error("Unexpected answer from the review engine.");
       setResult(response.result); setView(response.view); setPhase("ready"); setOpenMs(Math.round(performance.now() - started));
+      // The corrections saved on this device for this very file come back, in one step that Undo takes back. A file that changed is refused by the replay.
+      savedHash.current = response.result.fileHash;
+      const saved = await readProgress(response.result.fileHash);
+      if (saved && run === opening.current) {
+        const back = await engine().call({ type: "progressLoad", file: saved }).catch(() => null);
+        if (run === opening.current && back?.type === "restored" && back.patches > 0) { setView(back.view); setRestored(back.patches); }
+      }
+      if (run === opening.current) restoring.current = false;
     } catch (error) {
       if (run !== opening.current) return;
       if (error instanceof EngineError && error.code === "cancelled") return;
       setPhase("failed");
       setFailure({ message: error instanceof Error ? error.message : String(error), code: error instanceof EngineError ? error.code : undefined });
     }
-  }, [diacriticPolicy]);
+  }, []);
 
   /** Stop a scan, or close the workbook: the worker is terminated, so every byte of the file is dropped. */
   const close = useCallback(() => {
     opening.current++;
+    // Closing the file on purpose ends its work: what was saved for it on this device goes too.
+    if (savedHash.current) void dropProgress(savedHash.current);
+    savedHash.current = ""; restoring.current = false; setRestored(0);
     client.current?.cancel(); client.current = null; lastFile.current = null; setKept("");
     setPhase("idle"); setResult(null); setView(null); setFailure(null); setFileName(""); setFileSize(0); setBusy(false); setRepairProgress(null); repairing.current = false;
   }, []);
   const retry = useCallback(() => { if (lastFile.current) void open(lastFile.current); }, [open]);
-  /** Scan again with another mapping or policy; reviewer work is discarded because issues are re-derived. */
-  const rescan = useCallback((policy: boolean, overrides: Record<string, number> = {}) => { setDiacriticPolicy(policy); if (lastFile.current) { client.current?.cancel(); client.current = null; void open(lastFile.current, policy, overrides); } }, [open]);
+  /** Scan again with another column mapping; reviewer work is discarded because issues are re-derived. */
+  const rescan = useCallback((overrides: Record<string, number>) => { if (lastFile.current) { client.current?.cancel(); client.current = null; void open(lastFile.current, overrides); } }, [open]);
 
   const act = useCallback(async <T,>(run: () => Promise<T>): Promise<T | undefined> => {
     if (repairing.current) return undefined;
@@ -110,6 +124,7 @@ export function useCollateralEngine() {
   }, []);
 
   const edit = useCallback((edits: { sheet?: string; row: number; col: number; value: string; source?: "typed" | "suggestion" | "fix" | "twin" | "group" }[]) => act(() => send({ type: "edit", edits })), [act, send]);
+  const fillRemaining = useCallback(() => act(() => send({ type: "fillRemaining" })), [act, send]);
   const reject = useCallback((issueId: string) => act(() => send({ type: "reject", issueId })), [act, send]);
   const reopen = useCallback((issueId: string) => act(() => send({ type: "reopen", issueId })), [act, send]);
   const accept = useCallback(async (issueId: string, reason: string) => { const response = await act(() => send({ type: "exception", issueId, reason })); return response?.type === "view"; }, [act, send]);
@@ -173,6 +188,17 @@ export function useCollateralEngine() {
   }, []);
 
   const unsaved = !!view && (view.summary.patched > 0 || view.summary.exceptions > 0) && stateKey({ patched: view.summary.patched, exceptions: view.summary.exceptions, edited: view.summary.byStatus.edited, verified: view.summary.byStatus.verified }) !== kept;
+  /** Every change is saved on this device shortly after it is made (and never while saved corrections are being brought back). */
+  useEffect(() => {
+    if (phase !== "ready" || !view || !savedHash.current) return;
+    const hash = savedHash.current;
+    const timer = setTimeout(() => {
+      if (restoring.current || hash !== savedHash.current) return;
+      void client.current?.call({ type: "progressSave" }).then(r => { if (r.type === "progress" && hash === savedHash.current) void writeProgress(hash, r.file); }).catch(() => {});
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [phase, view]);
+
   /** The browser's own "leave this page?" prompt, only while there are corrections that are not in a file. The page stores nothing itself. */
   useEffect(() => {
     if (!unsaved) return;
@@ -187,6 +213,6 @@ export function useCollateralEngine() {
   const docSearch = useCallback(async (query: string, max: number) => { const r = await engine().call({ type: "docSearch", query, max }); return r.type === "docSearch" ? r : null; }, []);
   const docText = useCallback(async (keys: string[]) => { const r = await engine().call({ type: "docText", keys }); return r.type === "docText" ? r : null; }, []);
 
-  return { duplicatePlan, duplicateApply, autoRepair, cancelRepair, residual, repairProgress, openMs, docRoot, docChildren, docSearch, docText, unsaved, saveProgress, loadProgress, jsonPlan, phase, progress, failure, result, view, busy, fileName, fileSize, diacriticPolicy, open, close, retry, rescan, edit, reject, reopen, accept, chooseGroup, undo, redo, bulkPlan, bulkApply, rowContext, sheetWindow, gridMeta, gridRows, predict, previewChanges, groupRows, exportXlsx, clearFailure: () => setFailure(null) };
+  return { restored, duplicatePlan, duplicateApply, autoRepair, cancelRepair, fillRemaining, residual, repairProgress, openMs, docRoot, docChildren, docSearch, docText, unsaved, saveProgress, loadProgress, jsonPlan, phase, progress, failure, result, view, busy, fileName, fileSize, open, close, retry, rescan, edit, reject, reopen, accept, chooseGroup, undo, redo, bulkPlan, bulkApply, rowContext, sheetWindow, gridMeta, gridRows, predict, previewChanges, groupRows, exportXlsx, clearFailure: () => setFailure(null) };
 }
 export type CollateralEngine = ReturnType<typeof useCollateralEngine>;

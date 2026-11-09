@@ -41,8 +41,8 @@ test("reversible mojibake is decoded in the text columns and a protected code wi
   const s = await openSession(buildXlsx([{ name: 'Test', rows: [headers, ['001', '002', '003', '303', { n: '1' }, 'CÃ´ng ty', 'Công ty'], ['001', '002', '?id', '303', { n: '1' }, 'CÃ´ng ty', 'Công ty']] }]), 'synthetic.xlsx');
   const result = await autoRepair(s, emptyReview());
   // The decoding re-encodes to exactly the original text, so it needs no clean record next to it; both rows are cleaned.
-  assert.equal(result.report.normalized, 2);
-  assert.deepEqual([2, 3].map(row => result.state.patches[cellKey('Test', row, 5)]?.value), ['Công ty', 'Công ty']);
+  // ...and, like every text of the file, written without marks.
+  assert.deepEqual([2, 3].map(row => result.state.patches[cellKey('Test', row, 5)]?.value), ['Cong ty', 'Cong ty']);
   assert.ok(result.report.locations.some(d => d.reasonCode === 'protected_or_unmapped_role'));
   assert.equal(result.state.patches[cellKey('Test', 3, 2)], undefined, 'the protected code ?id is left as it is');
 });

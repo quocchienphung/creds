@@ -1,4 +1,4 @@
-import { analyzeValue, tryDecodeMojibake } from "./detect.ts";
+import { analyzeValue, hasDiacritics, stripDiacritics, tryDecodeMojibake } from "./detect.ts";
 import type { ColumnSpec } from "./mapping-profiles.ts";
 import { specRoleOf } from "./sheet-scan.ts";
 
@@ -47,6 +47,27 @@ export function dropLoneQuestionMarks(text: string): string {
   return alone !== text && /[\p{L}\p{N}]/u.test(alone) ? alone : text;
 }
 
+const FOLD: Record<string, string> = { "ß": "ss", "æ": "ae", "Æ": "AE", "œ": "oe", "Œ": "OE", "ø": "o", "Ø": "O", "ł": "l", "Ł": "L", "ı": "i", "þ": "th", "Þ": "Th", "\u2010": "-", "\u2011": "-", "\u2012": "-", "\u2212": "-", "\u2032": "'", "\u00b2": "2", "\u00b3": "3", "\u00b9": "1", "\u2013": "-", "\u2014": "-", "\u2022": "-", "\u201c": "\"", "\u201d": "\"", "\u2018": "'", "\u2019": "'", "\u2026": "...", "\u00d7": "x", "\u00f7": "/", "\u00b1": "+/-", "\u2033": "\"", "\u02bc": "'" };
+// What a text read in the wrong encoding leaves behind: the Latin-1 symbols and the Windows-1252 punctuation that are no letter and no mark Vietnamese uses.
+const DEBRIS = new RegExp("[\\u00a1-\\u00ff\\u0152\\u0153\\u0160\\u0161\\u0178\\u017d\\u017e\\u0192\\u02c6\\u02dc\\u2020\\u2021\\u201a\\u201e\\u2030\\u2039\\u203a\\u2122\\u20ac\\u20ab]", "u");
+/**
+ * The export of this file is plain ASCII: every accented letter becomes its plain letter (ầ -> a, Đ -> d, ư -> u, the legacy eth too), typographic marks become
+ * their ASCII form (– -> -, “ -> ", ² -> 2, × -> x) and signs with no ASCII form (° € ₫ § ® ©) and encoding debris are removed. Applied last, after every
+ * recovery, because the marks are evidence while the text is being restored.
+ */
+export const toPlainText = (text: string) => {
+  const plain = stripDiacritics(text).replace(/\u00d0/g, "D").replace(/\u00f0/g, "d");
+  if (!/[^\x20-\x7e]/.test(plain)) return plain;
+  // shortcut: other scripts (Cyrillic, CJK) and emoji stay as they are, they are text and not debris; they are listed as strange, never guessed.
+  // Compatibility forms (ligatures, full-width letters, circled digits) have an ASCII reading of their own.
+  const ascii = (ch: string) => { const k = ch.normalize("NFKD"); return /^[\x20-\x7e]+$/.test(k) ? k : null; };
+  let dropped = false;
+  const out = [...plain].map(ch => { if (KNOWN.test(ch)) return ch; const to = FOLD[ch] ?? (DEBRIS.test(ch) ? "" : ascii(ch) ?? ch); if (to === "") dropped = true; return to; }).join("");
+  // shortcut: a removed sign leaves its spaces behind (`100.000 ₫`), so edges and doubled spaces are tidied only when something was removed.
+  return dropped ? out.replace(/ {2,}/g, " ").replace(/^ +| +$/g, "") : out;
+};
+export const hasMarks = (text: string) => hasDiacritics(text) || /[\u00d0\u00f0]/.test(text);
+
 /** The text without its strange characters, or the same text when there is nothing to clean. Text encoded twice needs more than one pass. */
 export function cleanText(value: string, spec?: Pick<ColumnSpec, "role" | "noDiacritics">): string {
   if (!value.includes("?") && /^[\x21-\x7e]+(?: [\x21-\x7e]+)*$/.test(value)) return value;
@@ -59,7 +80,7 @@ export function cleanText(value: string, spec?: Pick<ColumnSpec, "role" | "noDia
  * Characters a Vietnamese workbook has no use for: anything outside printable ASCII, the precomposed Vietnamese letters and the usual typographic
  * marks. A combining mark counts too, since Vietnamese is written precomposed. What the cleaning could not settle shows up here.
  */
-const KNOWN = new RegExp("^[\\x20-\\x7e\\n\\r\\u00c0-\\u00c3\\u00c8-\\u00ca\\u00cc\\u00cd\\u00d2-\\u00d5\\u00d9\\u00da\\u00dd\\u00e0-\\u00e3\\u00e8-\\u00ea\\u00ec\\u00ed\\u00f2-\\u00f5\\u00f9\\u00fa\\u00fd\\u0102\\u0103\\u0110\\u0111\\u0128\\u0129\\u0168\\u0169\\u01a0\\u01a1\\u01af\\u01b0\\u1ea0-\\u1ef9\\u2013\\u2014\\u2018\\u2019\\u201c\\u201d\\u2026\\u2022\\u00b0\\u00b2\\u00b3\\u00b1\\u00d7\\u00f7\\u20ac\\u20ab\\u00a7\\u00ae\\u00a9]$");
+const KNOWN = new RegExp("^[\\x20-\\x7e\\n\\r\\u00c0-\\u00c3\\u00c8-\\u00ca\\u00cc\\u00cd\\u00d2-\\u00d5\\u00d9\\u00da\\u00dd\\u00e0-\\u00e3\\u00e8-\\u00ea\\u00ec\\u00ed\\u00f2-\\u00f5\\u00f9\\u00fa\\u00fd\\u0102\\u0103\\u0110\\u0111\\u0128\\u0129\\u0168\\u0169\\u01a0\\u01a1\\u01af\\u01b0\\u1ea0-\\u1ef9]$");
 export function strangeChars(value: string): { start: number; end: number }[] {
   if (!/[^\x20-\x7e]/.test(value)) return [];
   const out: { start: number; end: number }[] = [];

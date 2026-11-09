@@ -49,7 +49,7 @@ export function MappingStep({ engine }: { engine: CollateralEngine }) {
           <td className="ui-sb-mono">{spec.json ?? <span className="ui-sb-muted">{uiText("not used in the JSON")}</span>}</td>
           <td className="ui-sb-muted">{spec.rule ? uiText(spec.rule) : "—"}</td>
           <td className="ui-sb-mono">{shown(col)}</td>
-          <td>{choices ? <div className="cr-choose"><Combobox size="sm" aria-label={uiText("Choose the {0} column", [spec.header])} placeholder={uiText("Choose…")} options={choices.map(choice => ({ value: String(choice), label: columnLetters(choice), localize: false }))} onChange={value => engine.rescan(engine.diacriticPolicy, { [spec.header]: Number(value) })} searchable={false} /></div>
+          <td>{choices ? <div className="cr-choose"><Combobox size="sm" aria-label={uiText("Choose the {0} column", [spec.header])} placeholder={uiText("Choose…")} options={choices.map(choice => ({ value: String(choice), label: columnLetters(choice), localize: false }))} onChange={value => engine.rescan({ [spec.header]: Number(value) })} searchable={false} /></div>
             : <span className="ui-sb-pill" data-tone={state === "mapped" ? "green" : state === "missing" ? (spec.required ? "red" : "amber") : undefined}>{uiText(state === "mapped" ? "Mapped" : state === "missing" ? "Missing" : "Kept, not exported")}</span>}</td>
         </tr>;
       })}</tbody></table></div>

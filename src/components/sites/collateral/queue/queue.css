@@ -15,6 +15,12 @@
 .queue-card__controls { display: flex; gap: 8px; }
 .queue-icon { display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--card); color: var(--ink); text-decoration: none; transition: background 160ms var(--q-ease); }
 .queue-icon:hover { background: var(--chip); }
+.queue-pill { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 9999px; background: var(--card); color: var(--ink); transition: background 160ms var(--q-ease), border-color 160ms var(--q-ease), transform 320ms var(--q-ease); }
+.queue-pill:hover:not(:disabled) { background: var(--chip); }
+.queue-pill:active:not(:disabled) { transform: scale(.97); transition-duration: 160ms, 160ms, 80ms; }
+.queue-pill--danger { color: var(--q-danger); }
+.queue-pill--danger:hover:not(:disabled) { border-color: color-mix(in oklab, var(--q-danger) 40%, var(--line)); background: color-mix(in oklab, var(--q-danger) 8%, var(--card)); }
+@media (prefers-reduced-motion: reduce) { .queue-pill { transition: none; } }
 .queue-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; list-style: none; margin: 0; padding: 0; color: var(--text); font-size: 12px; }
 .queue-legend li { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .queue-legend li > span:last-child { color: var(--muted); font-variant-numeric: tabular-nums; }

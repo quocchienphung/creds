@@ -30,7 +30,8 @@ export interface ReviewContext {
   corpus: (col: number, sheet?: string) => Corpus | undefined;
   /** The text of a cell in the ORIGINAL workbook. */
   original: (sheet: string, row: number, col: number) => string;
-  isFormula?: (sheet: string, row: number, col: number) => boolean;
+  /** A formula, a merged cell or a rich-text cell: the exporter cannot write it, so it cannot be edited. */
+  isLocked?: (sheet: string, row: number, col: number) => boolean;
   sheet: Sheet | undefined;
   /** Resolved columns of the primary sheet: used to find the other rows of a group. */
   groupCols: { branch: number; customer: number; asset: number } | null;
@@ -141,7 +142,7 @@ export interface Edit { sheet: string; row: number; col: number; value: string; 
 export function applyEdits(state: ReviewState, ctx: ReviewContext, edits: Edit[]): ReviewState {
   const next: ReviewState = { patches: { ...state.patches }, states: { ...state.states }, introduced: { ...state.introduced } };
   for (const edit of edits) {
-    if (ctx.isFormula?.(edit.sheet, edit.row, edit.col)) throw new Error("Formula cells cannot be edited.");
+    if (ctx.isLocked?.(edit.sheet, edit.row, edit.col)) throw new Error("Formula, merged and rich-text cells cannot be edited: the exported file could not hold the change.");
     const key = cellKey(edit.sheet, edit.row, edit.col);
     const original = ctx.original(edit.sheet, edit.row, edit.col);
     if (edit.value === original) delete next.patches[key];
@@ -180,7 +181,8 @@ export function reopen(state: ReviewState, ctx: ReviewContext, issue: Issue): Re
 export const groupRows = (ctx: ReviewContext, issue: Issue): number[] => ctx.groupRowsOf(issue);
 /** Use one value for the whole group (an explicit reviewer action; the preview lists the rows first). */
 export function chooseForGroup(state: ReviewState, ctx: ReviewContext, issue: Issue, value: string): ReviewState {
-  return applyEdits(state, ctx, groupRows(ctx, issue).map(row => ({ sheet: issue.sheet, row, col: issue.col, value, source: "group" as const })));
+  // A locked member (formula, merged, rich text) keeps its value: one of them must not stop the others.
+  return applyEdits(state, ctx, groupRows(ctx, issue).filter(row => !ctx.isLocked?.(issue.sheet, row, issue.col)).map(row => ({ sheet: issue.sheet, row, col: issue.col, value, source: "group" as const })));
 }
 
 // ── bulk, deterministic only ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -194,7 +196,7 @@ export function planBulk(state: ReviewState, ctx: ReviewContext, kind: FixKind):
   for (const issue of ctx.issues) {
     if (issue.fix?.kind !== kind) continue;
     const key = cellKey(issue.sheet, issue.row, issue.col);
-    if (seen.has(key) || state.patches[key] || state.states[issue.id]?.status === "accepted_exception") continue;
+    if (seen.has(key) || state.patches[key] || state.states[issue.id]?.status === "accepted_exception" || ctx.isLocked?.(issue.sheet, issue.row, issue.col)) continue;
     const to = applyFix(kind, issue.originalValue);
     if (to === issue.originalValue) continue;
     seen.add(key);

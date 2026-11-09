@@ -40,6 +40,8 @@ export function Queue({ workspaceId }: { workspaceId: string }) {
   const [popup, setPopup] = useState<Popup | null>(null), [removal, setRemoval] = useState<Removal | null>(null);
   const sawResult = useRef(false), removalRef = useRef<Removal | null>(null);
   const [morphEpoch, setMorphEpoch] = useState(0);
+  const [bulk, setBulk] = useState<{ entries: QueueEntry[]; open: boolean } | null>(null), [bulkRemoval, setBulkRemoval] = useState<Removal[] | null>(null), [bulkPhase, setBulkPhase] = useState<ConfirmPhase>("idle");
+  const bulkDone = useRef<Removal[]>([]), bulkSaw = useRef(false);
   const generation = useRef(0), mounted = useRef(true);
   const abort = useRef<AbortController | null>(null);
   const refresh = useCallback(async (visible = false) => {
@@ -100,6 +102,30 @@ export function Queue({ workspaceId }: { workspaceId: string }) {
     const receipt = await deleteSaved(entry);
     removalRef.current = { entry, receipt }; setRemoval(removalRef.current); setEntries(current => current.filter(item => item.id !== entry.id));
   };
+  // Bulk delete reuses the per-file server receipts, so "Undo" restores every file for as long as the 8 s window lasts.
+  const openBulk = () => { if (busy || !entries.length) return; bulkDone.current = []; setBulkRemoval(null); setBulkPhase("idle"); setBulk({ entries, open: true }); };
+  const closeBulk = () => setBulk(current => current && { ...current, open: false });
+  const removeAll = async () => {
+    const pending = (bulk?.entries ?? []).filter(entry => !bulkDone.current.some(item => item.entry.id === entry.id));
+    const results = await Promise.allSettled(pending.map(async entry => ({ entry, receipt: await deleteSaved(entry) })));
+    const done = results.flatMap(result => result.status === "fulfilled" ? [result.value] : []);
+    bulkDone.current = [...bulkDone.current, ...done];
+    if (mounted.current) { setEntries(current => current.filter(entry => !done.some(item => item.entry.id === entry.id))); if (bulkDone.current.length) setBulkRemoval(bulkDone.current); }
+    if (done.length < pending.length) throw new Error(copy("deleteAllError")); // Retry only repeats the files that are left
+  };
+  const restoreAll = async (items: Removal[]) => {
+    const results = await Promise.allSettled(items.map(item => restoreSaved(item.entry, item.receipt)));
+    const failed = items.filter((_, index) => results[index].status === "rejected");
+    bulkDone.current = failed;
+    if (mounted.current) { setBulkRemoval(failed.length ? failed : null); if (!failed.length) setError(""); void refresh(); }
+    if (failed.length) throw new Error(copy("restoreError"));
+  };
+  const bulkPhaseChange = (phase: ConfirmPhase) => {
+    setBulkPhase(phase);
+    if (phase === "done") bulkSaw.current = true;
+    else if (phase === "idle") { if (bulkSaw.current) { bulkSaw.current = false; closeBulk(); } }
+    else bulkSaw.current = false;
+  };
   const restore = async (item: Removal) => {
     await restoreSaved(item.entry, item.receipt);
     if (!mounted.current) return;
@@ -115,12 +141,20 @@ export function Queue({ workspaceId }: { workspaceId: string }) {
     const timer = setTimeout(() => setRemoval(current => current === removal ? null : current), Math.max(0, new Date(removal.receipt.expiresAt).getTime() - Date.now()));
     return () => clearTimeout(timer);
   }, [removal]);
+  useEffect(() => {
+    if (!bulkRemoval) return;
+    const expiry = Math.min(...bulkRemoval.map(item => new Date(item.receipt.expiresAt).getTime()));
+    const timer = setTimeout(() => setBulkRemoval(current => current === bulkRemoval ? null : current), Math.max(0, expiry - Date.now()));
+    return () => clearTimeout(timer);
+  }, [bulkRemoval]);
+  const bulkBytes = bulk ? bulk.entries.reduce((sum, entry) => sum + entry.size, 0) : 0;
+  const fill = (text: string, n: number) => text.replace("{n}", String(n)).replace("{size}", queueBytes(bulkBytes));
   return <div className="ui-sb collateral queue-page">
     <SectionHeader title="Queue" trail={["Collateral", "Queue"]} />
     <p className="queue-page__intro">{copy("subtitle")}</p>
     <div className="queue-card">
       <header className="queue-card__header"><div><h2>{copy("history")}</h2><p><HardDrive size={14} />{copy("originals")}<span>·</span>{entries.length}</p></div>
-        <div className="queue-card__controls"><button type="button" className="queue-icon" disabled={refreshing || !!busy} aria-label={copy("refresh")} onClick={() => { void refresh(true); }}><RefreshCw size={16} className={refreshing ? "queue-spin" : undefined} /></button><WorkspaceLink href="/personalize?section=excel-formation" className="queue-icon" aria-label={copy("import")}><Upload size={16} /></WorkspaceLink></div>
+        <div className="queue-card__controls"><button type="button" className="queue-pill queue-pill--danger" data-queue-delete-all disabled={!entries.length || !!busy} onClick={openBulk}><Trash2 size={15} />{copy("deleteAll")}</button><button type="button" className="queue-icon" disabled={refreshing || !!busy} aria-label={copy("refresh")} onClick={() => { void refresh(true); }}><RefreshCw size={16} className={refreshing ? "queue-spin" : undefined} /></button><WorkspaceLink href="/personalize?section=excel-formation" className="queue-icon" aria-label={copy("import")}><Upload size={16} /></WorkspaceLink></div>
       </header>
       <ul className="queue-legend">{totals.map(item => <li key={item.status}><span className="queue-swatch" data-tone={item.status === "ready" ? "scanned" : item.status === "failed" ? "failed" : "saved"} />{copy(item.status)}<span>{item.count}</span></li>)}</ul>
       <section className="queue-summary" aria-label={copy("savedBytes")}><div className="queue-summary__head"><span className="queue-ring"><HardDrive size={18} /></span><div><strong>{copy("originals")}</strong><span>{queueBytes(total)} · {entries.length} {locale === "vi" ? "tệp" : "files"}</span></div></div>
@@ -130,6 +164,7 @@ export function Queue({ workspaceId }: { workspaceId: string }) {
       <div className="queue-filters"><label className="queue-search"><Search size={15} /><input type="search" aria-label={copy("search")} placeholder={copy("search")} value={search} onChange={event => setSearch(event.target.value)} /></label><select aria-label={locale === "vi" ? "Lọc trạng thái" : "Filter status"} value={status} onChange={event => setStatus(event.target.value)}><option value="all">{copy("all")}</option>{groups.map(value => <option key={value} value={value}>{copy(value)}</option>)}</select></div>
       {(error || loadError) && <div className="queue-error" role="alert"><span>{error || loadError}</span><button type="button" onClick={() => { void refresh(true); }}>{copy("retry")}</button></div>}
       {removal && !popup?.open && <div className="queue-undo" role="status"><span><strong>{removal.entry.name}</strong> {copy("removedNote")}</span><button type="button" onClick={() => { void restore(removal).then(() => setMorphEpoch(epoch => epoch + 1)).catch(failure => setError(failure instanceof Error ? failure.message : copy("restoreError"))); }}>{copy("undo")}</button></div>}
+      {bulkRemoval && !bulk?.open && <div className="queue-undo" role="status"><span>{fill(copy("deleteAllDone"), bulkRemoval.length)}</span><button type="button" onClick={() => { void restoreAll(bulkRemoval).then(() => setMorphEpoch(epoch => epoch + 1)).catch(failure => setError(failure instanceof Error ? failure.message : copy("restoreError"))); }}>{copy("undo")}</button></div>}
       {!loaded ? <p role="status">{copy("loading")}</p> : !entries.length && !loadError ? <div className="queue-empty"><FileSpreadsheet size={30} strokeWidth={1.3} /><h3>{copy("empty")}</h3><p>{copy("emptyHint")}</p><WorkspaceLink href="/personalize?section=excel-formation"><Upload size={14} />{copy("import")}</WorkspaceLink></div> : <div className="queue-main">
         <div className="queue-list"><div className="queue-list__head"><span>{copy("originals")}</span><span>{locale === "vi" ? "Dung lượng" : "Size"}</span><span>{locale === "vi" ? "Đã tải lên" : "Uploaded"}</span></div>
           {visible.length === 0 && <p>{copy("noMatches")}</p>}
@@ -169,6 +204,20 @@ export function Queue({ workspaceId }: { workspaceId: string }) {
             <ConfirmMorph key={`${selected.id}:${morphEpoch}`} label={copy("delete")} icon={<Trash2 size={14} />} prompt={copy("deletePrompt")} confirmMode="hold" confirmLabel={copy("deleteConfirm")} pendingLabel={copy("deleting")} doneLabel={copy("deleted")} undoLabel={copy("undo")} undoingLabel={copy("restoring")} errorLabel={copy("removeError")}
               resultTimeout={8000} disabled={!!busy} onConfirm={() => remove(selected)} onUndo={() => removalRef.current ? restore(removalRef.current) : undefined} onStateChange={removalPhase} /></div>
         </div>
+      </div>
+    </QueuePopup>}
+    {bulk && <QueuePopup open={bulk.open} onClose={closeBulk} label={copy("deleteAllTitle")} title={copy("deleteAllTitle")} getOrigin={() => document.querySelector("[data-queue-delete-all]")}>
+      <div className="queue-pop__media" data-tone="danger"><Trash2 size={40} strokeWidth={1.25} /><span>{bulk.entries.length} {locale === "vi" ? "tệp" : "files"} · {queueBytes(bulkBytes)}</span></div>
+      <div className="queue-pop__main">
+        <h3 className="queue-pop__title" aria-hidden="true">{copy("deleteAllTitle")}</h3>
+        <p className="queue-pop__description">{fill(copy("deleteAllBody"), bulk.entries.length)}</p>
+        <ul className="queue-pop__files" data-gone={bulkPhase === "pending" || bulkPhase === "done" || undefined} aria-label={copy("originals")}>
+          {bulk.entries.slice(0, 5).map((entry, index) => <li key={entry.id} style={{ "--i": index } as CSSProperties}><FileSpreadsheet size={14} /><span title={entry.name}>{entry.name}</span><em>{queueBytes(entry.size)}</em></li>)}
+          {bulk.entries.length > 5 && <li className="queue-pop__more" style={{ "--i": 5 } as CSSProperties}>{fill(copy("moreFiles"), bulk.entries.length - 5)}</li>}
+        </ul>
+        <div className="queue-pop__details"><div className="queue-pop__delete queue-pop__delete--solo"><p>{copy("deleteAllConsequence")}</p>
+          <ConfirmMorph key={`bulk:${morphEpoch}`} label={copy("deleteAll")} icon={<Trash2 size={14} />} prompt={fill(copy("deleteAllPrompt"), bulk.entries.length)} confirmMode="hold" confirmLabel={copy("deleteConfirm")} pendingLabel={copy("deleting")} doneLabel={copy("deleted")} undoLabel={copy("undo")} undoingLabel={copy("restoring")} errorLabel={copy("deleteAllError")}
+            resultTimeout={8000} onConfirm={removeAll} onUndo={() => restoreAll(bulkDone.current)} onStateChange={bulkPhaseChange} /></div></div>
       </div>
     </QueuePopup>}
   </div>;

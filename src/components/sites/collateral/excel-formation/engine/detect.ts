@@ -42,7 +42,7 @@ export function tryDecodeMojibake(text: string): string | null {
 export function stripDiacritics(text: string): string {
   return text.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").normalize("NFC");
 }
-const hasDiacritics = (text: string) => /[̀-ͯ]/.test(text.normalize("NFD")) || /[đĐ]/.test(text);
+export const hasDiacritics = (text: string) => /[̀-ͯ]/.test(text.normalize("NFD")) || /[đĐ]/.test(text);
 
 /** Apply a deterministic fix to a value. Pure; the same input always gives the same output. */
 export function applyFix(kind: FixKind, text: string): string {

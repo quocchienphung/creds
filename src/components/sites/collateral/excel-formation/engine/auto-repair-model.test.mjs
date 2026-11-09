@@ -12,7 +12,7 @@ import { HEADERS, CLEAN, zeroPatchWorkbook } from "./zero-patch-fixture.mjs";
 
 const row = (n, a, b = a, name = "Synthetic Person") => ["00001", `K${1000 + n}`, `A${n}`, "303", { n: "1234.5599999999999" }, a, b, name];
 const corpus = () => CLEAN.map((text, i) => row(i, text));
-const run = async (bytes, state = emptyReview()) => { const s = await openSession(bytes, "synthetic.xlsx"); return { s, r: await autoRepair(s, state) }; };
+const run = async (bytes, state = emptyReview(), options = {}) => { const s = await openSession(bytes, "synthetic.xlsx"); return { s, r: await autoRepair(s, state, options) }; };
 
 test("the model fills mid-word and word-final ? and leaves every other character alone", async () => {
   const bytes = buildXlsx([{ name: "S", rows: [HEADERS, ...corpus(), row(2000, "may moc tang ba va c? so do so 5"), row(2001, "nha pho duong l?n va gan truong hoc so 3"), row(2002, "x? tang ba?  gan cho")] }]);
@@ -26,9 +26,9 @@ test("the model fills mid-word and word-final ? and leaves every other character
   for (const c of changed) assert.ok([...c.before].every((ch, i) => ch === "?" || ch === c.after[i]) && c.before.length === c.after.length, "only ? characters change");
 });
 
-test("text without evidence, real punctuation, names and identifiers are never changed; the status says so", async () => {
+test("in safe mode text without evidence, real punctuation, names and identifiers are never changed; the status says so", async () => {
   const bytes = buildXlsx([{ name: "S", rows: [HEADERS, ...corpus(), row(2000, "Hello world?"), row(2001, "?? ?? ??"), row(2002, "ma? xq? zz?", "ma? xq? zz?", "Nguy?n Van A")] }]);
-  const { r } = await run(bytes);
+  const { r } = await run(bytes, emptyReview(), { policy: "SAFE_AUTO" });
   const { changed } = diffCells(bytes, r.bytes);
   const refs = changed.map(c => c.ref);
   assert.ok(!refs.some(ref => ["H", "A", "B", "C", "D", "E"].includes(ref.replace(/\d+/g, ""))), "names, codes, ids and numbers untouched");
@@ -81,9 +81,9 @@ test("a CSV-packed sheet is scanned like any other column and its line keeps quo
   const bytes = buildXlsx([{ name: "S", rows: [HEADERS, ...corpus()] }, { name: "Sheet1", rows: packed }]);
   const { r } = await run(bytes);
   const out = cellMap(r.bytes).Sheet1.cells.get("B" + packed.length).value;
-  assert.equal(out, line(["00001", "K99", "A99", "303", "12", "may moc tang ba va co so do so 5", "may moc tang ba va co so do so 5", "Nguy?n Van A"]).slice(0), "free-text fields restored, the name field and all separators kept");
+  assert.equal(out, line(["00001", "K99", "A99", "303", "12", "may moc tang ba va co so do so 5", "may moc tang ba va co so do so 5", "Nguyen Van A"]).slice(0), "free-text fields restored, the name field guessed from its place (family name) and all separators kept");
   assert.equal(cellMap(r.bytes).Sheet1.cells.get("A" + packed.length).value, "\"");
-  assert.ok(r.report.sheets.length === 2 && r.report.sheets[1].metrics.modelAutoAccepted === 1);
+  assert.ok(r.report.sheets.length === 2 && r.report.sheets[1].metrics.modelAutoAccepted === 41, "the damaged line, and the 40 lines whose name is guessed from its place");
 });
 
 test("a line the reviewer already edited by hand is kept as typed even when it still holds a ?, and the repair does not fail", async () => {

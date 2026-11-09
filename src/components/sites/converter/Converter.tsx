@@ -1,211 +1,223 @@
 "use client";
 
 import { useWorkspaceI18n } from "@/components/sites/i18n/WorkspaceI18n";
-import { useEffect, useEffectEvent, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
-import { AnimatePresence, animate, motion, useReducedMotion, type Variants } from "motion/react";
-import { Download, FileUp, Lock } from "lucide-react";
-import { StorageDropzone } from "../storage/StorageDropzone";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
+import { ArrowDownToLine, FileSpreadsheet, FlipHorizontal2 } from "lucide-react";
+import { useCollateral } from "../collateral/CollateralProvider";
 import { SectionHeader, FileChip } from "../collateral/shell";
-import { downloadBlob } from "../collateral/download";
-import { LIMITS } from "../collateral/excel-formation/engine/limits.ts";
-import { Skeleton } from "../shimmer-loader/Shimmer";
-import { motionTokens } from "../uiarc/motion-tokens";
-import SegmentedControl from "../uiarc/segmented-control/SegmentedControl";
-import { FloatingButtonGroup } from "../uiarc/floating-button-group/FloatingButtonGroup";
-import { ChevronIcon } from "../uiarc/icon-morph/IconMorph";
-import { csvField, fileNameOf, ghostOf, suggestName, type Delimiter } from "./convert.ts";
-import { useConverter, type Converted } from "./useConverter";
+import { Stepper, type StepSpec } from "../collateral/Stepper";
+import { CollateralBoundary } from "../collateral/CollateralBoundary";
+import { ImportStep } from "../collateral/excel-formation/steps/ImportStep";
+import { AgentCursor } from "./AgentCursor";
+import { GenerationStats, type StatCell, type StatsTable } from "./GenerationStats";
+import { GhostText } from "./GhostText";
+import { SegmentedControl } from "./primitives";
+import { TldrToggle, type TldrLength, type TldrMode, type TldrParagraph, type TldrRequest, type TldrStreamEvent } from "./TldrToggle";
+import { FORMATS, baseName, delimitedText, formatBytes, formatDuration, safeName, suggestName, trimRow } from "./flip-model";
+import { flipDoc, flipFacts, rowId, workbookText, type Fact, type QuoteReason } from "./flip-plan";
+import { THINK_MS, chunkFields, chunkWords, pointCountFor, streamResult } from "./tldr-model";
 import "../affectui-settings/settings-reference.css";
 import "../affectui-settings/settings-overrides.css";
 import "../storage/storage-dropzone.css";
 import "../collateral/collateral.css";
-import "./converter.css";
+import "./flip-tokens.css";
+import "./flip.css";
 
-const enter = [...motionTokens.ease.enter] as [number, number, number, number];
-const GLYPH: Record<Delimiter, string> = { ",": ",", ";": ";", "\t": "→" };
-const bytesText = (n: number) => n < 1024 ? `${Math.round(n)} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`;
-const timeText = (ms: number) => ms < 1000 ? `${Math.max(1, Math.round(ms))} ms` : `${(ms / 1000).toFixed(1)} s`;
+type Step = "upload" | "flip";
+const LABEL: Record<Step, string> = { upload: "Upload", flip: "Convert" };
+/** The header and twelve rows are what the cards show: enough to see the shape of the sheet, short enough to read and to stream in a couple of seconds. */
+const PREVIEW_ROWS = 13;
+/** The prediction plays the first rows, and at most this many columns of them. */
+const AGENT_ROWS = 5, AGENT_COLUMNS = 8;
+/** How many lines of the preview the CSV view shows at each length of the slider (the header counts). */
+const ROWS_FOR = [4, 6, 8, 11, 13] as const;
+const rowsFor = (length: TldrLength, total: number) => Math.min(total, ROWS_FOR[length - 1]);
+const extensionOf = (format: string) => format === "tsv" ? ".tsv" : format === "psv" ? ".txt" : ".csv";
+const DELIMITER_NAME: Record<string, string> = { ",": "comma", ";": "semicolon", "\t": "tab", "|": "pipe" };
+const mark = <FlipHorizontal2 size={14} aria-hidden="true" />;
 
-/** Converter: open a workbook, pick a worksheet, watch it become CSV, download. Everything runs in a worker on this device. */
+/** Converter (the Flip page): open a workbook (the Upload step of Excel formation), then see how its first rows turn into delimited text. Writing the whole file comes later. */
 export function Converter({ notify }: { workspaceId: string; notify: (message: string) => void }) {
-  const { t } = useWorkspaceI18n();
-  const converter = useConverter();
-  const { phase, file, error } = converter;
-  const receive = (files: File[]) => { const picked = files.find(item => /\.xlsx$/i.test(item.name)) ?? files[0]; if (picked) void converter.open(picked); };
-  return <div className="ui-sb collateral cv">
-    <SectionHeader trail={["Converter", "Excel to CSV"]} title="Converter" file={file ? <FileChip name={file.name} detail={bytesText(file.size)} onClose={converter.close} /> : undefined} />
-    <div className="ui-sb__body">
-      <AnimatePresence mode="wait" initial={false}>
-        {phase === "idle" && <Stage key="idle">
-          <div className="cv-intro"><h2>{t("Turn a workbook into a CSV file")}</h2><p>{t("Drop an .xlsx file, pick a worksheet, check the preview, then download. Nothing leaves this device.")}</p></div>
-          {error && <div className="cr-alert" role="alert"><span>{t(error)}</span><button type="button" className="ui-button" data-variant="ghost" data-size="sm" onClick={converter.dismissError}><span className="ui-button__label">{t("Dismiss")}</span></button></div>}
-          <StorageDropzone entries={[]} multiple={false} accept=".xlsx" badges={["XLSX", "CSV"]} inputLabel="Choose an Excel workbook" hint={t("Excel .xlsx up to {0} MB", [LIMITS.fileBytes / 1048576])} onFiles={receive} />
-          <p className="cr-local"><Lock size={13} aria-hidden="true" /> {t("Processed on this device")}</p>
-        </Stage>}
-        {phase === "reading" && file && <Stage key="reading"><Reading name={file.name} fraction={converter.reading} /></Stage>}
-        {phase === "ready" && file && <Stage key="ready"><Ready key={file.name} converter={converter} fileName={file.name} notify={notify} /></Stage>}
-      </AnimatePresence>
-    </div>
-  </div>;
-}
-
-function Stage({ children }: { children: ReactNode }) {
   const reduce = useReducedMotion();
-  return <motion.div className="cv-stage" initial={{ opacity: 0, y: reduce ? 0 : 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reduce ? 0 : -4 }} transition={{ duration: reduce ? 0 : .2, ease: enter }}>{children}</motion.div>;
+  const { engine } = useCollateral();
+  const [chosen, setStep] = useState<Step>("upload");
+  const ready = engine.phase === "ready" && !!engine.fileName;
+  const step: Step = ready ? chosen : "upload";
+  const steps: StepSpec<Step>[] = (Object.keys(LABEL) as Step[]).map(id => ({ id, label: LABEL[id] }));
+  return <LayoutGroup id="flip"><div className="ui-sb collateral cr-flip" data-upload-only={!ready}>
+    <SectionHeader trail={["Converter", LABEL[step]]} title="Converter" file={ready ? <FileChip name={engine.fileName} detail={formatBytes(engine.fileSize)} onClose={engine.close} /> : undefined} />
+    <AnimatePresence>{ready && <Stepper steps={steps} current={step} onChange={setStep} available={() => true} group="flip" reveal />}</AnimatePresence>
+    <AnimatePresence mode="wait" initial={false}><motion.div className="ui-sb__body" id="flip-panel" role={ready ? "tabpanel" : undefined} aria-labelledby={ready ? `flip-tab-${step}` : undefined} key={step} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -3 }} transition={{ duration: reduce ? 0 : 0.16 }}>
+      <CollateralBoundary resetKey={step}>
+        {step === "upload" && <ImportStep engine={engine} onReview={() => setStep("flip")} />}
+        {step === "flip" && ready && <FlipStage key={engine.fileName} fileName={engine.fileName} fileSize={engine.fileSize} notify={notify} />}
+      </CollateralBoundary>
+    </motion.div></AnimatePresence>
+  </div></LayoutGroup>;
 }
 
-/** The real fraction the reader reports: the bar is only as full as the work done. */
-function Reading({ name, fraction }: { name: string; fraction: number }) {
-  const { t, locale } = useWorkspaceI18n();
-  const percent = Math.round(fraction * 100);
-  return <div className="cv-card cv-reading" role="status" aria-live="polite">
-    <p className="cv-reading__name" title={name}>{name}</p>
-    <div className="cv-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-label={t("Reading workbook")}><motion.span style={{ transformOrigin: "left" }} animate={{ scaleX: Math.max(.03, fraction) }} transition={motionTokens.spring.smooth} /></div>
-    <p className="cv-muted">{t("Reading workbook… {0}%", [percent.toLocaleString(locale === "vi" ? "vi-VN" : "en-US")])}</p>
-  </div>;
-}
+interface SheetPreview { sheet: string; rows: string[][]; /** The row number each preview row has in the workbook. */ excelRows: number[]; totalColumns: number }
 
-const group: Variants = { hidden: {}, show: { transition: { staggerChildren: .07 } } };
+function FlipStage({ fileName, fileSize, notify }: { fileName: string; fileSize: number; notify: (message: string) => void }) {
+  const { t: uiText } = useWorkspaceI18n();
+  const { engine } = useCollateral();
+  const result = engine.result;
+  const sheets = useMemo(() => (result?.profile.sheets ?? []).filter(item => item.role !== "empty"), [result]);
+  const [sheetName, setSheetName] = useState(() => result?.profile.primary ?? sheets[0]?.name ?? "");
+  const [format, setFormat] = useState("csv");
+  const [name, setName] = useState(() => safeName(baseName(fileName)));
+  const [mode, setMode] = useState<TldrMode>("full");
+  const [length, setLength] = useState<TldrLength>(2);
+  const [loaded, setLoaded] = useState<{ sheet: string; preview: SheetPreview | null } | null>(null);
+  const option = FORMATS.find(item => item.code === format) ?? FORMATS[0];
+  const delimiter = option.delimiter, delimiterName = uiText(DELIMITER_NAME[delimiter] ?? "delimiter");
+  const ext = extensionOf(format);
+  const names = useMemo(() => [baseName(fileName), ...sheets.map(item => item.name)].map(safeName).filter(Boolean), [fileName, sheets]);
+  const suggestRef = useRef({ names, ext });
+  useEffect(() => { suggestRef.current = { names, ext }; });
+  const finalName = `${name.trim() || safeName(baseName(fileName))}${name.trim().toLowerCase().endsWith(ext) ? "" : ext}`;
 
-function Ready({ converter, fileName, notify }: { converter: ReturnType<typeof useConverter>; fileName: string; notify: (message: string) => void }) {
-  const { t } = useWorkspaceI18n();
-  const reduce = useReducedMotion();
-  const { sheets, options, result, converting, error } = converter;
-  const [typed, setTyped] = useState("");
-  const [downloaded, setDownloaded] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
-  const suggestion = suggestName(fileName, options.sheet, sheets.length > 1);
-  const name = fileNameOf(typed || suggestion);
-  const canDownload = !!result && result.rows > 0 && !!name && !converting;
-  const block: Variants = { hidden: reduce ? { opacity: 0 } : { opacity: 0, y: 14, filter: "blur(4px)" }, show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: reduce ? .01 : .52, ease: enter } } };
-
-  function download() {
-    if (!canDownload || !result || !name) return;
-    downloadBlob(name, result.blob);
-    setDownloaded(true);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setDownloaded(false), 1800);
-    notify(t("Downloaded {0}", [name]));
-  }
-
-  return <motion.div className="cv-ready" variants={group} initial="hidden" animate="show">
-    <motion.section className="cv-card cv-options" variants={block} aria-label={t("Output")}>
-      <div className="cv-field cv-field--wide"><span className="cv-label">{t("Worksheet")}</span>
-        <div data-interaction-own><SegmentedControl label={t("Worksheet")} value={options.sheet} onValueChange={sheet => converter.change({ sheet })} options={sheets.map(sheet => ({ value: sheet.name, label: sheet.hidden ? t("{0} (hidden)", [sheet.name]) : sheet.name }))} /></div></div>
-      <div className="cv-field"><span className="cv-label">{t("Delimiter")}</span>
-        <div data-interaction-own><SegmentedControl label={t("Delimiter")} value={options.delimiter} onValueChange={delimiter => converter.change({ delimiter: delimiter as Delimiter })} options={[{ value: ",", label: t("Comma") }, { value: ";", label: t("Semicolon") }, { value: "\t", label: t("Tab") }]} /></div></div>
-      <div className="cv-field"><span className="cv-label" id="cv-bom">{t("Encoding")}</span>
-        <label className="cr-switch-row cv-switch"><button type="button" role="switch" className="cr-switch" aria-labelledby="cv-bom" aria-checked={options.bom} onClick={() => converter.change({ bom: !options.bom })}><span className="cr-switch__thumb" /></button><span>{t("UTF-8 with BOM")}<small>{t("Lets Excel show accented text correctly.")}</small></span></label></div>
-      <NameField typed={typed} suggestion={suggestion} valid={!!name} onChange={setTyped} />
-    </motion.section>
-    <motion.div variants={block}><Stats result={result} converting={converting} bom={options.bom} /></motion.div>
-    {error && <motion.div className="cr-alert" role="alert" variants={block}><span>{t(error)}</span></motion.div>}
-    <motion.div variants={block}><Preview key={`${fileName}\u0001${options.sheet}`} result={result} converting={converting} delimiter={options.delimiter} /></motion.div>
-    <motion.div className="cv-tray" initial={reduce ? false : { opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={reduce ? { duration: 0 } : { ...motionTokens.spring.smooth, delay: .45 }} data-interaction-own>
-      <FloatingButtonGroup variant="floating" label={t("Converter actions")} items={[
-        { id: "another", label: t("Another file"), icon: <FileUp />, onSelect: converter.close },
-        { type: "separator" },
-        { id: "download", label: downloaded ? t("Downloaded") : t("Download CSV"), reserveLabels: [t("Download CSV"), t("Downloaded")], icon: <Download />, primary: true, disabled: !canDownload, onSelect: download },
-      ]} />
-    </motion.div>
-  </motion.div>;
-}
-
-/**
- * The file name with a quiet completion at the caret: the suggestion (workbook name, plus the sheet's when there are several) continues what is
- * typed. The right arrow at the end takes it, Escape fades it (bare Tab is the workspace's own shortcut for the page switcher, so it is not used here). Left empty, the suggested name is what is saved. It is a prefix match on our own text, not a model.
- */
-function NameField({ typed, suggestion, valid, onChange }: { typed: string; suggestion: string; valid: boolean; onChange: (value: string) => void }) {
-  const { t } = useWorkspaceI18n();
-  const id = useId(), input = useRef<HTMLInputElement>(null);
-  const [focused, setFocused] = useState(false), [atEnd, setAtEnd] = useState(true), [fits, setFits] = useState(true), [dismissed, setDismissed] = useState<string | null>(null);
-  // shortcut: the completion is hidden once the typed name outgrows the box (it does not scroll with the input), upgrade by mirroring scrollLeft.
-  useLayoutEffect(() => { const el = input.current; if (el) setFits(el.scrollWidth <= el.clientWidth); }, [typed, suggestion]);
-  const ghost = ghostOf(typed, suggestion);
-  const visible = !!ghost && fits && dismissed !== typed && (typed === "" || (focused && atEnd));
-  const offersTab = visible && typed !== "";
-  const caret = () => { const el = input.current; setAtEnd(!!el && el.selectionStart === el.value.length && el.selectionEnd === el.value.length); };
-  function key(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "ArrowRight" && !event.shiftKey && !event.metaKey && !event.altKey && !event.ctrlKey && offersTab) { event.preventDefault(); onChange(typed + ghost); }
-    else if (event.key === "Escape" && offersTab) { event.preventDefault(); event.stopPropagation(); setDismissed(typed); }
-  }
-  return <div className="cv-field cv-field--wide cv-name" data-invalid={!valid || undefined}>
-    <label className="cv-label" htmlFor={id}>{t("File name")}</label>
-    <div className="cv-name__box">
-      <span className="cv-name__mirror" aria-hidden="true"><span className="cv-name__typed">{typed}</span>
-        <AnimatePresence initial={false}>{visible && <motion.span className="cv-name__ghost" key="ghost" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: motionTokens.duration.fast }}>{ghost}</motion.span>}</AnimatePresence></span>
-      <input ref={input} id={id} className="cv-name__input" value={typed} spellCheck={false} autoComplete="off" aria-invalid={!valid} aria-describedby={`${id}-hint`} aria-keyshortcuts={offersTab ? "ArrowRight Escape" : undefined}
-        onChange={event => { onChange(event.target.value); setDismissed(null); caret(); }} onKeyDown={key} onKeyUp={caret} onClick={caret} onSelect={caret} onFocus={() => { setFocused(true); caret(); }} onBlur={() => setFocused(false)} />
-      <AnimatePresence initial={false}>{offersTab && <motion.span className="cv-name__keys" aria-hidden="true" initial={{ opacity: 0, x: 4 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: motionTokens.duration.fast }}><kbd>→</kbd></motion.span>}</AnimatePresence>
-    </div>
-    <p className="cv-hint" id={`${id}-hint`} role={valid ? undefined : "alert"}>{valid ? (offersTab ? t("Right arrow accepts the suggested ending, Escape hides it.") : typed ? t("Saved as {0}", [fileNameOf(typed)]) : t("Suggested from the workbook and worksheet. Type to use another name.")) : t("A file name cannot contain \\ / : * ? \" < > | and cannot start with a dot.")}</p>
-  </div>;
-}
-
-/** A number that counts from where it was to where it is now, in tabular figures. The final value is what assistive technology reads. */
-function CountUp({ value, format }: { value: number; format: (n: number) => string }) {
-  const reduce = useReducedMotion();
-  const node = useRef<HTMLSpanElement>(null), shown = useRef(0);
-  const paint = useEffectEvent((n: number) => { shown.current = n; if (node.current) node.current.textContent = format(n); });
+  // ---- the first rows of the chosen sheet, as the reader serves them: the cells as Excel shows them, untouched
+  const reader = useRef(engine);
+  useEffect(() => { reader.current = engine; });
   useEffect(() => {
-    if (reduce) { paint(value); return; }
-    const controls = animate(shown.current, value, { duration: .7, ease: enter, onUpdate: paint });
-    return () => controls.stop();
-  }, [value, reduce]);
-  return <><span className="cv-sr">{format(value)}</span><span ref={node} aria-hidden="true">{format(0)}</span></>;
-}
+    let current = true;
+    void (async () => {
+      try {
+        const meta = await reader.current.gridMeta(sheetName);
+        if (!meta) throw new Error("sheet unavailable");
+        const got = await reader.current.gridRows(meta.headerRow, Math.min(200, PREVIEW_ROWS + meta.hiddenRows), sheetName);
+        const visible = got.filter(row => !row.hidden).slice(0, PREVIEW_ROWS);
+        const width = Math.max(1, ...visible.map(row => trimRow(row.values).length));
+        const preview: SheetPreview = { sheet: sheetName, rows: visible.map(row => Array.from({ length: width }, (_, col) => row.values[col] ?? "")), excelRows: visible.map(row => row.r), totalColumns: meta.columns.length };
+        if (current) setLoaded({ sheet: sheetName, preview });
+      } catch { if (current) setLoaded({ sheet: sheetName, preview: null }); }
+    })();
+    return () => { current = false; };
+  }, [sheetName]);
+  const loading = loaded?.sheet !== sheetName, preview = loaded?.sheet === sheetName ? loaded.preview : null;
+  const rows = useMemo(() => preview?.rows ?? [], [preview]);
+  const excelRows = useMemo(() => preview?.excelRows ?? [], [preview]);
+  const excelRow = useCallback((position: number) => excelRows[position - 1] ?? position, [excelRows]);
+  const sheetInfo = sheets.find(item => item.name === sheetName);
+  const totalRows = (sheetInfo?.dataRows ?? Math.max(0, rows.length - 1)) + 1;
+  const columns = rows[0]?.length ?? 0, totalColumns = preview?.totalColumns ?? columns;
 
-function Stats({ result, converting, bom }: { result: Converted | null; converting: boolean; bom: boolean }) {
-  const { t, locale } = useWorkspaceI18n();
-  const nf = useMemo(() => new Intl.NumberFormat(locale === "vi" ? "vi-VN" : "en-US"), [locale]);
-  const [open, setOpen] = useState(false);
-  const reduce = useReducedMotion();
-  const id = useId();
-  const count = (n: number) => nf.format(Math.round(n));
-  const tiles: [string, number, (n: number) => string][] = [[t("Rows"), result?.rows ?? 0, count], [t("Columns"), result?.cols ?? 0, count], [t("File size"), result?.bytes ?? 0, bytesText], [t("Time"), result?.ms ?? 0, timeText]];
-  return <section className="cv-card cv-stats" aria-label={t("Conversion result")} aria-busy={converting || undefined} data-busy={converting || undefined}>
-    <dl className="cv-tiles">{tiles.map(([label, value, format]) => <div key={label}><dt>{label}</dt><dd><CountUp value={value} format={format} /></dd></div>)}</dl>
-    <div className="cv-details" data-interaction-own>
-      <button type="button" className="cv-details__toggle" aria-expanded={open} aria-controls={id} disabled={!result} onClick={() => setOpen(value => !value)}>{t("Details")}<ChevronIcon state={open} size={14} /></button>
-      <AnimatePresence initial={false}>{open && result && <motion.ul id={id} className="cv-details__list" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={reduce ? { duration: 0 } : { height: motionTokens.spring.smooth, opacity: { duration: motionTokens.duration.standard } }}>
-        <li>{t("{0} rows written, {1} empty rows skipped.", [count(result.rows), count(Math.max(0, result.skipped))])}</li>
-        {result.dates > 0 && <li>{t("{0} date cells written as ISO dates (YYYY-MM-DD).", [count(result.dates)])}</li>}
-        {result.formulas > 0 && <li>{t("{0} formulas exported as their last calculated value.", [count(result.formulas)])}</li>}
-        <li>{bom ? t("UTF-8 with a byte order mark; Excel reads accented text correctly.") : t("UTF-8 without a byte order mark; Excel may misread accented text.")}</li>
-        <li>{t("Numbers and codes keep the exact text stored in the file, including leading zeros.")}</li>
-      </motion.ul>}</AnimatePresence>
-    </div>
-  </section>;
-}
+  // ---- the TL;DR card: the rows as paragraphs, their delimited text as the summary and what to know about them as the key points
+  const article = useMemo(() => ({
+    title: sheetName,
+    source: { name: fileName, mark: <FileSpreadsheet size={14} aria-hidden="true" /> },
+    date: uiText("First rows"),
+    readingTime: uiText("{0} of {1} rows · {2} columns", [rows.length, totalRows, totalColumns]),
+    paragraphs: rows.map<TldrParagraph>((row, index) => ({ id: rowId(index + 1), text: workbookText(row) })),
+  }), [sheetName, rows, totalRows, totalColumns, fileName, uiText]);
+  const factText = useCallback((fact: Fact) => {
+    const [a, b] = fact.params, column = fact.column ?? "";
+    switch (fact.id) {
+      case "header": return uiText("Row {0} becomes the header line, {1} columns.", [excelRow(1), a]);
+      case "delimiter": return uiText("In these rows, {0} cells hold a {1}, so they are written in quotes; the first is on row {2} ({3}).", [a, delimiterName, excelRow(b), column]);
+      case "none": return uiText("No cell in these rows holds a {0}, so none needs quotes for it.", [delimiterName]);
+      case "quote": return uiText("{0} cells hold a double quote: it is doubled inside the quotes (first on row {1}, {2}).", [a, excelRow(b), column]);
+      case "break": return uiText("{0} cell holds a line break: it stays inside its quotes, so one record spans two lines (row {1}, {2}).", [a, excelRow(b), column]);
+      case "zeros": return uiText("{0} codes start with zeros (first on row {1}): they are written as typed. Excel drops the zeros when it reopens a CSV unless the column is Text.", [a, excelRow(b)]);
+      case "empty": return uiText("{0} empty cells stay empty fields, so every line keeps {1} columns.", [a, b]);
+      case "accents": return uiText("{0} cells hold accents or other non-ASCII text: they are written as UTF-8 (first on row {1}).", [a, excelRow(b)]);
+    }
+  }, [uiText, delimiterName, excelRow]);
+  const summarize = useCallback(async function* (request: TldrRequest): AsyncGenerator<TldrStreamEvent> {
+    // the pause stands for the work of a real conversion; the result itself is computed from the rows read
+    await new Promise<void>(resolve => { const timer = setTimeout(resolve, THINK_MS); request.signal.addEventListener("abort", () => { clearTimeout(timer); resolve(); }, { once: true }); });
+    if (request.signal.aborted) return;
+    if (request.mode === "summary") {
+      yield* streamResult(delimitedText(rows.slice(0, rowsFor(request.length, rows.length)), delimiter), request.signal, { chunker: chunkFields });
+      return;
+    }
+    const facts = flipFacts(rows, delimiter).slice(0, pointCountFor(request.length));
+    yield* streamResult(facts.map(fact => ({ text: factText(fact), source: fact.source })), request.signal, { chunker: chunkWords });
+  }, [rows, delimiter, factText]);
+  const renderRow = useCallback((paragraph: TldrParagraph, index: number) => <span className="fl-row" data-header={index === 0 ? "" : undefined}>
+    <span className="fl-row__no" aria-hidden="true">{excelRow(index + 1)}</span>
+    <span className="fl-row__cells" role="presentation">{rows[index]?.map((value, col) => <span key={col} className="fl-cell" data-empty={value === "" ? "" : undefined}>{value.replace(/\r?\n/g, "↵") || "·"}</span>)}</span>
+    <span className="fp-sr">{paragraph.text}</span>
+  </span>, [rows, excelRow]);
 
-/** The first rows, converted in place: each row's original cells give way to its CSV line, one after another. Show source reverses it. */
-function Preview({ result, converting, delimiter }: { result: Converted | null; converting: boolean; delimiter: Delimiter }) {
-  const { t, locale } = useWorkspaceI18n();
-  const reduce = useReducedMotion();
-  const [face, setFace] = useState<"csv" | "source">("csv");
-  const nf = new Intl.NumberFormat(locale === "vi" ? "vi-VN" : "en-US");
-  const csv = face === "csv";
-  const cols = Math.min(result?.cols ?? 1, 6);
-  return <section className="cv-card cv-preview" aria-label={t("Preview")} data-busy={(converting && !!result) || undefined}>
-    <header className="cv-preview__head">
-      <div><h3>{t("Preview")}</h3>
-        <p className="cv-muted" role="status" aria-live="polite">{!result ? t("Converting…") : result.rows === 0 ? t("This worksheet has no values, so there is nothing to export.") : csv ? t("The first {0} of {1} rows, as they will be written.", [nf.format(result.sample.length), nf.format(result.rows)]) : t("The original cells of the first {0} rows.", [nf.format(result.sample.length)])}</p></div>
-      <div data-interaction-own><SegmentedControl label={t("Preview shows")} value={face} onValueChange={value => setFace(value as typeof face)} options={[{ value: "csv", label: "CSV" }, { value: "source", label: t("Source") }]} /></div>
-    </header>
-    <div className="cv-rows" style={{ "--cv-cols": cols } as CSSProperties}>
-      {!result && Array.from({ length: 5 }, (_, i) => <div className="cv-row" key={i}><Skeleton width={`${88 - i * 11}%`} height={12} /></div>)}
-      {result?.sample.map((values, row) => {
-        const timing = { duration: reduce ? .01 : .4, delay: reduce ? 0 : .12 + row * .07, ease: enter };
-        return <div className="cv-row" key={row} data-head={row === 0 || undefined}>
-          <motion.div className="cv-row__layer cv-row__src" aria-hidden={csv} initial={{ opacity: 1 }} animate={{ opacity: csv ? 0 : 1, filter: csv && !reduce ? "blur(3px)" : "blur(0px)" }} transition={timing}>
-            {values.slice(0, 6).map((value, col) => <span key={col} title={value}>{value}</span>)}{values.length > 6 && <span className="cv-more">+{values.length - 6}</span>}
-          </motion.div>
-          <motion.div className="cv-row__layer cv-row__csv" aria-hidden={!csv} initial={reduce ? false : { opacity: 0, y: 6, filter: "blur(4px)" }} animate={{ opacity: csv ? 1 : 0, y: 0, filter: csv || reduce ? "blur(0px)" : "blur(3px)" }} transition={timing}>
-            {values.map((value, col) => <span key={col}>{col > 0 && <motion.i key={delimiter} className="cv-d" aria-hidden="true" initial={reduce ? false : { opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: motionTokens.duration.standard, ease: enter }}>{GLYPH[delimiter]}</motion.i>}{csvField(value, delimiter)}</span>)}
-          </motion.div>
-        </div>;
-      })}
-    </div>
-  </section>;
+  // ---- the Agent cursor: the first rows (and columns), joined and quoted
+  const agentColumns = Math.min(columns, AGENT_COLUMNS);
+  const doc = useMemo(() => flipDoc(rows.slice(0, AGENT_ROWS).map(row => row.slice(0, AGENT_COLUMNS)), delimiter, {
+    title: `${sheetName} → ${option.name}`, fileName: finalName, shown: AGENT_ROWS,
+    labels: {
+      join: row => row === 1 ? uiText("Joining the header") : uiText("Joining row {0}", [excelRow(row)]),
+      quote: (reason: QuoteReason) => reason === "delimiter" ? uiText("Quoting a cell with a {0}", [delimiterName]) : reason === "quote" ? uiText("Doubling a quote") : uiText("Keeping a line break"),
+      summary: uiText("{0} rows in all, {1} columns.", [totalRows, totalColumns]), summaryLabel: uiText("Adding a summary line"),
+    },
+  }), [rows, delimiter, sheetName, option.name, finalName, totalRows, totalColumns, uiText, delimiterName, excelRow]);
+
+  // ---- real figures: what opening the workbook measured. The output's own time and size are not made up before there is an output.
+  const allRows = sheets.reduce((sum, item) => sum + item.dataRows, 0);
+  const cells: StatCell[] = [
+    { id: "read", label: uiText("Read in"), value: engine.openMs, format: value => formatDuration(value), unit: uiText("on this device"), unitInline: uiText("to read") },
+    { id: "rows", label: uiText("Rows"), value: allRows, format: value => Math.round(value).toLocaleString(), unit: uiText("data rows"), unitInline: uiText("rows") },
+    { id: "cells", label: uiText("Cells"), value: result?.stats.cellsScanned ?? 0, format: value => Math.round(value).toLocaleString(), unit: uiText("read"), unitInline: uiText("cells") },
+    { id: "size", label: uiText("Size"), value: result?.size ?? fileSize, format: value => formatBytes(value), unit: uiText("workbook"), unitInline: uiText("on disk") },
+  ];
+  const table: StatsTable = {
+    caption: uiText("Sheets in this workbook"), head: [uiText("Sheet"), uiText("Rows"), uiText("Columns")],
+    rows: sheets.map(item => ({ label: item.name, cells: [item.dataRows.toLocaleString(), String(item.headers.length)] })),
+    total: sheets.length > 1 ? { label: uiText("Total"), cells: [allRows.toLocaleString(), ""] } : undefined,
+  };
+  const copyValue = { file: fileName, sizeBytes: result?.size ?? fileSize, readMs: engine.openMs, rows: allRows, cells: result?.stats.cellsScanned ?? 0, sheets: sheets.map(item => ({ name: item.name, rows: item.dataRows, columns: item.headers.length })) };
+  const ghostLabels = useMemo(() => ({ hint: uiText("Suggestions appear when you pause. Right Arrow accepts, Command or Control Right Arrow accepts one word, Escape dismisses."), thinking: uiText("Thinking"), toAccept: uiText("to accept"), accepted: uiText("Accepted"), noSuggestion: uiText("No suggestion"), retry: uiText("Retry"), byModel: (model: string) => uiText("Suggested from {0}", [model]) }), [uiText]);
+  const tldrLabels = useMemo(() => ({
+    mode: uiText("View"), full: uiText("Sheet"), summary: option.name, points: uiText("Notes"), length: uiText("Lines"),
+    readingParagraphs: (count: number) => uiText("Reading {0} rows", [count]), findingPoints: uiText("Checking the cells"), thinking: uiText("Thinking"), writing: uiText("Writing"),
+    stop: uiText("Stop"), stopped: uiText("Stopped"), failed: uiText("Failed"), tryAgain: uiText("Try again"), regenerate: uiText("Write again"), copySummary: uiText("Copy as text"), copyPoints: uiText("Copy notes"), copied: uiText("Copied"),
+    jump: (index: number, text: string) => uiText("Jump to row {0}: {1}", [excelRow(index), text]), empty: uiText("This sheet has no rows."), errorTitle: (m: "summary" | "points") => m === "points" ? uiText("Couldn’t check the cells") : uiText("Couldn’t write the text"), defaultError: uiText("Something went wrong."),
+    announceStart: (m: "summary" | "points") => m === "points" ? uiText("Checking the cells.") : uiText("Flipping to {0}.", [option.name]),
+    announceDone: (m: "summary" | "points", _words: number, points: number) => m === "points" ? uiText("{0} notes ready.", [points]) : uiText("{0} lines ready.", [rowsFor(length, rows.length)]),
+    announceSaved: (m: "summary" | "points") => m === "points" ? uiText("Showing the saved notes.") : uiText("Showing the saved text."), announceStopped: uiText("Stopped. What arrived is kept."),
+    announceShowing: (index: number) => uiText("Showing row {0} in the sheet.", [excelRow(index)]), announceFailed: (m: "summary" | "points", message: string) => `${m === "points" ? uiText("Couldn’t check the cells") : uiText("Couldn’t write the text")}. ${message}`,
+  }), [uiText, option.name, length, rows.length, excelRow]);
+  const agentLabels = useMemo(() => ({
+    reading: uiText("Reading the sheet"), stop: uiText("Stop"), runAgain: uiText("Run again"), ask: uiText("Show me"), retry: uiText("Retry"), undo: uiText("Undo"), accept: uiText("Accept changes"),
+    ready: (count: number) => uiText("{0} changes ready for review", [count]), accepted: (count: number) => uiText("Accepted {0} changes", [count]), reverted: (count: number) => uiText("Undid {0} changes", [count]),
+    stoppedEarly: uiText("Stopped before any changes"), stoppedAfter: (count: number) => uiText("Stopped after {0} changes", [count]), failed: uiText("Connection lost"), empty: uiText("Nothing to change"),
+    barCount: (count: number) => uiText("{0} changes", [count]), by: (agent: string) => uiText("by {0}", [agent]), review: uiText("Review changes"),
+    rewrite: uiText("Joining a row"), insert: () => uiText("Adding a line"), fix: uiText("Quoting a cell"),
+  }), [uiText]);
+
+  return <div className="fl-stage">
+    <section className="fl-block" aria-labelledby="fl-name-title">
+      <header className="fl-block__head"><h2 id="fl-name-title">{uiText("Output file")}</h2><p>{uiText("Name the file the sheet will become, and pick how its cells are separated.")}</p></header>
+      <GhostText acceptKey="ArrowRight" value={name} onValueChange={setName} multiline={false} rows={1} delay={450} minLength={3} placeholder={uiText("File name")} aria-label={uiText("Output file name")} model={{ name: uiText("This workbook"), mark }}
+        suggest={text => suggestName(text, suggestRef.current.names, suggestRef.current.ext)} labels={ghostLabels} />
+      <p className="fl-ext">{uiText("Saved as")} <b>{finalName}</b></p>
+      <div className="fl-format"><SegmentedControl label={uiText("Format")} value={format} onChange={setFormat} options={FORMATS.map(item => ({ value: item.code, label: item.name }))} /><span className="fl-format__note">{uiText("Separated by a {0}", [delimiterName])}</span></div>
+    </section>
+
+    <section className="fl-block" aria-labelledby="fl-preview-title">
+      <header className="fl-block__head fl-block__head--row"><div><h2 id="fl-preview-title">{uiText("Preview")}</h2><p>{uiText("The first rows of the sheet, the text Flip writes for them and what to know about their cells. A note links back to the row it comes from.")}</p></div>
+        {sheets.length > 1 && <SegmentedControl label={uiText("Sheet")} value={sheetName} onChange={setSheetName} options={sheets.map(item => ({ value: item.name, label: item.name }))} />}</header>
+      {loading ? <div className="fl-loading" aria-busy="true"><i /><i /><i /><i /></div> : !preview ? <p className="fl-note" role="alert">{uiText("This sheet could not be read.")}</p>
+        : <TldrToggle article={article} summarize={summarize} model={{ name: uiText("Flip · on this device"), mark }} layout="lines" chunker={chunkFields} resetKey={`${sheetName}|${delimiter}`}
+          mode={mode} onModeChange={setMode} length={length} onLengthChange={setLength} renderParagraph={renderRow} jumpLabel={(index) => uiText("Row {0}", [excelRow(index + 1)])}
+          readout={(m, l) => m === "points" ? uiText("{0} notes", [pointCountFor(l)]) : uiText("{0} lines", [rowsFor(l, rows.length)])} count={(m, _w, p) => m === "points" ? uiText("{0} notes", [p]) : uiText("{0} lines", [rowsFor(length, rows.length)])} labels={tldrLabels} />}
+    </section>
+
+    <section className="fl-block" aria-labelledby="fl-predict-title">
+      <header className="fl-block__head"><h2 id="fl-predict-title">{uiText("Watch it flip")}</h2><p>{uiText("A prediction on the first rows: each is joined with the {0}, then every cell that needs quotes gets them. Accept or undo; nothing is saved.", [delimiterName])}</p></header>
+      {loading ? <div className="fl-loading" aria-busy="true"><i /><i /><i /><i /></div> : preview && <AgentCursor blocks={doc.blocks} edits={doc.edits} meta={uiText("First {0} rows · first {1} columns", [doc.shown, agentColumns])} agent={{ name: "Flip", mark, color: "oklch(0.6 0.15 255)" }} collaborator={null} title={uiText("Prediction")} labels={agentLabels} />}
+    </section>
+
+    <section className="fl-block" aria-label={uiText("Figures")}>
+      <GenerationStats status="done" statusLabel={uiText("Read in {0}", [formatDuration(engine.openMs)])} model={{ name: uiText("Read on this device"), mark }} cells={cells} table={table} copyValue={copyValue}
+        note={uiText("The time and size of the output appear here once Flip writes your file.")}
+        labels={{ details: uiText("Details"), showDetails: uiText("Show details"), hideDetails: uiText("Hide details"), copy: uiText("Copy figures as JSON"), copied: uiText("Copied"), copyFailed: uiText("Copy failed") }} />
+    </section>
+
+    <footer className="fl-foot">
+      <button type="button" className="ui-button" data-variant="primary" data-size="md" disabled aria-describedby="fl-download-note" onClick={() => notify(uiText("Download is not wired yet."))}><ArrowDownToLine size={15} aria-hidden="true" /><span className="ui-button__label">{uiText("Download")} {finalName}</span></button>
+      <p id="fl-download-note" className="fl-note">{uiText("Download comes with the conversion step. Nothing leaves this device.")}</p>
+    </footer>
+  </div>;
 }

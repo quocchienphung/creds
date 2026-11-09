@@ -3,7 +3,7 @@ import { zipSync, strToU8 } from "fflate";
 import { writeXmlText, columnLetters } from "./text.ts";
 
 /**
- * sheets: [{ name, rows: Array<Array<string | {n: string} | {inline: string} | {f: string, v?: string} | null | undefined>>, hiddenRows?: number[], autoFilter?: boolean, styles?: {[colIndex]: 0|1|2} }]
+ * sheets: [{ name, rows: Array<Array<string | {n: string} | {inline: string} | {rich: string} | {f: string, v?: string} | null | undefined>>, hiddenRows?: number[], autoFilter?: boolean, styles?: {[colIndex]: 0|1|2} }]
  * A plain string becomes a shared string, `{n}` a number kept as its raw text, `{inline}` an inline string.
  */
 export function buildXlsx(sheets, { shared = true, macro = false } = {}) {
@@ -19,6 +19,7 @@ export function buildXlsx(sheets, { shared = true, macro = false } = {}) {
         const style = sheet.styles?.[c] ? ` s="${sheet.styles[c]}"` : "";
         if (typeof cell === "string") return shared ? `<c r="${ref}"${style} t="s"><v>${sst(cell)}</v></c>` : `<c r="${ref}"${style} t="inlineStr"><is><t xml:space="preserve">${writeXmlText(cell)}</t></is></c>`;
         if ("n" in cell) return `<c r="${ref}"${style}><v>${cell.n}</v></c>`;
+        if ("rich" in cell) return `<c r="${ref}"${style} t="inlineStr"><is><r><rPr><b/></rPr><t xml:space="preserve">${writeXmlText(cell.rich)}</t></r></is></c>`;
         if ("inline" in cell) return `<c r="${ref}"${style} t="inlineStr"><is><t>${writeXmlText(cell.inline)}</t></is></c>`;
         if ("f" in cell) return `<c r="${ref}"${style}><f>${writeXmlText(cell.f)}</f>${cell.v === undefined ? "" : `<v>${cell.v}</v>`}</c>`;
         return "";

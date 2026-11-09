@@ -1,0 +1,62 @@
+/* Ghost text. Geometry, radii, transitions and keyframes follow the declared CSS of the public preview of UIArc's Ghost text
+   (docs/research/ghost-text/source/declared-styles.css); the chip states and key caps were read off its recorded autoplay. Scoped to .gt-*. */
+.gt-root { --gt-line: 22px; --gt-pad-x: 16px; --gt-pad-top: 14px; --gt-pad-bottom: 4px; position: relative; display: flex; flex-direction: column; box-sizing: border-box; width: 100%; min-width: 0; container-type: inline-size; border: 1px solid var(--f-border); border-radius: var(--f-radius-control); background: var(--f-surface); color: var(--f-fg); font-size: var(--f-sm); letter-spacing: -0.01em; text-align: start; transition: border-color var(--f-fast) var(--f-ease), box-shadow var(--f-standard) var(--f-ease); }
+.gt-root[data-labelled] { --gt-pad-top: 6px; }
+@media (hover: hover) and (pointer: fine) { .gt-root:not([data-disabled], [data-variant="plain"]):hover { border-color: color-mix(in oklab, var(--f-fg) 22%, var(--f-border)); } }
+.gt-root:not([data-variant="plain"]):has(.gt-input:focus-visible) { border-color: color-mix(in oklab, var(--f-fg) 50%, var(--f-border)); box-shadow: 0 0 0 3px var(--f-focus); }
+.gt-root[data-disabled] { background: var(--f-muted-surface); opacity: 0.6; }
+.gt-root[data-variant="plain"] { border: 0; border-radius: 0; background: transparent; }
+.gt-label { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 12px var(--gt-pad-x) 0; font-size: var(--f-xs); line-height: 20px; color: var(--f-secondary); }
+.gt-viewport { position: relative; overflow: clip; scrollbar-width: none; max-height: calc(var(--gt-max-rows) * var(--gt-line) + var(--gt-pad-top) + var(--gt-pad-bottom)); }
+.gt-viewport::-webkit-scrollbar { display: none; }
+.gt-viewport[data-scroll="true"] { overflow: hidden auto; overscroll-behavior: contain; }
+.gt-stack { position: relative; }
+.gt-input, .gt-mirror { box-sizing: border-box; display: block; width: 100%; margin: 0; padding: var(--gt-pad-top) var(--gt-pad-x) var(--gt-pad-bottom); font: inherit; letter-spacing: inherit; line-height: var(--gt-line); text-align: start; tab-size: 4; white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; transition: opacity var(--f-fast) var(--f-ease); }
+.gt-mirror { min-height: calc(var(--gt-rows) * var(--gt-line) + var(--gt-pad-top) + var(--gt-pad-bottom)); color: transparent; pointer-events: none; user-select: none; }
+.gt-input { position: absolute; inset: 0; height: 100%; border: 0; border-radius: 0; background: transparent; color: var(--f-fg); caret-color: var(--f-fg); resize: none; overflow: hidden; outline: none; appearance: none; }
+.gt-input::placeholder { color: var(--f-muted); opacity: 1; }
+.gt-input:disabled { cursor: not-allowed; }
+.gt-ghost { color: var(--f-muted); animation: gt-ghostIn 0.14s var(--f-ease) both; }
+.gt-ghostOut { color: var(--f-muted); animation: gt-ghostOut 0.11s var(--f-ease) both; }
+.gt-root[data-merging] .gt-mirror { color: var(--f-fg); }
+.gt-root[data-merging] .gt-input { color: transparent; }
+.gt-merge { animation: gt-merge 0.2s var(--f-ease) both; }
+@keyframes gt-ghostIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes gt-ghostOut { 0% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes gt-merge { 0% { color: var(--f-muted); } 100% { color: var(--f-fg); } }
+.gt-footer { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-end; gap: 10px; min-height: 30px; padding: 0 6px 6px var(--gt-pad-x); }
+.gt-footerStart { display: flex; flex: 1 1 auto; gap: 8px; min-width: 0; align-items: center; font-size: var(--f-xs); line-height: 20px; color: var(--f-muted); }
+.gt-footerStart > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gt-keys { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 10px; white-space: nowrap; font-size: var(--f-xs); line-height: 20px; color: var(--f-muted); }
+.gt-keys > span { display: inline-flex; align-items: center; gap: 5px; }
+@container (max-width: 519px) { .gt-keys { display: none; } }
+.gt-kbd { display: inline-grid; place-items: center; min-width: 20px; height: 18px; padding: 0 5px; border-radius: 5px; background: var(--f-muted-surface); box-shadow: 0 1px 0 0 color-mix(in oklab, var(--f-fg) 18%, var(--f-border)); color: var(--f-secondary); font: inherit; font-size: 11px; line-height: 1; transition: background-color var(--f-fast) var(--f-ease), color var(--f-fast) var(--f-ease), box-shadow 0.24s var(--f-ease), transform 0.58s var(--f-spring); }
+.gt-kbd[data-pressed] { background: var(--f-surface); color: var(--f-fg); box-shadow: 0 0 0 0 transparent; transform: translateY(1px); transition: background-color 0.05s var(--f-ease), color 0.05s var(--f-ease), box-shadow 0.05s var(--f-ease), transform 0.05s var(--f-ease); }
+.gt-chip { position: relative; display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: flex-end; box-sizing: border-box; height: 24px; margin: 0; padding: 0; overflow: hidden; border: 0; border-radius: 12px; background: color-mix(in oklab, var(--f-muted-surface) 80%, var(--f-surface)); color: var(--f-secondary); font: inherit; font-size: var(--f-xs); line-height: 1; white-space: nowrap; cursor: default; -webkit-tap-highlight-color: transparent; transition: background-color var(--f-fast) var(--f-ease), color var(--f-fast) var(--f-ease); }
+.gt-chip:is([data-state="idle"], [data-state="loading"], [data-state="accepted"]) { background: transparent; }
+.gt-chip:is([data-state="ready"], [data-state="error"]) { cursor: pointer; }
+.gt-chip:focus-visible { outline: 2px solid var(--line-strong, currentColor); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) { .gt-chip:is([data-state="ready"], [data-state="error"]):hover { background: var(--f-muted-surface); color: var(--f-fg); } }
+.gt-chip:is([data-state="ready"], [data-state="error"]):active { background: color-mix(in oklab, var(--f-fg) 10%, var(--f-muted-surface)); }
+.gt-chipStack { display: grid; place-items: center end; }
+.gt-chipLayer { display: inline-flex; grid-area: 1 / 1; align-items: center; gap: 6px; box-sizing: border-box; height: 24px; padding: 0 9px 0 6px; }
+.gt-chip[data-state="idle"] .gt-chipLayer, .gt-chip[data-state="loading"] .gt-chipLayer { padding-right: 10px; }
+.gt-mark { display: grid; flex: 0 0 auto; width: 12px; height: 12px; place-items: center; }
+.gt-mark > svg { display: block; width: 12px; height: 12px; }
+.gt-chipName { color: var(--f-secondary); }
+.gt-thinking { background: linear-gradient(90deg, var(--f-secondary) 35%, var(--f-muted) 50%, var(--f-secondary) 65%) 100% 0 / 300% 100% no-repeat; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: gt-shimmer 1.4s linear infinite; }
+@keyframes gt-shimmer { to { background-position: 0 0; } }
+.gt-desk { display: inline-flex; align-items: center; gap: 5px; }
+.gt-touch { display: none; }
+@media (hover: none) and (pointer: coarse) { .gt-desk { display: none; } .gt-touch { display: inline; } }
+.gt-alertIcon, .gt-okIcon { flex: 0 0 auto; width: 13px; height: 13px; stroke-width: 2; }
+.gt-okIcon { color: var(--f-success); }
+.gt-alertIcon { color: var(--f-warning); }
+.gt-retry { color: var(--f-accent); font-weight: 500; }
+.gt-root[data-multiline="false"] { flex-direction: row; align-items: center; }
+.gt-root[data-multiline="false"] .gt-viewport { flex: 1 1 auto; min-width: 0; max-height: none; overflow: auto clip; }
+.gt-root[data-multiline="false"] .gt-stack { width: max-content; min-width: 100%; }
+.gt-root[data-multiline="false"] :is(.gt-mirror, .gt-input) { padding: 8px 14px; white-space: pre; overflow-wrap: normal; }
+.gt-root[data-multiline="false"] .gt-mirror { min-height: 0; }
+.gt-root[data-multiline="false"] .gt-footer { min-height: 0; padding: 0 7px 0 0; }
+@media (prefers-reduced-motion: reduce) { .gt-ghost, .gt-ghostOut, .gt-merge, .gt-thinking { animation: none; } .gt-input, .gt-mirror, .gt-chip, .gt-kbd { transition: none; } }

@@ -1,0 +1,37 @@
+/* Flip page: the layout around the four components (Ghost text, TL;DR toggle, Agent cursor, Generation stats). The components keep their own geometry
+   (ghost-text.css, tldr-toggle.css, agent-cursor.css, generation-stats.css). */
+.collateral.cr-flip:not([data-upload-only="true"]) { padding-bottom: 48px; }
+.cr-flip .fl-stage { display: grid; gap: 32px; width: 100%; max-width: 680px; margin: 0 auto; padding: 24px 0 0; }
+.cr-flip .fl-block { display: grid; gap: 12px; min-width: 0; }
+.cr-flip .fl-block > * { min-width: 0; }
+.cr-flip .fl-block__head h2 { margin: 0; font-size: 0.9375rem; font-weight: 600; line-height: 22px; color: var(--ink); }
+.cr-flip .fl-block__head p { margin: 2px 0 0; font-size: 0.8125rem; line-height: 20px; color: var(--muted); text-wrap: pretty; }
+.cr-flip .fl-block__head--row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; }
+.cr-flip .fl-block__head--row > div { flex: 1 1 340px; min-width: 0; }
+.cr-flip .fl-ext { margin: -4px 0 0; padding-left: 2px; font-size: 0.75rem; line-height: 18px; color: var(--muted); }
+.cr-flip .fl-ext b { font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.cr-flip .fl-format { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.cr-flip .fl-format__note { font-size: 0.75rem; color: var(--muted); }
+.cr-flip .fl-note { margin: 0; font-size: 0.75rem; line-height: 18px; color: var(--muted); text-wrap: pretty; }
+.cr-flip .fl-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding-top: 4px; }
+.cr-flip .fl-foot .ui-button { max-width: 100%; }
+.cr-flip .fl-foot .ui-button__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cr-flip .fl-foot .ui-button[disabled] { cursor: not-allowed; }
+
+/* a row of the sheet inside the TL;DR card: its number, then its cells */
+.cr-flip .fl-row { display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: baseline; gap: 8px; }
+.cr-flip .fl-row__no { color: var(--text-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; text-align: right; }
+.cr-flip .fl-row__cells { display: flex; flex-wrap: wrap; min-width: 0; gap: 0 6px; font-size: 0.8125rem; line-height: 22px; }
+.cr-flip .fl-cell { min-width: 0; overflow-wrap: anywhere; }
+.cr-flip .fl-cell:not(:last-child)::after { content: "│"; margin-left: 6px; color: var(--border-strong); }
+.cr-flip .fl-cell[data-empty] { color: var(--text-muted); }
+.cr-flip .fl-row[data-header] .fl-cell { color: var(--foreground); font-weight: 500; }
+
+@media (max-width: 520px) { .cr-flip .fl-stage { gap: 26px; padding-top: 16px; } .cr-flip .fl-row { grid-template-columns: 18px minmax(0, 1fr); gap: 6px; } }
+
+/* while the rows of a sheet are being read */
+.cr-flip .fl-loading { display: grid; gap: 10px; padding: 18px; border: 1px solid var(--line); border-radius: 1.625rem; background: var(--card); }
+.cr-flip .fl-loading i { display: block; height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--tray) 0%, color-mix(in oklab, var(--tray) 60%, var(--card)) 50%, var(--tray) 100%); background-size: 200% 100%; animation: fl-shimmer 1.4s linear infinite; }
+.cr-flip .fl-loading i:nth-child(2) { width: 82%; } .cr-flip .fl-loading i:nth-child(3) { width: 91%; } .cr-flip .fl-loading i:nth-child(4) { width: 58%; }
+@keyframes fl-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .cr-flip .fl-loading i { animation: none; } }

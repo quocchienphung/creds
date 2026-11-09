@@ -269,7 +269,6 @@ Download audit report (JSON)	Tải báo cáo kiểm toán (JSON)
 Exact text changes only. One Undo restores them all.	Chỉ thay đổi văn bản chính xác. Một lần Hoàn tác khôi phục tất cả.
 Excel formation	Chuẩn hóa Excel
 Find and repair errors in a workbook	Tìm và sửa lỗi trong tệp Excel
-Flag accented text	Báo văn bản có dấu
 Formula has no stored result	Công thức chưa có kết quả
 Go to Excel formation	Đến Chuẩn hóa Excel
 Group the repaired data into the reporting JSON	Gom dữ liệu đã sửa thành JSON báo cáo

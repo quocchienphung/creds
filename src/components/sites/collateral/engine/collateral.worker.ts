@@ -11,7 +11,7 @@ import { workbookGridMeta, workbookGridRows } from "../excel-formation/engine/wo
 import { acceptException, applyBulk, applyEdits, chooseForGroup, commit, groupRows, newHistory, planBulk, redo, rejectSuggestion, reopen, summarize, undo, type History } from "../excel-formation/engine/review.ts";
 import type { ReviewView, WorkerMessage, WorkerRequest } from "./protocol.ts";
 import { autoRepair } from "../excel-formation/engine/auto-repair.ts";
-import { findResidual } from "../excel-formation/engine/residual.ts";
+import { fillPlaceholders, findResidual } from "../excel-formation/engine/residual.ts";
 import { loadGeo, type GeoEngine } from "../excel-formation/engine/geo/geo-load.ts";
 import { planDuplicateRepair, applyDuplicateRepair } from "../excel-formation/engine/duplicate-repairs.ts";
 
@@ -62,6 +62,12 @@ async function handle(id: number, request: WorkerRequest["request"]) {
       return { type: "duplicateApplied" as const, view: view(), rows: result.plan.rows.length, changedCells: result.changedCells };
     }
     case "residual": return { type: "residual" as const, report: findResidual(need(), history.present) };
+    case "fillRemaining": {
+      const s = need();
+      history = commit(history, applyEdits(history.present, s.ctx, fillPlaceholders(s, history.present)));
+      document = null;
+      return { type: "view" as const, view: view() };
+    }
     case "cancelRepair": if (repair) repair.cancelled = true; return { type: "repairCancelRequested" as const };
     case "autoRepair": {
       const task = { cancelled: false }; repair = task;
@@ -78,7 +84,7 @@ async function handle(id: number, request: WorkerRequest["request"]) {
       history = newHistory();
       language = null;
       document = null;
-      session = await openSession(new Uint8Array(request.bytes), request.fileName, { diacriticPolicy: request.diacriticPolicy, overrides: request.overrides, onProgress: (phase, fraction) => post({ id, progress: { phase, fraction } }) });
+      session = await openSession(new Uint8Array(request.bytes), request.fileName, { overrides: request.overrides, onProgress: (phase, fraction) => post({ id, progress: { phase, fraction } }) });
       const headers: Record<number, string> = {};
       for (const item of session.wprofile.mapping?.resolved ?? []) headers[item.col] = item.spec.header;
       return { type: "opened" as const, view: view(), result: { fileName: request.fileName, size: session.workbook.size, fileHash: session.workbook.fileHash, profile: session.wprofile, sheetScans: session.sheetScans, issues: session.scan.issues, stats: session.scan.stats, blockers: session.scan.blockers, headers } };
@@ -203,6 +209,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
   const { id, request } = event.data;
   try {
     const response = await handle(id, request);
+    if (!response) throw new Error("The review engine is out of date: reload the page (F5) to update it. Bộ máy rà soát đã cũ: hãy tải lại trang (F5).");
     post({ id, ok: true, response }, response.type === "exported" || response.type === "repaired" ? [response.bytes] : response.type === "json" && response.bytes ? [response.bytes] : []);
   } catch (error) {
     post({ id, ok: false, error: error instanceof Error ? error.message : String(error), ...(error instanceof CreditImportError ? { code: error.code } : {}) });

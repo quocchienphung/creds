@@ -63,11 +63,12 @@ export type Request =
   | { type: "autoRepair"; policy?: RepairPolicy }
   | { type: "cancelRepair" }
   | { type: "residual" }
+  | { type: "fillRemaining" }
   | { type: "window"; row: number; col: number }
   | { type: "gridMeta"; sheet?: string }
   | { type: "grid"; from: number; count: number; sheet?: string }
   | { type: "predict"; row: number; col: number; sheet?: string }
-  | { type: "open"; bytes: ArrayBuffer; fileName: string; diacriticPolicy: boolean; overrides: Record<string, number> }
+  | { type: "open"; bytes: ArrayBuffer; fileName: string; overrides: Record<string, number> }
   | { type: "edit"; edits: { sheet?: string; row: number; col: number; value: string; source?: Patch["source"] }[] }
   | { type: "reject"; issueId: string }
   | { type: "exception"; issueId: string; reason: string }

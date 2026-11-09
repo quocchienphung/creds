@@ -23,7 +23,9 @@ export class EngineClient {
       if ("repairProgress" in message) { entry.repairProgress?.(message.repairProgress); return; }
       if ("progress" in message) { entry.progress?.(message.progress); return; }
       this.pending.delete(message.id);
-      if (message.ok) entry.resolve(message.response); else entry.reject(new EngineError(message.error, message.code));
+      // A worker left over from before the page was updated does not know a newer request and answers it with nothing.
+      if (message.ok) { if (message.response) entry.resolve(message.response); else entry.reject(new EngineError("The review engine is out of date: reload the page (F5) to update it. Bộ máy rà soát đã cũ: hãy tải lại trang (F5).", "stale")); }
+      else entry.reject(new EngineError(message.error, message.code));
     };
     worker.onerror = event => { this.failAll(new EngineError(event.message || "The review engine stopped unexpectedly.")); };
     this.worker = worker;

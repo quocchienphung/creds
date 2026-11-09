@@ -31,6 +31,7 @@
 .queue-pop [data-tone="scanned"] { --q-color: var(--q-scanned); }
 .queue-pop [data-tone="saved"] { --q-color: var(--q-saved); }
 .queue-pop [data-tone="failed"] { --q-color: var(--q-failed); }
+.queue-pop [data-tone="danger"] { --q-color: var(--q-danger); }
 .queue-pop__media { display: grid; place-items: center; align-content: center; gap: 6px; min-height: 132px; background: color-mix(in oklab, var(--q-color, var(--muted)) 9%, var(--chip)); color: var(--q-color, var(--muted)); font-size: 12px; font-variant-numeric: tabular-nums; }
 .queue-pop__media > span { color: var(--muted); letter-spacing: .02em; }
 .queue-pop__main { padding: 24px; }
@@ -67,6 +68,19 @@
 .queue-pop__delete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; padding-top: 20px; border-top: 1px solid var(--line); }
 .queue-pop__delete > p { flex: 1 1 160px; margin: 0; color: var(--muted); font-size: 12px; text-wrap: pretty; }
 
+.queue-pop__delete--solo { padding-top: 0; border-top: 0; }
+.queue-pop__files { display: grid; gap: 6px; margin: 20px 0 0; padding: 0; list-style: none; transition: opacity 240ms var(--q-ease), filter 240ms var(--q-ease); }
+.queue-pop__files li { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 12px; border-radius: 12px; background: var(--chip); color: var(--ink); font-size: 13px; }
+.queue-pop__files li > svg { flex: none; color: var(--muted); }
+.queue-pop__files li > span { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.queue-pop__files li > em { flex: none; color: var(--muted); font-size: 12px; font-style: normal; font-variant-numeric: tabular-nums; }
+.queue-pop__files .queue-pop__more { justify-content: center; background: transparent; color: var(--muted); }
+.queue-pop[data-state="open"] .queue-pop__files li { animation: queue-pop-rise 360ms var(--q-enter) calc(300ms + var(--i, 0) * 45ms) both; }
+/* While the delete runs and after it, the list sinks away so the pop-up reads as "gone" */
+.queue-pop__files[data-gone] { opacity: .4; filter: blur(1.5px); }
+.queue-pop__files[data-gone] li > span { text-decoration: line-through; text-decoration-color: var(--q-danger); }
+
+@keyframes queue-pop-rise { from { opacity: 0; transform: translateY(6px); } }
 @keyframes queue-pop-fade { from { opacity: 0; } }
 @keyframes queue-pop-fade-out { to { opacity: 0; } }
 
@@ -83,5 +97,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .queue-pop[data-state] .queue-pop__content > :where(.queue-pop__media, .queue-pop__main), .queue-pop[data-state] .queue-pop__details, .queue-pop[data-state] .queue-pop__closeslot { animation-duration: 120ms; animation-delay: 0s; animation-timing-function: linear; }
-  .queue-pop__close, .queue-pop__primary, .queue-pop__secondary button, .queue-pop__copy, .queue-pop__live { transition: none; }
+  .queue-pop[data-state] .queue-pop__files li { animation-duration: 120ms; animation-delay: 0s; }
+  .queue-pop__files, .queue-pop__close, .queue-pop__primary, .queue-pop__secondary button, .queue-pop__copy, .queue-pop__live { transition: none; }
 }

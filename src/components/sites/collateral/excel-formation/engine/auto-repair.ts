@@ -1,7 +1,7 @@
 import type { Session } from "./session.ts";
 import { applyEdits, cellKey, summarize, type ReviewState } from "./review.ts";
 import { EvidenceBuilder, scopeOf, sheetEvidence } from "./evidence-index.ts";
-import { cleanText, dropLoneQuestionMarks } from "./text-clean.ts";
+import { cleanText, dropLoneQuestionMarks, hasMarks, toPlainText } from "./text-clean.ts";
 import { isTextCell, specRoleOf, textRoleOf } from "./sheet-scan.ts";
 import { generateCandidates } from "./candidate-generator.ts";
 import { rankCandidates } from "./context-ranker.ts";
@@ -12,7 +12,7 @@ import { calibrate, planModelRepair, CALIBRATION_VERSION, type Calibration } fro
 import { addMetrics, classifyOutcome, emptyMetrics, metricViolations, zeroPatchOf, type ReasonCode, type RepairMetrics, type RepairOutcome, type ZeroPatch } from "./repair-metrics.ts";
 import { columnLetters } from "./text.ts";
 import { VietnameseModel, wordsOf } from "./predict.ts";
-import { NAME_CALIBRATION_VERSION, nameColumnsOf, planNameRepair } from "./name-repair.ts";
+import { guessName, NAME_CALIBRATION_VERSION, nameColumnsOf, namePositions, planNameRepair } from "./name-repair.ts";
 import type { ColumnSpec } from "./mapping-profiles.ts";
 import { IDENTIFIER_FIELD, planPacked, repairPackedLine, SEPARATOR } from "./packed-csv.ts";
 import { patchesOf } from "./session.ts";
@@ -27,7 +27,7 @@ export interface RepairProgress { stage: "evidence_index" | "candidate_generatio
 export interface RepairReport {
   version: 2; mode: "Source-verified + calibrated model"; status: RepairOutcome; metrics: RepairMetrics; byReasonCode: Partial<Record<ReasonCode, number>>; calibration: Calibration; packageVerdict: PackageVerdict; modelVersion: string; policyVersion: string;
   cellsAccounted: number; rowsAccounted: number; applied: number; modelAccepted: number; unresolved: number; protected: number; unchanged: number; questionMarksAccounted: number;
-  reviewBlocking: number; existingReviewPatches: number; /** Names predicted by the name model of the file, and how that model was calibrated (a hold-out of the clean names of this file). */ names: { fields: number; distinctNames: number; calibration: Calibration }; /** Cells whose strange characters were cleaned (encoding accidents, control and invisible characters, odd spaces, decomposed letters). */ normalized: number;
+  reviewBlocking: number; existingReviewPatches: number; /** Names predicted by the name model of the file, and how that model was calibrated (a hold-out of the clean names of this file). */ /** Cells whose accented letters were written plain (the export is Vietnamese without marks). */ plainText: number; names: { fields: number; /** Of those, names filled by the guess of the place of each word (never verified). */ guessed: number; distinctNames: number; calibration: Calibration }; /** Cells whose strange characters were cleaned (encoding accidents, control and invisible characters, odd spaces, decomposed letters). */ normalized: number;
   duplicateGroups: DuplicateSummary;
   hiddenRowsIncluded: number; hiddenRowsExcluded: number; byStatus: Record<RepairStatus, number>;
   byRole: Record<string, { cells: number; applied: number; unresolved: number }>;
@@ -162,6 +162,17 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   for (const text of nameTexts) nameModel.add(text);
   nameModel.finish();
   const nameCalibration = calibrate([...nameTexts], nameWords ? nameBroken / nameWords : 0);
+  // Under "no ? left" a name the calibrated model cannot settle is filled with the word of its place (family, middle, given) that the names of this file write most often.
+  const positions = namePositions(nameTexts), guessNames = policy === "FORCE_NO_QUESTION_MARK" && !nameModel.usesMarks;
+  let namesGuessed = 0;
+  const settleName = (text: string) => {
+    const plan = planNameRepair(nameModel, text, nameCalibration);
+    let value = plan?.value ?? text, unresolved = plan?.unresolvedWords ?? 0, guessed = false;
+    if (guessNames && value.includes("?")) { const guess = guessName(value, positions); if (guess) { value = guess.value; unresolved = guess.unresolved; guessed = true; } }
+    if (value === text) return null;
+    namesFixed++; if (guessed) namesGuessed++;
+    return { value, unresolved, guessed, resolved: plan?.resolvedWords ?? 0 };
+  };
   // The rest of the recovery of free text, for a loose cell and for a field of a packed line alike: collateral wording, then address parts, then what is left.
   const recoverFree = (start: string, hint?: string) => {
     let text = start;
@@ -171,7 +182,7 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
     const completion = collateralOn && policy === "FORCE_NO_QUESTION_MARK" && text.includes("?") ? completeRemaining(text, index.model) : null;
     return completion?.tokens.some(token => token.applied) ? completion.value : text;
   };
-  const packedHooks = { free: (text: string, spec: ColumnSpec) => recoverFree(text, spec.header), name: (text: string) => { const plan = planNameRepair(nameModel, text, nameCalibration); if (plan) namesFixed++; return plan?.value ?? null; } };
+  const packedHooks = { free: (text: string, spec: ColumnSpec) => recoverFree(text, spec.header), name: (text: string) => settleName(text)?.value ?? null };
   await progress("candidate_generation");
   const decisions: { sheet: string; decision: RepairDecision }[] = [];
   const sheetCounts = new Map<string, { sheetId: string; status: "scanned" | "failed"; cells: number; flagged: number; metrics: RepairMetrics; verifiedChanges: number }>();
@@ -209,6 +220,8 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
         cells++; count.cells++;
         if (["s", "str", "inlineStr"].includes(cell.t) && !cell.f) metrics.textCellsScanned++;
         const current = state.patches[cellKey(sheet.name, row.r, col)];
+        // A formula, a merged cell or a rich-text cell cannot be written: no branch below may propose a value for it (one such proposal fails the whole run).
+        const locked = !!cell.f || !!cell.protectedText;
         const value = current?.value ?? cleaned.get(cellKey(sheet.name, row.r, col))?.value ?? cell.v;
         questionMarks += value.match(/\?/g)?.length ?? 0;
         if (value.includes("?")) metrics.cellsContainingQuestionMark++;
@@ -217,7 +230,7 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
         // A column the profile does not know is judged by its value: free text, unless it looks like an identifier, a link or a code.
         const role = !spec ? textRoleOf(value) : IDENTIFIER_FIELD.test(spec.field) ? "identifier" : spec.role;
         byRole[role] ??= { cells: 0, applied: 0, unresolved: 0 }; byRole[role].cells++;
-        if (packed && col === packed.packedCol && row.r > packed.headerRow && value.includes("?") && !current && !excepted(sheet.name, row.r, col)) {
+        if (packed && col === packed.packedCol && row.r > packed.headerRow && value.includes("?") && !current && !locked && !excepted(sheet.name, row.r, col)) {
           const line = repairPackedLine(value, packed, index.model, calibration, packedHooks);
           if (line.value === null && line.shape) { /* a line whose field count differs from the header is never guessed */ }
           const fixed = line.value !== null, whole = fixed && line.damagedFields === line.fixedFields && line.unresolvedFields === 0 && line.protectedFields === 0;
@@ -244,16 +257,15 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
         // A column of names: the name model decides, on the names of this file. A name it cannot settle is left for a person, never completed, and never
         // handed to the recovery of collateral wording or addresses: `Th?` in a name is not a word of a land title.
         const nameColumn = (spec ? isNameField(spec) : !!nameCols.get(sheet.name)?.has(col)) && role !== "identifier";
-        if (nameColumn && !current && !cell.f && value.includes("?") && decision.status !== "source_verified") {
-          const plan = planNameRepair(nameModel, value, nameCalibration);
-          if (plan) {
-            namesFixed++;
-            decision = { ...decision, proposed: plan.value, status: "model_auto_accepted", evidence: [{ kind: "calibrated_model", sourceId: `calibration:${NAME_CALIBRATION_VERSION}` }], reasonCode: plan.unresolvedWords ? "name_model_partial" : "name_model_margin", reason: plan.unresolvedWords ? "PARTIAL_WORDS" : null, words: { resolved: plan.resolvedWords, unresolved: plan.unresolvedWords } };
+        if (nameColumn && !current && !locked && value.includes("?") && decision.status !== "source_verified") {
+          const settled = settleName(value);
+          if (settled) {
+            decision = { ...decision, proposed: settled.value, status: "model_auto_accepted", evidence: [{ kind: "calibrated_model", sourceId: `${settled.guessed ? "name-guess" : "calibration"}:${NAME_CALIBRATION_VERSION}` }], reasonCode: settled.guessed ? "name_forced_guess" : settled.unresolved ? "name_model_partial" : "name_model_margin", reason: settled.unresolved ? "PARTIAL_WORDS" : null, words: { resolved: settled.resolved, unresolved: settled.unresolved } };
           }
         }
         // Collateral wording, then address parts, then what is left: recovered from the ontology, from geographic knowledge and finally completed, whatever the sheet.
         // A clean same-asset record in this file still wins, and a text the calibrated file model already restored is the starting point.
-        if (!current && !cell.f && !nameColumn && value.includes("?") && decision.status !== "source_verified" && (role === "freeText" || role === "name")) {
+        if (!current && !locked && !nameColumn && value.includes("?") && decision.status !== "source_verified" && (role === "freeText" || role === "name")) {
           const baseText = decision.status === "model_auto_accepted" && decision.proposed ? decision.proposed : value;
           let text = baseText;
           const evidence: RepairDecision["evidence"] = baseText === value ? [] : [...decision.evidence];
@@ -287,21 +299,25 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   timings.candidates = performance.now() - scanStart;
   await progress("validation");
   const approved = decisions.filter(d => d.decision.status === "source_verified" || d.decision.status === "model_auto_accepted");
-  // Worst case, last: a `?` that stands alone in a cell no recovery settled is dropped. A cell a reviewer typed, or accepted, is never touched.
+  // Last, over the whole file (header rows and hidden sheets too): a `?` that stands alone and that no recovery settled is dropped, and every accented
+  // letter becomes its plain letter, because the file is exported without marks. A cell a reviewer typed, or accepted, is never touched: it is listed instead.
   const approvedAt = new Set(approved.map(({ sheet, decision: d }) => cellKey(sheet, d.row, d.col)));
   for (const sheet of session.workbook.sheets) {
     if (sheet.error) continue;
     for (const row of sheet.rows) row.cells.forEach((cell, col) => {
       const key = cellKey(sheet.name, row.r, col);
       if (!cell || cell.f || cell.protectedText || !isTextCell(cell) || state.patches[key] || approvedAt.has(key)) return;
-      const value = cleaned.get(key)?.value ?? cell.v, dropped = value.includes("?") ? dropLoneQuestionMarks(value) : value;
-      if (dropped !== value && !excepted(sheet.name, row.r, col)) cleaned.set(key, { sheet: sheet.name, row: row.r, col, value: dropped });
+      const value = cleaned.get(key)?.value ?? cell.v;
+      const final = toPlainText(value.includes("?") ? dropLoneQuestionMarks(value) : value);
+      if (final !== value && !excepted(sheet.name, row.r, col)) cleaned.set(key, { sheet: sheet.name, row: row.r, col, value: final });
     });
   }
   // All roles and digits were checked per cell. A model prediction is applied as `auto_model` and never promoted to verified.
   // The cleaned texts go in first: a cell that was also repaired is overwritten below by its final text, one patch per cell.
-  const next = applyEdits(state, session.ctx, [...[...cleaned.values()].map(item => ({ sheet: item.sheet, row: item.row, col: item.col, value: item.value, source: "bulk" as const })), ...approved.map(({ sheet, decision: d }) => ({ sheet, row: d.row, col: d.col, value: dropLoneQuestionMarks(cleanText(d.proposed!)), source: d.status === "source_verified" ? "auto_source" as const : "auto_model" as const }))]);
+  const next = applyEdits(state, session.ctx, [...[...cleaned.values()].map(item => ({ sheet: item.sheet, row: item.row, col: item.col, value: item.value, source: "bulk" as const })), ...approved.map(({ sheet, decision: d }) => ({ sheet, row: d.row, col: d.col, value: toPlainText(dropLoneQuestionMarks(cleanText(d.proposed!))), source: d.status === "source_verified" ? "auto_source" as const : "auto_model" as const }))]);
   for (const { sheet, decision: d } of approved) Object.assign(next.patches[cellKey(sheet, d.row, d.col)], { modelVersion: MODEL_VERSION, policyVersion: POLICY_VERSION, evidenceSourceId: d.evidence[0].sourceId });
+  // Counted on the result: a cell whose original text had marks and whose written text has none.
+  const plainCells = Object.values(next.patches).filter(patch => hasMarks(patch.original) && !hasMarks(patch.value)).length;
   const patches = patchesOf(next), patchStart = performance.now();
   await progress("patch");
   const patched = patchWorkbookBytes(session.bytes, session.workbook, patches);
@@ -309,7 +325,7 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   await progress("package_verification");
   const verifyStart = performance.now(), roundTrip = verifyRoundTrip(session.workbook, patched.bytes, patches);
   const packageIntegrity = verifyPackageIntegrity(session.bytes, patched.bytes, session.workbook, patches);
-  if (!roundTrip.ok || !packageIntegrity) throw new RepairValidationError("Repaired workbook failed validation; nothing was committed or downloaded.");
+  if (!roundTrip.ok || !packageIntegrity) throw new RepairValidationError(`Repaired workbook failed validation (${roundTrip.wrongValues} wrong values, ${roundTrip.unexpectedChanges} unexpected changes, package ${packageIntegrity ? "intact" : "changed outside the patched cells"}); nothing was committed or downloaded.`);
   const checks = verifyPatches(session.workbook, patched.bytes, patches);
   if (checks.some(check => !check.ok || !check.changed)) throw new RepairValidationError("A repaired cell does not hold its approved value in the exported file; nothing was committed or downloaded.");
   const parts = comparePackageParts(session.bytes, patched.bytes);
@@ -373,7 +389,7 @@ export async function autoRepair(session: Session, state: ReviewState, options: 
   const base = session.workbook.fileName.replace(/\.xlsx$/i, "");
   const report: RepairReport = {
     version: 2, mode: "Source-verified + calibrated model", status: outcome, metrics: total, byReasonCode, calibration, packageVerdict: parts.verdict, modelVersion: MODEL_VERSION, policyVersion: POLICY_VERSION,
-    reviewBlocking, existingReviewPatches: carried, names: { fields: namesFixed, distinctNames: nameTexts.size, calibration: nameCalibration }, normalized: cleaned.size,
+    reviewBlocking, existingReviewPatches: carried, plainText: plainCells, names: { fields: namesFixed, guessed: namesGuessed, distinctNames: nameTexts.size, calibration: nameCalibration }, normalized: cleaned.size,
     duplicateGroups: duplicateSummary(session),
     cellsAccounted: cells, rowsAccounted: totalRows, applied: byStatus.source_verified, modelAccepted: byStatus.model_auto_accepted, unresolved, protected: byStatus.blocked, unchanged, questionMarksAccounted: questionMarks,
     hiddenRowsIncluded: session.workbook.sheets.reduce((n, s) => n + s.hiddenRows, 0), hiddenRowsExcluded: 0, byStatus, byRole, byReason, sheets: [...sheetCounts.values()],

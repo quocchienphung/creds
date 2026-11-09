@@ -73,7 +73,7 @@ export function buildContext(workbook: Workbook, wprofile: WorkbookProfile, prof
       return col === a ? b : col === b ? a : undefined;
     },
     original: (sheetName, row, col) => sheetRows.get(sheetName)?.get(row)?.cells[col]?.v ?? "",
-    isFormula: (sheetName, row, col) => !!sheetRows.get(sheetName)?.get(row)?.cells[col]?.f,
+    isLocked: (sheetName, row, col) => { const cell = sheetRows.get(sheetName)?.get(row)?.cells[col]; return !!cell?.f || !!cell?.protectedText; },
     groupCols: branch !== undefined && customer !== undefined && asset !== undefined ? { branch, customer, asset } : null,
     blocksOf: col => blocks.filter(block => block.anchor === col || block.members.includes(col)),
     twinOf: col => primary !== undefined && secondary !== undefined ? (col === primary ? secondary : col === secondary ? primary : undefined) : undefined,

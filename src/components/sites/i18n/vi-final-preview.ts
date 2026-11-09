@@ -65,6 +65,9 @@ Missing characters (?)	Mất ký tự (?)
 Garbled encoding	Lỗi mã hóa
 Extra spaces	Khoảng trắng thừa
 Hidden characters	Ký tự ẩn
+Accented text	Chữ có dấu
+Restored {0} corrections saved on this device for this file. Undo takes them back.	Đã khôi phục {0} chỉnh sửa đã lưu trên máy này cho tệp này. Bấm Hoàn tác để bỏ chúng.
+Locked cells (formula, merged, rich text)	Ô bị khóa (công thức, ô gộp, rich text)
 The exported file holds all {0} corrected cells: {1} automatic and {2} typed by you.	Tệp xuất sẽ chứa đủ {0} ô đã sửa: {1} ô tự động và {2} ô do bạn nhập tay.
 Unusual characters	Ký tự lạ
 Scanning the workbook for remaining issues…	Đang rà soát lỗi còn lại trong tệp…
@@ -72,5 +75,7 @@ No issues found in the workbook as it will be exported.	Không còn lỗi nào t
 No match	Không có kết quả phù hợp
 Showing the first {0} of {1}. Fix some and scan again to see the rest.	Đang hiện {0} lỗi đầu tiên trong tổng {1}. Sửa bớt rồi rà soát lại để xem phần còn lại.
 Open the Review step	Mở bước Rà soát
+Fill the remaining ? with a	Điền chữ a vào các dấu ? còn lại
+Last step, when the automatic repair cannot predict any further. Every ? still left in a text cell, code columns included, becomes the letter a. Undo takes it back.	Bước cuối, khi tự động sửa không dự đoán thêm được nữa. Mọi dấu ? còn lại trong ô văn bản, kể cả cột mã, được thay bằng chữ a. Bấm Hoàn tác để bỏ.
 Could not scan the workbook.	Không rà soát được tệp.
 `);

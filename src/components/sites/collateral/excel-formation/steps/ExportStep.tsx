@@ -175,7 +175,9 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
   // What the file will hold: every patch, whether the repair or a person wrote it (cleaning and bulk fixes are automatic too).
   const automatic = patches.filter(patch => patch.source.startsWith("auto") || patch.source === "bulk").length;
   const diff = useMemo(() => selected ? wordDiff(selected.before, draft) : null, [selected, draft]);
-  const move = (delta: number) => { const next = cells[(index + delta + cells.length) % cells.length]; if (next) setPicked(next.key); };
+  // A draft is saved as soon as the person leaves its cell (another cell, another issue, a click elsewhere): what was typed is never left behind unsaved.
+  const flush = () => selected && drafts[selected.key] !== undefined ? save() : Promise.resolve(undefined);
+  const move = (delta: number) => { void flush().then(() => { const next = cells[(index + delta + cells.length) % cells.length]; if (next) setPicked(next.key); }); };
   const ease = [...motionTokens.ease.enter] as [number, number, number, number];
   const group: Variants = { hidden: {}, show: { transition: { staggerChildren: reduce ? 0 : .07, delayChildren: .04 } } };
   const block: Variants = reduce ? { hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: .12 } } }
@@ -208,11 +210,11 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
     </motion.div>
     {grid?.sheet === sheetName && grid.error && <div className="fp-message" role="alert">{t("Could not load the worksheet.")}<Button variant="secondary" size="sm" onClick={() => setRetry(value => value + 1)}>{t("Retry")}</Button></div>}
     <div className="fp-work" data-outline>
-      <RemainingOutline report={residualReport} scanning={scanning} error={scanned?.error ? (scanned.error === "scan" ? t("Could not scan the workbook.") : scanned.error) : ""} activeKey={selected?.key ?? ""} disabled={dirty || exporting}
-        onPick={item => { void selectCell(item.row, item.col, item.sheet); }} onScan={() => setScanTick(value => value + 1)} onReview={onReview} />
+      <RemainingOutline report={residualReport} scanning={scanning} error={scanned?.error ? (scanned.error === "scan" ? t("Could not scan the workbook.") : scanned.error) : ""} activeKey={selected?.key ?? ""} disabled={exporting}
+        onPick={item => { void flush().then(() => selectCell(item.row, item.col, item.sheet)); }} onScan={() => setScanTick(value => value + 1)} onReview={onReview} onFill={() => { void flush().then(() => engine.fillRemaining()); }} />
       <motion.section className="fp-sheet" variants={block} aria-label={t("Worksheet preview")} data-variant={variant}>
         {ready && sheet && meta
-          ? <SheetViewer data={sheet} target={{ row: selected?.row ?? 1, col: selected?.col ?? 0, value: selected ? (variant === "edited" ? draft : selected.before) : "", preview: !!selected && variant === "edited" && drafts[selected.key] !== undefined }} mode="readable" onSelectCell={(row, col, name) => { void selectCell(row, col, name); }} />
+          ? <SheetViewer data={sheet} target={{ row: selected?.row ?? 1, col: selected?.col ?? 0, value: selected ? (variant === "edited" ? draft : selected.before) : "", preview: !!selected && variant === "edited" && drafts[selected.key] !== undefined }} mode="readable" onSelectCell={(row, col, name) => { void flush().then(() => selectCell(row, col, name)); }} />
           : <div className="fp-skeleton" role="status" aria-label={t("Loading worksheet…")}><i /><i /><i /><i /></div>}
       </motion.section>
       <motion.aside className="fp-inspector" variants={block} aria-label={t("Cell inspector")}>
@@ -229,7 +231,7 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
             <div className="fp-cellname"><h4>{selected.sheet} · {columnLetters(selected.col)}{selected.row}</h4><span className="fp-badge" data-warning={selected.needsReview || undefined} data-changed={(!selected.needsReview && selected.before !== selected.after) || undefined}>{status}</span></div>
             <div className="fp-field"><span className="fp-field__label">{t("Original value")}</span><p className="fp-field__text" data-readonly><Marked parts={diff?.before ?? []} tone="removed" />{!selected.before && <em>{t("(empty)")}</em>}</p></div>
             <div className="fp-field"><label className="fp-field__label" htmlFor="fp-edited">{t("Edited value")}</label>
-              <textarea id="fp-edited" value={draft} onChange={event => updateDraft(event.target.value)} disabled={locked} spellCheck={false} maxLength={32767} aria-describedby="fp-draft-hint" />
+              <textarea id="fp-edited" value={draft} onChange={event => updateDraft(event.target.value)} onBlur={() => { void flush(); }} disabled={locked} spellCheck={false} maxLength={32767} aria-describedby="fp-draft-hint" />
               {draft !== selected.before && <p className="fp-field__text" data-diff aria-label={t("Words changed")}><Marked parts={diff?.after ?? []} tone="added" /></p>}</div>
             <div className="fp-edit-actions"><ExpandingButtonGroup label={t("Cell actions")} defaultExpanded="save" items={[
               { id: "restore", label: t("Restore original"), icon: <RotateCcw />, disabled: locked || draft === selected.before, onSelect: () => { updateDraft(selected.before); } },
@@ -258,8 +260,8 @@ export function ExportStep({ engine, notify, onReview, onDirtyChange }: {
         { id: "undo", label: t("Undo"), icon: <Undo2 />, iconOnly: true, disabled: locked || dirty || !view.canUndo, onSelect: () => { void engine.undo(); } },
         { id: "redo", label: t("Redo"), icon: <Redo2 />, iconOnly: true, disabled: locked || dirty || !view.canRedo, onSelect: () => { void engine.redo(); } },
         { type: "separator" },
-        { id: "next", label: t("Next to review"), icon: <AlertTriangle />, iconOnly: true, disabled: locked || dirty || !problems.some(cell => cell.key !== selected?.key), onSelect: nextProblem },
-        { id: "review", label: t("Review remaining issues"), icon: <ListChecks />, iconOnly: narrow, disabled: locked || dirty, onSelect: reviewHere },
+        { id: "next", label: t("Next to review"), icon: <AlertTriangle />, iconOnly: true, disabled: locked || !problems.some(cell => cell.key !== selected?.key), onSelect: () => { void flush().then(nextProblem); } },
+        { id: "review", label: t("Review remaining issues"), icon: <ListChecks />, iconOnly: narrow, disabled: locked, onSelect: () => { void flush().then(reviewHere); } },
         { id: "export", label: t(exporting ? "Verifying export…" : "Approve and export"), reserveLabels: [t("Approve and export"), t("Verifying export…")], icon: <Download />, iconOnly: false, primary: true, disabled: locked || dirty || approvedView !== view || !meta, onSelect: () => { void approveExport(); } },
       ]} />
     </motion.div>

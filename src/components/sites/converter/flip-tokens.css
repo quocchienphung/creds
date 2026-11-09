@@ -1,0 +1,15 @@
+/* Tokens shared by the three components of the Flip page (Ghost text, Generation stats, AI translate). The values are the ones the public previews
+   of UIArc's components read (docs/research/{ghost-text,generation-stats,ai-translate}/source/); the colours come from the workspace tokens. */
+.gt-root, .gs-root, .at-root, .at-menu {
+  --f-fg: var(--ink, oklch(15% 0 0)); --f-secondary: var(--text, oklch(46% 0 0)); --f-muted: var(--muted, oklch(59% 0 0)); --f-surface: var(--card, #fff);
+  --f-muted-surface: var(--tray, oklch(97.8% 0 0)); --f-border: var(--line, oklch(93.5% 0 0)); --f-border-subtle: var(--line-soft, oklch(96.5% 0 0));
+  --f-success: oklch(50% 0.12 162); --f-danger: oklch(53% 0.18 10); --f-warning: oklch(55% 0.12 68); --f-accent: var(--ink, oklch(33% 0 0)); --f-focus: color-mix(in oklab, var(--ink, #000) 14%, transparent);
+  --f-ease: cubic-bezier(0.22, 1, 0.36, 1); --f-ease-enter: cubic-bezier(0.16, 1, 0.3, 1); --f-fast: 0.16s; --f-standard: 0.24s;
+  --f-radius-panel: 1.625rem; --f-radius-control: 12px; --f-xs: 0.75rem; --f-sm: 0.875rem; --f-base: 1rem;
+  --f-spring: linear(0, 0.0213, 0.0739, 0.1443, 0.2235, 0.305, 0.3849, 0.4606, 0.5305, 0.594, 0.6508, 0.7011, 0.7452, 0.7836, 0.8168, 0.8454, 0.8699, 0.8907, 0.9084, 0.9234, 0.9361, 0.9467, 0.9557, 0.9632, 0.9694, 0.9747, 0.979, 0.9826, 0.9857, 0.9882, 0.9902, 0.992, 0.9934, 0.9946, 0.9955, 0.9963, 1);
+}
+:where(.dark, [data-theme="dark"]) :is(.gt-root, .gs-root, .at-root, .at-menu) { --f-success: oklch(75% 0.13 162); --f-danger: oklch(72% 0.17 15); --f-warning: oklch(80% 0.13 75); }
+.fl-srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.fl-iconButton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid var(--f-border, var(--line)); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; font-size: 0.875rem; cursor: pointer; transition: background-color 0.12s ease-out, transform 0.12s ease-out; }
+.fl-iconButton:active { transform: scale(0.97); background: var(--tray); }
+@media (hover: hover) and (pointer: fine) { .fl-iconButton:hover { background: var(--tray); } }

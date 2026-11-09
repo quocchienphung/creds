@@ -1,4 +1,5 @@
 // Profile-independent `?` scan and repair. Synthetic data only. The exported file is read back by an INDEPENDENT reader (Python stdlib) when available.
+import { toPlainText } from "./text-clean.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -138,12 +139,12 @@ test("hidden rows and inline strings are scanned like any other cell, and patchi
   assert.equal(out.report.metrics.outputUnexpectedChanges, 0);
 });
 
-test("text that carries marks is restored WITH marks when the file's own clean text is written with marks", async () => {
+test("text that carries marks is restored by its marked spelling, then written without marks like the rest of the file", async () => {
   const base = clean(MARKED, 3600), t = target(MARKED, 3);
   const bytes = buildXlsx([{ name: "S", rows: [["Noi dung"], ...base.map(p => [p]), [damage(t, 1, 0)]] }]);
   const { out } = await repaired(bytes), after = dump(out.bytes);
-  assert.equal(out.report.metrics.outputCellsChanged, 1);
-  if (after) assert.equal(after[`S!A${base.length + 2}`], t.normalize("NFC"));
+  if (after) assert.equal(after[`S!A${base.length + 2}`], toPlainText(t), "the damaged word is restored, not dropped");
+  if (after) assert.ok(base.every((text, i) => after[`S!A${i + 2}`] === toPlainText(text)), "every other text is the same text without marks");
 });
 
 test("per sheet counters are reported: text cells, ? cells, candidates, applied, changed", async () => {

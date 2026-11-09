@@ -169,14 +169,17 @@ export function verifyRoundTrip(before: Workbook, exported: Uint8Array, patches:
     const seen = new Set<string>();
     for (const row of sheet.rows) {
       const twin = rows.get(row.r);
-      if (!twin || twin.hidden !== row.hidden) unexpected++;
+      // The reader keeps no row whose cells are all empty. A row the patches emptied is therefore expected to be missing, but only when every cell
+      // of it that held something was patched: a cell that held a value and was not patched must still be there.
+      const emptied = !twin && row.cells.every((cell, col) => !cell || cell.v === "" || patched.has(`${sheet.name}\u0001${row.r}\u0001${col}`));
+      if (twin ? twin.hidden !== row.hidden : !emptied) unexpected++;
       const width = Math.max(row.cells.length, twin?.cells.length ?? 0);
       for (let col = 0; col < width; col++) {
         const key = `${sheet.name}\u0001${row.r}\u0001${col}`;
         const patch = patched.get(key);
         const a = row.cells[col], b = twin?.cells[col];
         if (patch) { seen.add(key); if ((b?.v ?? "") !== (patch.asNumber ? patch.value.trim() : patch.value)) wrong++; if ((a?.v ?? "") !== (b?.v ?? "")) { measured++; bySheet[sheet.name] = (bySheet[sheet.name] ?? 0) + 1; } }
-        else if (a?.v !== b?.v || a?.t !== b?.t || a?.s !== b?.s || a?.f !== b?.f) unexpected++;
+        else if (emptied ? (a?.v ?? "") !== "" : a?.v !== b?.v || a?.t !== b?.t || a?.s !== b?.s || a?.f !== b?.f) unexpected++;
       }
     }
     // A patched cell in a row that did not exist before.
