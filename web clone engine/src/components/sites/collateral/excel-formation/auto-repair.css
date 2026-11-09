@@ -1,8 +1,0 @@
-.collateral .cr-auto-trigger { flex: none; height: 28px; }
-.cr-auto-result { display: grid; gap: 12px; padding: 16px 20px 20px; font-size: 13px; line-height: 1.55; }
-.cr-auto-result p { margin: 0; }
-.cr-auto-result progress { display: block; width: 100%; margin: 12px 0; }
-.cr-auto-result dl { display: grid; gap: 6px; margin: 0; }
-.cr-auto-result dl > div { display: flex; justify-content: space-between; gap: 16px; }
-.cr-auto-result dd { margin: 0; font-variant-numeric: tabular-nums; }
-.cr-auto-result .ui-sb-actions { display: flex; flex-wrap: wrap; gap: 8px; }
