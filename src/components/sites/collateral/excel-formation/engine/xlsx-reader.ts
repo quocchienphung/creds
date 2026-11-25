@@ -119,12 +119,24 @@ function scanSheet(name: string, part: string, xml: string, strings: { value: st
     else if (tag === "rPh" && !token.empty) phonetic++;
     if (token.end >= nextReport) { progress?.({ phase: "sheet", sheet: name, fraction: token.end / xml.length }); nextReport = token.end + 1_500_000; }
   }
-  let comparisons = 0;
-  for (const range of ranges) for (const item of sheet.rows) {
-    if (++comparisons > 2_000_000) throw new CreditImportError("too-large", "Protected-range scan exceeds the workbook budget.");
-    if (item.r < range.r1 || item.r > range.r2) continue;
-    for (let c = range.c1; c <= Math.min(range.c2, item.cells.length - 1); c++) if (item.cells[c]) item.cells[c]!.protectedText = true;
-  }
+  // Mark covered cells column by column: merge each column's row intervals, then walk only the rows inside them. The cost follows the covered cells,
+  // not ranges x rows (a sheet with 1,500 shared formulas on 90,000 rows used to exceed the old budget). `work` still stops hostile overlapping ranges.
+  let work = 0;
+  const spend = () => { if (++work > 30_000_000) throw new CreditImportError("too-large", "Protected-range scan exceeds the workbook budget."); };
+  const spans: [number, number][][] = [];
+  for (const { r1, r2, c1, c2 } of ranges) for (let c = c1; c <= Math.min(c2, sheet.maxCol - 1); c++) { spend(); (spans[c] ??= []).push([r1, r2]); }
+  spans.forEach((list, c) => {
+    list.sort((a, b) => a[0] - b[0]);
+    let end = 0;
+    for (const [r1, r2] of list) {
+      const from = Math.max(r1, end + 1);
+      end = Math.max(end, r2);
+      if (from > r2) continue;
+      let lo = 0, hi = sheet.rows.length;
+      while (lo < hi) { const mid = (lo + hi) >> 1; if (sheet.rows[mid].r < from) lo = mid + 1; else hi = mid; }
+      for (let i = lo; i < sheet.rows.length && sheet.rows[i].r <= r2; i++) { spend(); const cell = sheet.rows[i].cells[c]; if (cell) cell.protectedText = true; }
+    }
+  });
   return sheet;
 }
 

@@ -2,7 +2,15 @@
   "name": "@dietrichgebert/ponytail",
   "version": "5.3.3",
   "description": "Lazy senior dev mode for AI agents. The best code is the code you never wrote.",
-  "keywords": ["opencode-plugin", "opencode", "ponytail", "pi-package", "pi", "skills", "qoder"],
+  "keywords": [
+    "opencode-plugin",
+    "opencode",
+    "ponytail",
+    "pi-package",
+    "pi",
+    "skills",
+    "qoder"
+  ],
   "license": "MIT",
   "author": {
     "name": "Dietrich Gebert",
@@ -42,6 +50,7 @@
     "start": "next start",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit -p src/tsconfig.json",
+    "excel-csv": "node --experimental-strip-types --no-warnings scripts/excel-to-csv.mjs",
     "test:app": "node --experimental-strip-types --test \"src/**/*.test.mjs\"",
     "test:correction-ui": "node --experimental-strip-types --test src/components/sites/collateral/excel-formation/gallery/correction-ui.test.mjs src/components/sites/collateral/excel-formation/engine/predict.test.mjs src/components/sites/collateral/excel-formation/engine/run-timeline.test.mjs src/components/sites/collateral/excel-formation/engine/applied-change.test.mjs",
     "check": "npm run lint && npm run typecheck && npm run build",
@@ -56,6 +65,7 @@
     "@types/react-dom": "^19",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "csv-parse": "7.0.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "eslint-plugin-react-hooks": "7.0.1",
@@ -74,11 +84,14 @@
     "zod": "^4.3.6"
   },
   "pi": {
-    "extensions": ["./pi-extension/index.js"],
-    "skills": ["./skills"]
+    "extensions": [
+      "./pi-extension/index.js"
+    ],
+    "skills": [
+      "./skills"
+    ]
   },
   "publishConfig": {
     "access": "public"
   }
 }
-
