@@ -14,15 +14,14 @@ export const workbookText = (row: readonly string[]) => trimRow(row.map(show)).j
 /** A row joined by the delimiter and nothing else: what a naive converter would write. */
 export const naiveLine = (row: readonly string[], delimiter: string) => row.map(show).join(delimiter);
 /** A row as Flip writes it, a line break drawn as a mark (for the document the Agent cursor edits). */
-export const csvLineDisplay = (row: readonly string[], delimiter: string) => row.map(value => show(field(value, delimiter))).join(delimiter);
+export const csvLineDisplay = (row: readonly string[], delimiter: string) => row.map(value => show(field(value))).join(delimiter);
 
 export type QuoteReason = "delimiter" | "quote" | "break";
-/** Why a cell has to be written in quotes, or null. A line break wins over a quote, a quote over the delimiter (the one a person would look at first). */
+/** What in a cell would break a naive file (every cell is quoted anyway), or null. A line break wins over a quote, a quote over the delimiter (the one a person would look at first). */
 export function quoteReason(value: string, delimiter: string): QuoteReason | null {
-  if (field(value, delimiter) === value) return null;
   if (/[\r\n]/.test(value)) return "break";
   if (value.includes("\"")) return "quote";
-  return "delimiter";
+  return value.includes(delimiter) ? "delimiter" : null;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------------
@@ -77,47 +76,34 @@ export type AgentEditLike =
 export interface PlanLabels {
   /** The status while a row is joined: `row` is the row number in the sheet, 1 for the header. */
   join: (row: number) => string;
-  quote: (reason: QuoteReason) => string;
+  /** The status while a row is put in quotes. */
+  quote: string;
   /** The line added at the end, and what the agent says while it adds it. */
   summary: string;
   summaryLabel: string;
 }
-export interface FlipDoc { blocks: DocBlockLike[]; edits: AgentEditLike[]; /** The text each row block ends with. */ final: Record<string, string>; quoted: number; shown: number }
+export interface FlipDoc { blocks: DocBlockLike[]; edits: AgentEditLike[]; /** The text each row block ends with. */ final: Record<string, string>; shown: number }
 
 /**
  * The document the Agent cursor edits, and the edits. Each shown row starts as it reads in the workbook; the agent joins it with the delimiter
- * (what a naive converter would write), then wraps each cell that holds the delimiter, a quote or a line break in quotes (the flagged cell is
- * replaced) so the line ends as Flip writes it. A last line says what the file holds.
+ * (what a naive converter would write), then puts every cell in quotes, as the real conversion does, so the line ends as Flip writes it.
+ * A last line says what the file holds.
  */
 export function flipDoc(rows: readonly (readonly string[])[], delimiter: string, options: { title: string; shown?: number; fileName: string; labels: PlanLabels }): FlipDoc {
   const shown = Math.min(options.shown ?? 5, rows.length);
   const blocks: DocBlockLike[] = [{ id: "title", type: "title", text: options.title }];
   const edits: AgentEditLike[] = [];
   const final: Record<string, string> = {};
-  let quoted = 0;
   for (let index = 0; index < shown; index++) {
     const row = rows[index], id = rowId(index + 1);
     blocks.push({ id, type: "paragraph", text: workbookText(row) });
     edits.push({ type: "rewrite", block: id, text: naiveLine(row, delimiter), label: options.labels.join(index + 1) });
-    const segments = row.map(show);
-    row.forEach((value, col) => {
-      const reason = quoteReason(value, delimiter);
-      if (!reason) return;
-      const raw = segments[col], wrapped = show(field(value, delimiter));
-      // which occurrence of the cell's text in the line as it stands is this cell
-      let offset = 0;
-      for (let before = 0; before < col; before++) offset += segments[before].length + delimiter.length;
-      const text = segments.join(delimiter);
-      let occurrence = 0;
-      for (let at = text.indexOf(raw); at !== -1 && at < offset; at = text.indexOf(raw, at + 1)) occurrence++;
-      edits.push({ type: "fix", block: id, find: raw, replace: wrapped, occurrence, label: options.labels.quote(reason) });
-      segments[col] = wrapped; quoted++;
-    });
-    final[id] = segments.join(delimiter);
+    final[id] = csvLineDisplay(row, delimiter);
+    edits.push({ type: "rewrite", block: id, text: final[id], label: options.labels.quote });
   }
   const lastRow = rowId(shown);
   edits.push({ type: "insert", after: lastRow, block: { id: "summary", type: "paragraph", text: options.labels.summary }, label: options.labels.summaryLabel });
-  return { blocks, edits, final, quoted, shown };
+  return { blocks, edits, final, shown };
 }
 
 /** Apply one edit to a list of blocks (the document the cursor shows once the edit has landed). Pure, so the end state is testable. */

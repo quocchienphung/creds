@@ -3,7 +3,7 @@ import { zipSync, strToU8 } from "fflate";
 import { writeXmlText, columnLetters } from "./text.ts";
 
 /**
- * sheets: [{ name, rows: Array<Array<string | {n: string} | {inline: string} | {rich: string} | {f: string, v?: string} | null | undefined>>, hiddenRows?: number[], autoFilter?: boolean, styles?: {[colIndex]: 0|1|2} }]
+ * sheets: [{ name, rows: Array<Array<string | {n: string} | {inline: string} | {rich: string} | {f: string, v?: string} | null | undefined>>, hiddenRows?: number[], hiddenCols?: number[], autoFilter?: boolean, styles?: {[colIndex]: 0|1|2} }]
  * A plain string becomes a shared string, `{n}` a number kept as its raw text, `{inline}` an inline string.
  */
 export function buildXlsx(sheets, { shared = true, macro = false } = {}) {
@@ -26,8 +26,8 @@ export function buildXlsx(sheets, { shared = true, macro = false } = {}) {
       }).join("");
       return body || hidden ? `<row r="${r + 1}"${hidden}>${body}</row>` : `<row r="${r + 1}"/>`;
     }).join("");
-    const width = Math.max(1, ...sheet.rows.map(row => row.length));
-    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${columnLetters(width - 1)}${sheet.rows.length}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><sheetData>${rows}</sheetData>${sheet.autoFilter ? `<autoFilter ref="A1:${columnLetters(width - 1)}${sheet.rows.length}"/>` : ""}</worksheet>`;
+    const width = sheet.rows.reduce((m, row) => Math.max(m, row.length), 1);
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${columnLetters(width - 1)}${sheet.rows.length}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews>${sheet.hiddenCols?.length ? `<cols>${sheet.hiddenCols.map(c => `<col min="${c + 1}" max="${c + 1}" width="9" hidden="1"/>`).join("")}</cols>` : ""}<sheetData>${rows}</sheetData>${sheet.autoFilter ? `<autoFilter ref="A1:${columnLetters(width - 1)}${sheet.rows.length}"/>` : ""}</worksheet>`;
   };
   const parts = sheets.map(sheetXml);
   const sstXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${strings.length}" uniqueCount="${strings.length}">${strings.map(text => `<si><t xml:space="preserve">${writeXmlText(text)}</t></si>`).join("")}</sst>`;

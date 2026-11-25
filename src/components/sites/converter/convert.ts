@@ -1,7 +1,7 @@
 import type { Cell, Sheet, StyleKind } from "../collateral/excel-formation/engine/types.ts";
 
 export type Delimiter = "," | ";" | "\t";
-export interface CsvStats { rows: number; cols: number; skipped: number; dates: number; formulas: number }
+export interface CsvStats { rows: number; cols: number; skipped: number; hidden: number; dates: number; formulas: number }
 export interface CsvResult extends CsvStats { text: string; sample: string[][] }
 
 const DAY = 86_400;
@@ -28,27 +28,29 @@ export function cellText(cell: Cell | undefined, kinds: readonly StyleKind[], on
   return cell.v;
 }
 
-export function csvField(value: string, delimiter: Delimiter): string {
-  return value.includes(delimiter) || /["\r\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
-}
-export const csvLine = (values: readonly string[], delimiter: Delimiter) => values.map(value => csvField(value, delimiter)).join(delimiter);
+/** Every value is wrapped in exactly one pair of quotes, empty ones too (`""`): the layout the importer expects (docs/excel-csv/mau5.csv). The cell text goes in untouched: a `"` already in it is never doubled.
+ * shortcut: this is not RFC 4180 (no escaping), so a value holding `","` would read back as two columns; escape (double) only if the importer starts to read RFC 4180. */
+export const csvField = (value: string) => `"${value}"`;
+export const csvLine = (values: readonly string[], delimiter: Delimiter) => values.map(csvField).join(delimiter);
 
-/** One sheet as CSV text (no BOM; the caller decides). Rows with no value are skipped and counted. `sampleRows` rows are also returned as plain values for the preview. */
+/** One sheet as CSV text (no BOM; the caller decides). Rows with no value are skipped and counted; hidden rows and columns are left out, as Excel's own "visible cells" view does (`hidden` counts the rows). `sampleRows` rows are also returned as plain values for the preview. */
 export function sheetToCsv(sheet: Sheet, kinds: readonly StyleKind[], delimiter: Delimiter, sampleRows = 0): CsvResult {
   let dates = 0;
   const onDate = () => { dates++; };
   const lines: string[] = [], sample: string[][] = [];
+  const visible = sheet.rows.filter(row => !row.hidden), cols: number[] = [];
   let width = 0;
-  for (const row of sheet.rows) for (let c = row.cells.length - 1; c >= width; c--) if (row.cells[c]?.v) { width = c + 1; break; }
-  for (const row of sheet.rows) {
-    const values = Array.from({ length: width }, (_, c) => cellText(row.cells[c], kinds, onDate));
+  for (const row of visible) for (let c = row.cells.length - 1; c >= width; c--) if (row.cells[c]?.v) { width = c + 1; break; }
+  for (let c = 0; c < width; c++) if (!sheet.hiddenCols?.has(c)) cols.push(c);
+  for (const row of visible) {
+    const values = cols.map(c => cellText(row.cells[c], kinds, onDate));
     if (!values.some(Boolean)) continue;
     if (sample.length < sampleRows) sample.push(values);
     lines.push(csvLine(values, delimiter));
   }
-  const last = sheet.rows.at(-1)?.r ?? 0;
+  const last = sheet.rows.at(-1)?.r ?? 0, hidden = sheet.rows.length - visible.length;
   // A line per row, each ended by CRLF (RFC 4180), so the last row is terminated too.
-  return { text: lines.map(line => line + "\r\n").join(""), sample, rows: lines.length, cols: lines.length ? width : 0, skipped: last - lines.length, dates, formulas: sheet.formulaCount };
+  return { text: lines.map(line => line + "\r\n").join(""), sample, rows: lines.length, cols: lines.length ? cols.length : 0, skipped: last - lines.length - hidden, hidden, dates, formulas: sheet.formulaCount };
 }
 
 const ILLEGAL = /[\\/:*?"<>|\u0000-\u001f]/;

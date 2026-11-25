@@ -15,7 +15,7 @@ import { GhostText } from "./GhostText";
 import { SegmentedControl } from "./primitives";
 import { TldrToggle, type TldrLength, type TldrMode, type TldrParagraph, type TldrRequest, type TldrStreamEvent } from "./TldrToggle";
 import { FORMATS, baseName, delimitedText, formatBytes, formatDuration, safeName, suggestName, trimRow } from "./flip-model";
-import { flipDoc, flipFacts, rowId, workbookText, type Fact, type QuoteReason } from "./flip-plan";
+import { flipDoc, flipFacts, rowId, workbookText, type Fact } from "./flip-plan";
 import { THINK_MS, chunkFields, chunkWords, pointCountFor, streamResult } from "./tldr-model";
 import "../affectui-settings/settings-reference.css";
 import "../affectui-settings/settings-overrides.css";
@@ -116,9 +116,9 @@ function FlipStage({ fileName, fileSize, notify }: { fileName: string; fileSize:
     const [a, b] = fact.params, column = fact.column ?? "";
     switch (fact.id) {
       case "header": return uiText("Row {0} becomes the header line, {1} columns.", [excelRow(1), a]);
-      case "delimiter": return uiText("In these rows, {0} cells hold a {1}, so they are written in quotes; the first is on row {2} ({3}).", [a, delimiterName, excelRow(b), column]);
-      case "none": return uiText("No cell in these rows holds a {0}, so none needs quotes for it.", [delimiterName]);
-      case "quote": return uiText("{0} cells hold a double quote: it is doubled inside the quotes (first on row {1}, {2}).", [a, excelRow(b), column]);
+      case "delimiter": return uiText("In these rows, {0} cells hold a {1}; every cell is in quotes, so none splits into two columns (first on row {2}, {3}).", [a, delimiterName, excelRow(b), column]);
+      case "none": return uiText("No cell in these rows holds a {0}.", [delimiterName]);
+      case "quote": return uiText("{0} cells hold a double quote: it stays as it is inside the quotes, never doubled (first on row {1}, {2}).", [a, excelRow(b), column]);
       case "break": return uiText("{0} cell holds a line break: it stays inside its quotes, so one record spans two lines (row {1}, {2}).", [a, excelRow(b), column]);
       case "zeros": return uiText("{0} codes start with zeros (first on row {1}): they are written as typed. Excel drops the zeros when it reopens a CSV unless the column is Text.", [a, excelRow(b)]);
       case "empty": return uiText("{0} empty cells stay empty fields, so every line keeps {1} columns.", [a, b]);
@@ -148,10 +148,10 @@ function FlipStage({ fileName, fileSize, notify }: { fileName: string; fileSize:
     title: `${sheetName} → ${option.name}`, fileName: finalName, shown: AGENT_ROWS,
     labels: {
       join: row => row === 1 ? uiText("Joining the header") : uiText("Joining row {0}", [excelRow(row)]),
-      quote: (reason: QuoteReason) => reason === "delimiter" ? uiText("Quoting a cell with a {0}", [delimiterName]) : reason === "quote" ? uiText("Doubling a quote") : uiText("Keeping a line break"),
+      quote: uiText("Putting every cell in quotes"),
       summary: uiText("{0} rows in all, {1} columns.", [totalRows, totalColumns]), summaryLabel: uiText("Adding a summary line"),
     },
-  }), [rows, delimiter, sheetName, option.name, finalName, totalRows, totalColumns, uiText, delimiterName, excelRow]);
+  }), [rows, delimiter, sheetName, option.name, finalName, totalRows, totalColumns, uiText, excelRow]);
 
   // ---- real figures: what opening the workbook measured. The output's own time and size are not made up before there is an output.
   const allRows = sheets.reduce((sum, item) => sum + item.dataRows, 0);
@@ -205,7 +205,7 @@ function FlipStage({ fileName, fileSize, notify }: { fileName: string; fileSize:
     </section>
 
     <section className="fl-block" aria-labelledby="fl-predict-title">
-      <header className="fl-block__head"><h2 id="fl-predict-title">{uiText("Watch it flip")}</h2><p>{uiText("A prediction on the first rows: each is joined with the {0}, then every cell that needs quotes gets them. Accept or undo; nothing is saved.", [delimiterName])}</p></header>
+      <header className="fl-block__head"><h2 id="fl-predict-title">{uiText("Watch it flip")}</h2><p>{uiText("A prediction on the first rows: each is joined with the {0}, then every cell is put in quotes. Accept or undo; nothing is saved.", [delimiterName])}</p></header>
       {loading ? <div className="fl-loading" aria-busy="true"><i /><i /><i /><i /></div> : preview && <AgentCursor blocks={doc.blocks} edits={doc.edits} meta={uiText("First {0} rows · first {1} columns", [doc.shown, agentColumns])} agent={{ name: "Flip", mark, color: "oklch(0.6 0.15 255)" }} collaborator={null} title={uiText("Prediction")} labels={agentLabels} />}
     </section>
 

@@ -43,18 +43,16 @@ The converter stopped unexpectedly.	Trình chuyển đổi đã dừng đột ng
 First rows	Các dòng đầu
 {0} of {1} rows · {2} columns	{0} / {1} dòng · {2} cột
 Row {0} becomes the header line, {1} columns.	Dòng {0} trở thành dòng tiêu đề, {1} cột.
-In these rows, {0} cells hold a {1}, so they are written in quotes; the first is on row {2} ({3}).	Trong các dòng này có {0} ô chứa {1} nên được đặt trong dấu ngoặc kép; ô đầu tiên ở dòng {2} ({3}).
-No cell in these rows holds a {0}, so none needs quotes for it.	Không ô nào trong các dòng này chứa {0}, nên không ô nào cần ngoặc kép vì lý do đó.
-{0} cells hold a double quote: it is doubled inside the quotes (first on row {1}, {2}).	{0} ô chứa dấu nháy kép: dấu này được viết đôi bên trong ngoặc kép (đầu tiên ở dòng {1}, {2}).
+In these rows, {0} cells hold a {1}; every cell is in quotes, so none splits into two columns (first on row {2}, {3}).	Trong các dòng này có {0} ô chứa {1}; mọi ô đều nằm trong ngoặc kép nên không ô nào bị tách thành hai cột (đầu tiên ở dòng {2}, {3}).
+No cell in these rows holds a {0}.	Không ô nào trong các dòng này chứa {0}.
+{0} cells hold a double quote: it stays as it is inside the quotes, never doubled (first on row {1}, {2}).	{0} ô chứa dấu nháy kép: dấu này được giữ nguyên bên trong ngoặc kép, không viết đôi (đầu tiên ở dòng {1}, {2}).
 {0} cell holds a line break: it stays inside its quotes, so one record spans two lines (row {1}, {2}).	{0} ô chứa ngắt dòng: ô đó nằm trong ngoặc kép nên một bản ghi trải trên hai dòng (dòng {1}, {2}).
 {0} codes start with zeros (first on row {1}): they are written as typed. Excel drops the zeros when it reopens a CSV unless the column is Text.	{0} mã bắt đầu bằng số 0 (đầu tiên ở dòng {1}): được ghi đúng như đã gõ. Excel sẽ bỏ các số 0 khi mở lại CSV trừ khi cột được đặt là Text.
 {0} empty cells stay empty fields, so every line keeps {1} columns.	{0} ô trống vẫn là trường trống, nên mọi dòng đều giữ {1} cột.
 {0} cells hold accents or other non-ASCII text: they are written as UTF-8 (first on row {1}).	{0} ô chứa dấu hoặc ký tự ngoài ASCII: được ghi ở dạng UTF-8 (đầu tiên ở dòng {1}).
 Joining the header	Nối dòng tiêu đề
 Joining row {0}	Nối dòng {0}
-Quoting a cell with a {0}	Đặt ô có {0} vào ngoặc kép
-Doubling a quote	Viết đôi dấu nháy kép
-Keeping a line break	Giữ ngắt dòng
+Putting every cell in quotes	Đặt mọi ô vào ngoặc kép
 {0} rows in all, {1} columns.	Tổng cộng {0} dòng, {1} cột.
 Adding a summary line	Thêm dòng tóm tắt
 Read in	Đọc trong
@@ -121,7 +119,7 @@ Flip · on this device	Flip · trên thiết bị này
 {0} notes	{0} ghi chú
 {0} lines	{0} dòng
 Watch it flip	Xem Flip chuyển đổi
-A prediction on the first rows: each is joined with the {0}, then every cell that needs quotes gets them. Accept or undo; nothing is saved.	Dự đoán trên các dòng đầu: mỗi dòng được nối bằng {0}, sau đó ô nào cần ngoặc kép sẽ được đặt vào ngoặc kép. Nhận hoặc hoàn tác; không có gì được lưu.
+A prediction on the first rows: each is joined with the {0}, then every cell is put in quotes. Accept or undo; nothing is saved.	Dự đoán trên các dòng đầu: mỗi dòng được nối bằng {0}, sau đó mọi ô đều được đặt vào ngoặc kép. Nhận hoặc hoàn tác; không có gì được lưu.
 First {0} rows · first {1} columns	{0} dòng đầu · {1} cột đầu
 Prediction	Dự đoán
 Figures	Số liệu

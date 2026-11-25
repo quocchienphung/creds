@@ -39,6 +39,8 @@ export interface Sheet {
   rows: Row[];
   hiddenRows: number;
   hiddenColumns: number;
+  /** 0-based positions of hidden columns (`hidden` flag or zero width). */
+  hiddenCols?: Set<number>;
   mergeCount: number;
   autoFilter: boolean;
   formulaCount: number;

@@ -15,13 +15,13 @@ test("Excel serials: known dates, the 1900 leap-year gap, time of day", () => {
   assert.equal(excelDate(45000.99999999), "2023-03-16", "float noise rounds to the second, it does not become 23:59:59");
 });
 
-test("fields are quoted only when the delimiter, a quote or a line break needs it", () => {
-  assert.equal(csvField("plain", ","), "plain");
-  assert.equal(csvField("a,b", ","), '"a,b"');
-  assert.equal(csvField("a,b", ";"), "a,b");
-  assert.equal(csvField('say "hi"', ","), '"say ""hi"""');
-  assert.equal(csvField("two\nlines", ","), '"two\nlines"');
-  assert.equal(csvField("a\tb", "\t"), '"a\tb"');
+test("every field is quoted once, empty ones included, and a quote already in the text is kept as it is, never doubled", () => {
+  assert.equal(csvField("plain"), '"plain"');
+  assert.equal(csvField(""), '""');
+  assert.equal(csvField("a,b"), '"a,b"');
+  assert.equal(csvField('say "hi"'), '"say "hi""');
+  assert.equal(csvField('trinh "An cu nhu y"'), '"trinh "An cu nhu y""');
+  assert.equal(csvField("two\nlines"), '"two\nlines"');
 });
 
 test("a sheet converts with exact numbers, text IDs, dates, empty rows skipped and ragged rows padded", () => {
@@ -34,10 +34,26 @@ test("a sheet converts with exact numbers, text IDs, dates, empty rows skipped a
     ["last", { f: "A5", v: "7" }],
   ] }]);
   const sheet = book.sheets[0], result = sheetToCsv(sheet, book.styleKinds, ",", 2);
-  assert.equal(result.text, 'ID,Amount,Note,Date\r\n0012345,1500000.50,"Số 1, Hà Nội",2023-03-15\r\nx,0.1,"He said ""ok""",\r\nlast,7,,\r\n');
+  assert.equal(result.text, '"ID","Amount","Note","Date"\r\n"0012345","1500000.50","Số 1, Hà Nội","2023-03-15"\r\n"x","0.1","He said "ok"",""\r\n"last","7","",""\r\n');
   assert.deepEqual([result.rows, result.cols, result.skipped, result.dates, result.formulas], [4, 4, 2, 1, 1]);
   assert.equal(result.sample.length, 2);
-  assert.equal(sheetToCsv(sheet, book.styleKinds, ";").text.split("\r\n")[1], '0012345;1500000.50;Số 1, Hà Nội;2023-03-15');
+  assert.equal(sheetToCsv(sheet, book.styleKinds, ";").text.split("\r\n")[1], '"0012345";"1500000.50";"Số 1, Hà Nội";"2023-03-15"');
+});
+
+test("hidden rows and columns are left out of the CSV, the rest keeps its order", () => {
+  const book = open([{ name: "H", hiddenRows: [2], hiddenCols: [1], rows: [["a", "secret", "c"], ["hidden", "x", "y"], ["d", "e", "f"]] }]);
+  const result = sheetToCsv(book.sheets[0], book.styleKinds, ",");
+  assert.equal(result.text, '"a","c"\r\n"d","f"\r\n');
+  assert.deepEqual([result.rows, result.cols, result.skipped, result.hidden], [2, 2, 0, 1]);
+});
+
+test("whatever the cell text, a field is the text between exactly one pair of quotes: nothing is added or doubled inside", () => {
+  const values = ['"', '""', 'a"b', '"An cu nhu y - Uu dai het y"', 'He said "ok"', "line\nbreak", "", "end"];
+  const book = open([{ name: "Q", rows: [values, values] }]);
+  for (const delimiter of [",", ";", "\t"]) {
+    const { text } = sheetToCsv(book.sheets[0], book.styleKinds, delimiter), line = values.map(v => `"${v}"`).join(delimiter) + "\r\n";
+    assert.equal(text, line + line, delimiter);
+  }
 });
 
 test("an empty sheet gives an empty file, not a blank line", () => {

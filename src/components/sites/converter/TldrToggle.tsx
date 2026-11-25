@@ -254,6 +254,8 @@ export function TldrToggle(props: TldrToggleProps) {
   const fade = { initial: reduce ? false : { opacity: 0 }, animate: { opacity: 1, transition: { duration: reduce ? 0 : 0.16, ease: EASE_STANDARD } }, exit: { opacity: 0, transition: { duration: reduce ? 0 : 0.1, ease: EASE_STANDARD } } } as const;
 
   const chunkClass = live.cached ? undefined : "tt-chunk";
+  // "lines" text grows by a chunk every 30 to 40 ms: only the chunks still fading (0.14 s) need a span, the older ones are one text node, so a long file is not re-created span by span on every chunk.
+  const lines = live.paragraphs[0] ?? [], settled = chunkClass ? Math.max(0, lines.length - 8) : lines.length;
   const body = (() => {
     if (mode === "full") return articleParagraphs.length
       ? <div className="tt-article">{articleParagraphs.map((paragraph, index) => <p key={paragraph.id} ref={node => { if (node) paraRefs.current.set(paragraph.id, node); else paraRefs.current.delete(paragraph.id); }} className="tt-para" tabIndex={-1} data-lit={lit === paragraph.id ? "" : undefined} data-id={paragraph.id}>{renderParagraph ? renderParagraph(paragraph, index) : paragraph.text}</p>)}</div>
@@ -272,7 +274,7 @@ export function TldrToggle(props: TldrToggleProps) {
     </div>;
     return <div className="tt-gen">
       <AnimatePresence>{live.status === "thinking" && <motion.span key="thinking" className="tt-thinking" exit={{ opacity: 0, transition: { duration: reduce ? 0 : 0.1, ease: EASE_STANDARD } }}><TextShimmer>{labels.readingParagraphs(articleParagraphs.length)}</TextShimmer></motion.span>}</AnimatePresence>
-      {layout === "lines" ? (live.paragraphs[0]?.length ? <pre className="tt-lines" tabIndex={0} aria-label={labels.summary}>{live.paragraphs[0].map((chunk, index) => <span key={index} className={chunkClass}>{chunk}</span>)}</pre> : null)
+      {layout === "lines" ? (live.paragraphs[0]?.length ? <pre className="tt-lines" tabIndex={0} aria-label={labels.summary}>{lines.slice(0, settled).join("")}{lines.slice(settled).map((chunk, index) => <span key={settled + index} className={chunkClass}>{chunk}</span>)}</pre> : null)
         : live.paragraphs.length > 0 && <div className="tt-summary">{live.paragraphs.map((chunks, index) => <p key={index}>{chunks.map((chunk, at) => <span key={at} className={chunkClass}>{chunk}</span>)}</p>)}</div>}
     </div>;
   })();

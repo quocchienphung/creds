@@ -4,7 +4,7 @@ import { applyEditToBlocks, csvLineDisplay, flipDoc, flipFacts, naiveLine, quote
 import { delimitedText } from "./flip-model.ts";
 import { SAMPLE_ASSETS, SAMPLE_LOOKUPS } from "./flip-sample.ts";
 
-const labels = { join: row => `Joining row ${row}`, quote: reason => `Quoting ${reason}`, summary: "Summary", summaryLabel: "Adding a summary" };
+const labels = { join: row => `Joining row ${row}`, quote: "Quoting every cell", summary: "Summary", summaryLabel: "Adding a summary" };
 const rows = SAMPLE_ASSETS.rows;
 const expectedText = delimiter => rows.slice(0, 5).map(row => csvLineDisplay(row, delimiter)).join("↵");
 
@@ -17,7 +17,7 @@ test("a cell is quoted for the delimiter, a quote or a line break, and the reaso
 test("workbook text leaves trailing empty cells out and draws a line break as a mark; the naive line keeps every column", () => {
   assert.equal(workbookText(["a", "b", "", ""]), "a │ b");
   assert.equal(naiveLine(["a", "", ""], ","), "a,,"); assert.equal(naiveLine(["a\nb", "c"], ","), "a↵b,c");
-  assert.equal(csvLineDisplay(["a,b", "c"], ","), "\"a,b\",c");
+  assert.equal(csvLineDisplay(["a,b", "c"], ","), "\"a,b\",\"c\"");
 });
 
 test("facts name the first row they come from and change with the delimiter", () => {
@@ -46,19 +46,19 @@ test("the Agent cursor's edits end on exactly the lines Flip writes", () => {
   }
 });
 
-test("one rewrite per row, then one fix per cell that needs quotes, in that order, and the quotes counted", () => {
+test("each row is rewritten twice, joined then quoted, and the quoted line is what the real conversion writes", () => {
   const doc = flipDoc(rows, ",", { title: "T", fileName: "f.csv", labels });
   assert.equal(doc.shown, 5);
-  assert.deepEqual(doc.edits.map(edit => edit.type), ["rewrite", "rewrite", "fix", "rewrite", "rewrite", "fix", "rewrite", "fix", "fix", "insert"]);
-  assert.equal(doc.quoted, 4);
-  assert.equal(doc.edits[0].label, "Joining row 1"); assert.equal(doc.edits[2].label, "Quoting delimiter"); assert.equal(doc.edits[5].label, "Quoting quote"); assert.equal(doc.edits[8].label, "Quoting break"); assert.equal(doc.edits[9].label, "Adding a summary");
+  assert.deepEqual(doc.edits.map(edit => edit.type), [...Array(10).fill("rewrite"), "insert"]);
+  assert.equal(doc.edits[0].label, "Joining row 1"); assert.equal(doc.edits[1].label, "Quoting every cell"); assert.equal(doc.edits[10].label, "Adding a summary");
+  assert.equal(doc.edits[1].text, csvLineDisplay(rows[0], ","));
 });
 
-test("a repeated cell text is fixed at its own place", () => {
+test("a repeated cell text ends in its own quotes", () => {
   const repeated = [["id", "a", "b"], ["x", "p,q", "p,q"]];
   const doc = flipDoc(repeated, ",", { title: "T", fileName: "f", labels });
   let blocks = doc.blocks;
   for (const edit of doc.edits) blocks = applyEditToBlocks(blocks, edit);
-  assert.equal(blocks.find(block => block.id === "r2").text, "x,\"p,q\",\"p,q\"");
+  assert.equal(blocks.find(block => block.id === "r2").text, "\"x\",\"p,q\",\"p,q\"");
   assert.equal(rowId(2), "r2");
 });

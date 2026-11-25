@@ -19,11 +19,10 @@ test("chunks of 3 to 6 words put end to end give the unit back; characters chunk
   assert.equal(chunkCharacters(row).join(""), row); assert.ok(chunkCharacters(row).length >= 3);
 });
 
-test("a field is quoted only when it must be: delimiter, quote or line break; leading zeros are left alone", () => {
-  assert.equal(field("00012", ","), "00012"); assert.equal(field("a,b", ","), "\"a,b\""); assert.equal(field("a,b", ";"), "a,b");
-  assert.equal(field("say \"hi\"", ","), "\"say \"\"hi\"\"\""); assert.equal(field("two\nlines", ","), "\"two\nlines\""); assert.equal(field("", ","), "");
-  assert.equal(delimitedLine(["a", "b;c", ""], ";"), "a;\"b;c\";");
-  assert.equal(delimitedText([["x", "y"], ["1", "2"]], "\t"), "x\ty\n1\t2");
+test("every field is in one pair of quotes, as the real conversion writes it; the text and leading zeros are left alone", () => {
+  assert.equal(field("00012"), "\"00012\""); assert.equal(field("a,b"), "\"a,b\""); assert.equal(field("say \"hi\""), "\"say \"hi\"\""); assert.equal(field(""), "\"\"");
+  assert.equal(delimitedLine(["a", "b;c", ""], ";"), "\"a\";\"b;c\";\"\"");
+  assert.equal(delimitedText([["x", "y"], ["1", "2"]], "\t"), "\"x\"\t\"y\"\n\"1\"\t\"2\"");
   assert.deepEqual(trimRow(["a", "", "b", "", ""]), ["a", "", "b"]);
   assert.equal(gridText([["a", "b"], ["c\nd", "e"]]), "a  │  b\nc d  │  e");
 });

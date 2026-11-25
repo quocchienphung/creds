@@ -2,6 +2,7 @@
  * The pure parts of the Flip page and of the three components it is built from (Ghost text, Generation stats, AI translate, each rebuilt from the
  * open preview of UIArc's component of that name: `docs/research/{ghost-text,generation-stats,ai-translate}/`).
  */
+import { csvField } from "./convert.ts";
 
 // ---------------------------------------------------------------------------------------------------------------------------------------
 // AI translate: units and chunks
@@ -54,11 +55,9 @@ export const FORMATS: FormatOption[] = [
   { code: "tsv", name: "TSV", meta: "tab", delimiter: "\t" },
   { code: "psv", name: "PSV", meta: "pipe |", delimiter: "|" },
 ];
-/** One field as RFC 4180 writes it: quoted when it holds the delimiter, a quote, or a line break; quotes doubled. Nothing else is touched (leading zeros stay). */
-export function field(value: string, delimiter: string): string {
-  return value.includes(delimiter) || /["\r\n]/.test(value) ? `"${value.replaceAll("\"", "\"\"")}"` : value;
-}
-export const delimitedLine = (values: readonly string[], delimiter: string) => values.map(value => field(value, delimiter)).join(delimiter);
+/** One field exactly as the real conversion writes it (convert.ts): one pair of quotes, the text untouched. */
+export const field = csvField;
+export const delimitedLine = (values: readonly string[], delimiter: string) => values.map(field).join(delimiter);
 export const delimitedText = (rows: readonly (readonly string[])[], delimiter: string) => rows.map(row => delimitedLine(row, delimiter)).join("\n");
 /** How the rows read in the workbook: columns separated by a tab-like gap, one row per line (this is the "original" of the card). */
 export const gridText = (rows: readonly (readonly string[])[]) => rows.map(row => row.map(value => value.replace(/\s*\n\s*/g, " ")).join("  │  ")).join("\n");

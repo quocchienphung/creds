@@ -93,7 +93,13 @@ function scanSheet(name: string, part: string, xml: string, strings: { value: st
     if (tag === "dimension") sheet.dimension = a.ref ?? null;
     if (tag === "autoFilter") sheet.autoFilter = true;
     if (tag === "mergeCell") { sheet.mergeCount++; protectRange(a.ref ?? ""); }
-    if (tag === "col" && /^(1|true)$/.test(a.hidden ?? "")) sheet.hiddenColumns += Number(a.max) - Number(a.min) + 1;
+    // Like Filee: a column is hidden by the flag or by a zero width.
+    if (tag === "col" && (/^(1|true)$/.test(a.hidden ?? "") || (a.width !== undefined && Number(a.width) === 0))) {
+      const min = Math.max(1, Number(a.min)), max = Math.min(16384, Number(a.max));
+      sheet.hiddenCols ??= new Set();
+      for (let c = min; c <= max; c++) sheet.hiddenCols.add(c - 1);
+      sheet.hiddenColumns = sheet.hiddenCols.size;
+    }
     if (tag === "row") {
       if (row) fail("Nested row.");
       const r = Number(a.r ?? previousRow + 1);
