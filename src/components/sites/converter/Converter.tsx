@@ -4,11 +4,11 @@ import { useWorkspaceI18n } from "@/components/sites/i18n/WorkspaceI18n";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
 import { ArrowDownToLine, FileSpreadsheet, FlipHorizontal2 } from "lucide-react";
-import { useCollateral } from "../collateral/CollateralProvider";
-import { SectionHeader, FileChip } from "../collateral/shell";
-import { Stepper, type StepSpec } from "../collateral/Stepper";
-import { CollateralBoundary } from "../collateral/CollateralBoundary";
-import { ImportStep } from "../collateral/excel-formation/steps/ImportStep";
+import { useCollateral } from "../collateral/model/CollateralProvider";
+import { SectionHeader, FileChip } from "../collateral/ui/shell";
+import { Stepper, type StepSpec } from "../collateral/ui/Stepper";
+import { CollateralBoundary } from "../collateral/ui/CollateralBoundary";
+import { ImportStep } from "../collateral/excel-formation/ui/steps/ImportStep";
 import { AgentCursor } from "./AgentCursor";
 import { GenerationStats, type StatCell, type StatsTable } from "./GenerationStats";
 import { GhostText } from "./GhostText";
@@ -20,7 +20,7 @@ import { THINK_MS, chunkFields, chunkWords, pointCountFor, streamResult } from "
 import "../affectui-settings/settings-reference.css";
 import "../affectui-settings/settings-overrides.css";
 import "../storage/storage-dropzone.css";
-import "../collateral/collateral.css";
+import "../collateral/ui/collateral.css";
 import "./flip-tokens.css";
 import "./flip.css";
 

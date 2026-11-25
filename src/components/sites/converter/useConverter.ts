@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ConverterBody, ConverterReply, SheetInfo } from "./convert.worker.ts";
-import { MESSAGE } from "../collateral/excel-formation/steps/ImportStep";
+import { MESSAGE } from "../collateral/excel-formation/ui/steps/ImportStep";
 import type { CsvStats, Delimiter } from "./convert.ts";
 
 export interface Converted extends CsvStats { sample: string[][]; blob: Blob; bytes: number; ms: number }

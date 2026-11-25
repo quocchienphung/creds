@@ -11,7 +11,7 @@ import { AccountTheme } from "./AccountTheme";
 import { AccountLanguage } from "./AccountLanguage";
 import { CrmIcon } from "./CrmIcon";
 import { SidebarFolder } from "./SidebarFolder";
-import { CollateralProvider, useCollateralBadges } from "../collateral/CollateralProvider";
+import { CollateralProvider, useCollateralBadges } from "../collateral/model/CollateralProvider";
 import { useWorkspaceRoute, workspaceSections, type WorkspaceSection } from "./workspace-state";
 import { WorkspaceDialog } from "./WorkspaceDialog";
 import { WorkspaceEditors, type EditorKind } from "./WorkspaceEditors";
@@ -31,9 +31,9 @@ import { Skeleton } from "../shimmer-loader/Shimmer";
 
 // The Settings grow out of the account menu over whatever page is open; they are not a page of the sidebar.
 const SettingsOverlay=dynamic(()=>import("../settings-command/SettingsOverlay").then(module=>module.SettingsOverlay),{ssr:false});
-const ExcelFormation=dynamic(()=>import("../collateral/excel-formation/ExcelFormation").then(module=>revealed(module.ExcelFormation)),{loading:()=> <SectionSkeleton section="Excel formation" />});
-const JsonFormation=dynamic(()=>import("../collateral/json-formation/JsonFormation").then(module=>revealed(module.JsonFormation)),{loading:()=> <SectionSkeleton section="JSON formation" />});
-const UploadQueue=dynamic(()=>import("../collateral/queue/Queue").then(module=>revealed(module.Queue)),{loading:()=> <SectionSkeleton section="Queue" />});
+const ExcelFormation=dynamic(()=>import("../collateral/excel-formation/ui/ExcelFormation").then(module=>revealed(module.ExcelFormation)),{loading:()=> <SectionSkeleton section="Excel formation" />});
+const JsonFormation=dynamic(()=>import("../collateral/json-formation/ui/JsonFormation").then(module=>revealed(module.JsonFormation)),{loading:()=> <SectionSkeleton section="JSON formation" />});
+const UploadQueue=dynamic(()=>import("../collateral/queue/ui/Queue").then(module=>revealed(module.Queue)),{loading:()=> <SectionSkeleton section="Queue" />});
 const Converter=dynamic(()=>import("../converter/Converter").then(module=>revealed(module.Converter)),{loading:()=> <SectionSkeleton section="Converter" />});
 const seedSettings=defaultSettings("Damenci");
 const setupGroups=[

@@ -60,6 +60,7 @@ export interface Workbook {
 }
 
 export type Severity = "critical" | "high" | "medium" | "low";
+export const SEVERITIES: readonly Severity[] = ["critical", "high", "medium", "low"];
 export type IssueStatus = "open" | "edited" | "verified" | "accepted_exception";
 export type IssueCategory =
   | "QUESTION_MARK_IN_WORD" | "UNICODE_REPLACEMENT" | "ENCODING_MOJIBAKE" | "INVISIBLE_OR_CONTROL" | "DIACRITIC_POLICY" | "WHITESPACE_ANOMALY"
